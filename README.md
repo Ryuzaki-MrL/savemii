@@ -11,6 +11,7 @@ Please report any issues that may occur.
 
 TODO:
 - add vWii support
+- installable package
 
 Credits:
 - dimok, for libiosuhax and libfat for Wii U
