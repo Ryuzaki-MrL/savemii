@@ -1,6 +1,7 @@
 #ifndef _SAVEMNG_H_
 #define _SAVEMNG_H_
 
+#include <sys/dirent.h>
 #include <gctypes.h>
 #include <fat.h>
 #include <iosuhax.h>

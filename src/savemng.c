@@ -1,5 +1,3 @@
-#include <sys/dirent.h>
-
 #include "savemng.h"
 
 #define BUFFER_SIZE 0x80000
@@ -129,7 +127,8 @@ void backupSavedata(u32 highID, u32 lowID, bool isUSB, int slot) {
 
     char srcPath[256];
     char dstPath[256];
-    sprintf(srcPath, "storage_%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
+    const char* path = ((highID==0x00010000) ? "slccmpt01:/title" : (isUSB ? "storage_usb:/usr/save" : "storage_mlc:/usr/save"));
+    sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, (highID==0x00010000) ? "data" : "user");
     sprintf(dstPath, "sd:/wiiu/apps/savemii/backups/%08x%08x/%i", highID, lowID, slot);
     DumpDir(srcPath, dstPath);
 
@@ -139,8 +138,9 @@ void restoreSavedata(u32 highID, u32 lowID, bool isUSB, int slot) {
 
     char srcPath[256];
     char dstPath[256];
+    const char* path = ((highID==0x00010000) ? "slccmpt01:/title" : (isUSB ? "storage_usb:/usr/save" : "storage_mlc:/usr/save"));
     sprintf(srcPath, "sd:/wiiu/apps/savemii/backups/%08x%08x/%i", highID, lowID, slot);
-    sprintf(dstPath, "storage_%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
+    sprintf(dstPath, "%s/%08x/%08x/%s", path, highID, lowID, (highID==0x00010000) ? "data" : "user");
     DumpDir(srcPath, dstPath);
 
 }
