@@ -3,7 +3,11 @@
   <name>SaveMii</name>
   <coder>Ryuzaki_MrL</coder>
   <version>1.0.0</version>
-  <release_date>00000000000000</release_date>
+  <release_date>20170404000000</release_date>
   <short_description>Wii U Save Manager</short_description>
-  <long_description>Wii U Save Manager</long_description>
+  <long_description>Wii U Save Manager
+
+You need to run iosuhax/mocha cfw first in order for this homebrew to work.
+
+This homebrew allows you to backup your Wii U savegames to the SD card and also restore them. Up to 256 backups can be made per title. Backups are stored in sd:/wiiu/apps/savemii/backups.</long_description>
 </app>

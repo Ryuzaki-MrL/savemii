@@ -14,6 +14,7 @@ TODO:
 - installable package
 
 Credits:
+- Bruno Vinicius, for the icon
 - dimok, for libiosuhax and libfat for Wii U
 - rw-r-r-0644, for lib_easy
 - dimok again, because he's awesome :3
