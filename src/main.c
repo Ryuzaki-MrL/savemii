@@ -76,7 +76,8 @@ Title* loadWiiUTitles() {
         bool isTitleOnUSB = (memcmp(element+0x56,"usb",4)==0);
         char path[255];
         memset(path, 0, 255);
-        sprintf(path, "storage_%s:/usr/title/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", highID, lowID);
+        if (memcmp(element+0x56,"odd",4)==0) strcpy(path, "storage_odd:/meta/meta.xml");
+        else sprintf(path, "storage_%s:/usr/title/%08x/%08x/meta/meta.xml", element+0x56, highID, lowID);
 
         FILE* xmlFile = fopen(path, "rb");
         if (xmlFile) {
@@ -221,6 +222,7 @@ int Menu_Main(void) {
     mount_fs("slccmpt01", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
     mount_fs("storage_mlc", fsaFd, NULL, "/vol/storage_mlc01");
     mount_fs("storage_usb", fsaFd, NULL, "/vol/storage_usb01");
+    mount_fs("storage_odd", fsaFd, "/dev/odd03", "/vol/storage_odd_content");
 
     ucls();
     Title* wiiutitles = loadWiiUTitles();
@@ -370,6 +372,7 @@ int Menu_Main(void) {
     unmount_fs("slccmpt01");
     unmount_fs("storage_mlc");
     unmount_fs("storage_usb");
+    unmount_fs("storage_odd");
 
     unmount_sd_fat("sd");
 
