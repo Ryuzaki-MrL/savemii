@@ -10,15 +10,33 @@
 
 #include "lib_easy.h"
 
+#define PATH_SIZE 0x200
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void console_print_pos(int x, int y, const char *format, ...);
+typedef struct {
+    u32 highID;
+    u32 lowID;
+    char shortName[256];
+    char productCode[32];
+    bool isTitleOnUSB;
+} Title;
 
-void backupSavedata(u32 highID, u32 lowID, bool isUSB, int slot);
-void restoreSavedata(u32 highID, u32 lowID, bool isUSB, int slot);
-void wipeSavedata(u32 highID, u32 lowID, bool isUSB);
+void console_print_pos(int x, int y, const char* format, ...);
+bool promptConfirm(const char* question);
+void promptError(const char* message);
+
+int getLoadiineGameSaveDir(char* out, const char* productCode);
+int getLoadiineSaveVersionList(int* out, const char* gamePath);
+int getLoadiineUserDir(char* out, const char* fullSavePath, const char* userID);
+
+void backupSavedata(Title* title, u8 slot, bool allusers, bool common);
+void restoreSavedata(Title* title, u8 slot, bool allusers, bool common);
+void wipeSavedata(Title* title, bool allusers, bool common);
+void importFromLoadiine(Title* title, bool common, int version);
+void exportToLoadiine(Title* title, bool common, int version);
 
 #ifdef __cplusplus
 }

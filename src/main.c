@@ -10,24 +10,17 @@
 #include "savemng.h"
 
 #define VERSION_MAJOR 1
-#define VERSION_MINOR 0
+#define VERSION_MINOR 1
 #define VERSION_MICRO 0
 
 u8 slot = 0;
+bool allusers = 0, common = 1;
 int menu = 0, mode = 0, task = 0, targ = 0;
 int cursor = 0, scroll = 0;
 int titleswiiu = 0, titlesvwii = 0;
 
-typedef struct {
-    u32 highID;
-    u32 lowID;
-    char shortname[256];
-    bool isTitleOnUSB;
-} Title;
-
 //just to be able to call async
-void someFunc(void *arg)
-{
+void someFunc(void *arg) {
     (void)arg;
 }
 
@@ -59,6 +52,7 @@ void MCPHookClose() {
 
 Title* loadWiiUTitles() {
 
+    // Source: haxchi installer
     int mcp_handle = MCP_Open();
     int count = MCP_TitleCount(mcp_handle);
     int listSize = count*0x61;
@@ -79,7 +73,7 @@ Title* loadWiiUTitles() {
         char* element = tList+(i*0x61);
         u32 highID = *(u32*)(element), lowID = *(u32*)(element+4);
         if (highID!=0x00050000) continue;
-        bool isTitleOnUSB = memcmp(element+0x56,"mlc",4)!=0;
+        bool isTitleOnUSB = (memcmp(element+0x56,"usb",4)==0);
         char path[255];
         memset(path, 0, 255);
         sprintf(path, "storage_%s:/usr/title/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", highID, lowID);
@@ -101,11 +95,14 @@ Title* loadWiiUTitles() {
                 for (cur_node = root_element->children; cur_node; cur_node = cur_node->next) {
                     if (
                         (cur_node->type != XML_ELEMENT_NODE) ||
-                        (memcmp(cur_node->name, "shortname_en", 13) != 0) ||
                         (xmlNodeGetContent(cur_node) == NULL) ||
                         (!strlen((char*)xmlNodeGetContent(cur_node)))
                     ) continue;
-                    strcpy(titles[titleswiiu].shortname, (char*)xmlNodeGetContent(cur_node));
+
+                    if (!memcmp(cur_node->name, "shortname_en", 13))
+                        strcpy(titles[titleswiiu].shortName, (char*)xmlNodeGetContent(cur_node));
+                    if (!memcmp(cur_node->name, "product_code", 13))
+                        strcpy(titles[titleswiiu].productCode, (char*)(xmlNodeGetContent(cur_node)+6));
                 }
 
                 xmlFreeDoc(tmp);
@@ -133,8 +130,8 @@ Title* loadWiiUTitles() {
 
 Title* loadWiiTitles() {
 
-    struct dirent *dirent = NULL;
-    DIR *dir = NULL;
+    struct dirent* dirent = NULL;
+    DIR* dir = NULL;
 
     dir = opendir("slccmpt01:/title/00010000");
     if (dir == NULL) {
@@ -168,7 +165,7 @@ Title* loadWiiTitles() {
                 fread(bnrBuf, 0x02, 0x20, bnrFile);
                 fclose(bnrFile);
                 for (int j = 0, k = 0; j < 0x20; j++) {
-                    titles[i].shortname[k++] = (char)bnrBuf[j];
+                    titles[i].shortName[k++] = (char)bnrBuf[j];
                 }
                 free(bnrBuf);
             }
@@ -192,7 +189,7 @@ Title* loadWiiTitles() {
 }
 
 void unloadTitles(Title* titles) {
-    free(titles);
+    if (titles) free(titles);
 }
 
 /* Entry point */
@@ -206,6 +203,7 @@ int Menu_Main(void) {
     }
     if (res < 0) {
         promptError("IOSUHAX_Open failed.");
+        unmount_sd_fat("sd");
         return EXIT_SUCCESS;
     }
 
@@ -214,6 +212,7 @@ int Menu_Main(void) {
     int fsaFd = IOSUHAX_FSA_Open();
     if (fsaFd < 0) {
         promptError("IOSUHAX_FSA_Open failed.");
+        unmount_sd_fat("sd");
         if (mcp_hook_fd >= 0) MCPHookClose();
         else IOSUHAX_Close();
         return EXIT_SUCCESS;
@@ -226,8 +225,9 @@ int Menu_Main(void) {
     ucls();
     Title* wiiutitles = loadWiiUTitles();
     Title* wiititles = loadWiiTitles();
+    int* versionList = (int*)malloc(0x100*sizeof(int));
 
-    while(1) {
+    while(wiiutitles!=NULL && wiititles!=NULL) {
 
         OSScreenClearBufferEx(0, 0);
         OSScreenClearBufferEx(1, 0);
@@ -237,29 +237,46 @@ int Menu_Main(void) {
 
         Title* titles = mode ? wiititles : wiiutitles;
         int count = mode ? titlesvwii : titleswiiu;
+        int entrycount = 0;
 
         switch(menu) {
             case 0: { // Main Menu
+                entrycount = 2;
                 console_print_pos(0, 2, "   Wii U Save Management");
                 console_print_pos(0, 3, "   vWii Save Management");
                 console_print_pos(0, 2 + cursor, "->");
             } break;
-            case 1: { // WiiU/vWii Save Management
-                console_print_pos(0, 2, "   Backup savedata");
-                console_print_pos(0, 3, "   Restore savedata");
-                // console_print_pos(0, 4, "   Wipe savedata");
-                console_print_pos(0, 2 + cursor, "->");
-            } break;
-            case 2: { // Wii/Wii U Title List
+            case 1: { // Select Title
+                entrycount = count;
                 for (int i = 0; i < 14; i++) {
                     if (i+scroll<0 || i+scroll>=count) break;
-                    if (strlen(titles[i+scroll].shortname)) console_print_pos(0, i+2, "   %s", titles[i+scroll].shortname);
+                    if (strlen(titles[i+scroll].shortName)) console_print_pos(0, i+2, "   %s", titles[i+scroll].shortName);
                     else console_print_pos(0, i+2, "   %08lx%08lx", titles[i+scroll].highID, titles[i+scroll].lowID);
                 } console_print_pos(0, 2 + cursor, "->");
             } break;
-            case 3: { // Slot select
-                console_print_pos(0, 2, "Press LEFT or RIGHT to select slot.");
-                console_print_pos(0, 3, "              < %03u >", slot);
+            case 2: { // Select Task
+                entrycount = 3 + 2*(mode==0);
+                console_print_pos(0, 2, "   Backup savedata");
+                console_print_pos(0, 3, "   Restore savedata");
+                console_print_pos(0, 4, "   Wipe savedata");
+                if (mode==0) {
+                    console_print_pos(0, 5, "   Import from loadiine");
+                    console_print_pos(0, 6, "   Export to loadiine");
+                }
+                console_print_pos(0, 2 + cursor, "->");
+            } break;
+            case 3: { // Select Options
+                entrycount = 1 + 2*(mode==0);
+                console_print_pos(0, 2, "Select %s:", task>2 ? "version" : "slot");
+                if (task > 2) console_print_pos(0, 3, "   < v%u >", versionList ? versionList[slot] : 0);
+                else console_print_pos(0, 3, "   < %03u >", slot);
+                if (mode==0) {
+                    console_print_pos(0, 5, "Select user:");
+                    console_print_pos(0, 6, "   < %s >", (allusers&&(task<3)) ? "all users" : "this user");
+                    console_print_pos(0, 8, "Include 'common' save?");
+                    console_print_pos(0, 9, "   < %s >", common ? "yes" : "no ");
+                    console_print_pos(0, 3 + cursor*3, "->");
+                }
             } break;
         }
 
@@ -271,8 +288,6 @@ int Menu_Main(void) {
 
         updatePressedButtons();
         updateHeldButtons();
-
-        int entrycount = ((menu==0) ? 2 : ((menu==1) ? 2 : count));
 
         if (isPressed(VPAD_BUTTON_DOWN) || isHeld(VPAD_BUTTON_DOWN)) {
             if (entrycount<=14) cursor = (cursor + 1) % entrycount;
@@ -289,10 +304,22 @@ int Menu_Main(void) {
         }
 
         if (isPressed(VPAD_BUTTON_LEFT) || isHeld(VPAD_BUTTON_LEFT)) {
-            if (menu==3) slot--;
+            if (menu==3) {
+                switch(cursor) {
+                    case 0: slot--; break;
+                    case 1: allusers^=1; break;
+                    case 2: common^=1; break;
+                }
+            }
             usleep(100000);
         } else if (isPressed(VPAD_BUTTON_RIGHT) || isHeld(VPAD_BUTTON_RIGHT)) {
-            if (menu==3) slot++;
+            if (menu==3) {
+                switch(cursor) {
+                    case 0: slot++; break;
+                    case 1: allusers^=1; break;
+                    case 2: common^=1; break;
+                }
+            }
             usleep(100000);
         }
 
@@ -300,20 +327,30 @@ int Menu_Main(void) {
             ucls();
             if (menu<3) {
                 if (menu==0) mode = cursor;
-                if (menu==1) task = cursor;
-                if (menu==2) targ = cursor+scroll;
+                if (menu==1) targ = cursor+scroll;
+                if (menu==2) {
+                    task = cursor;
+                    if (task > 2) {
+                        char gamePath[PATH_SIZE];
+                        memset(versionList, 0, 0x100*sizeof(int));
+                        if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode)==0)
+                            getLoadiineSaveVersionList(versionList, gamePath);
+                    }
+                }
                 menu++;
                 cursor = scroll = 0;
             } else {
                 switch(task) {
-                    case 0: backupSavedata(titles[targ].highID, titles[targ].lowID, titles[targ].isTitleOnUSB, slot); break;
-                    case 1: restoreSavedata(titles[targ].highID, titles[targ].lowID, titles[targ].isTitleOnUSB, slot); break;
-                    case 2: wipeSavedata(titles[targ].highID, titles[targ].lowID, titles[targ].isTitleOnUSB); break;
+                    case 0: backupSavedata(&titles[targ], slot, allusers, common); break;
+                    case 1: restoreSavedata(&titles[targ], slot, allusers, common); break;
+                    case 2: wipeSavedata(&titles[targ], allusers, common); break;
+                    case 3: importFromLoadiine(&titles[targ], common, versionList ? versionList[slot] : 0); break;
+                    case 4: exportToLoadiine(&titles[targ], common, versionList ? versionList[slot] : 0); break;
                 }
             }
-        } else if (isPressed(VPAD_BUTTON_B)) {
+        } else if (isPressed(VPAD_BUTTON_B) && menu>0) {
             ucls();
-            if (menu>0) menu--;
+            menu--;
             cursor = scroll = 0;
         }
 
@@ -323,6 +360,7 @@ int Menu_Main(void) {
 
     unloadTitles(wiiutitles);
     unloadTitles(wiititles);
+    free(versionList);
 
     fatUnmount("sd");
     fatUnmount("usb");

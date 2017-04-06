@@ -69,53 +69,6 @@ void uprintf(int x, int y, const char* format, ...) {
   curr_line=curr_line_tmp;
 }
 
-void pause(int showmsg) {
-    while(1) {
-        if (showmsg) {
-            OSScreenClearBufferEx(0, 0);
-            OSScreenClearBufferEx(1, 0);
-            console_print_pos(0, curr_line, "Press any key to continue...\n");
-            OSScreenFlipBuffersEx(0);
-            OSScreenFlipBuffersEx(1);
-        }
-        updatePressedButtons();
-        if (isPressed(0xFFFF)) break;
-    }
-}
-
-int promptConfirm(const char* question) {
-    ucls();
-    const char* msg = "(A) Confirm - (B) Cancel";
-    int ret = 0;
-    while(1) {
-        OSScreenClearBufferEx(0, 0);
-        OSScreenClearBufferEx(1, 0);
-        console_print_pos(25 - (strlen(question)>>1), 8, question);
-        console_print_pos(25 - (strlen(msg)>>1), 10, msg);
-        OSScreenFlipBuffersEx(0);
-        OSScreenFlipBuffersEx(1);
-        updatePressedButtons();
-        if (isPressed(VPAD_BUTTON_A | VPAD_BUTTON_B | VPAD_BUTTON_HOME)) {
-            ret = isPressed(VPAD_BUTTON_A);
-            break;
-        }
-    }
-    return ret;
-}
-
-void promptError(const char* message) {
-    ucls();
-    while(1) {
-        OSScreenClearBufferEx(0, 0);
-        OSScreenClearBufferEx(1, 0);
-        console_print_pos(25 - (strlen(message)>>1), 9, message);
-        OSScreenFlipBuffersEx(0);
-        OSScreenFlipBuffersEx(1);
-        updatePressedButtons();
-        if (isPressed(0xFFFF)) break;
-    }
-}
-
 int64_t uGetTime() {
 	return OSGetTime()/SECS_TO_TICKS(1);
 }
