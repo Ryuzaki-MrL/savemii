@@ -345,6 +345,10 @@ int Menu_Main(void) {
                 }
                 if (menu==2) {
                     task = cursor;
+                    if (task==2) {
+                        wipeSavedata(&titles[targ], allusers, common);
+                        continue;
+                    }
                     if (task > 2) {
                         char gamePath[PATH_SIZE];
                         memset(versionList, 0, 0x100*sizeof(int));
