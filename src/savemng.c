@@ -58,10 +58,6 @@ void promptError(const char* message) {
 // Source: ft2sd
 int DumpFile(char* pPath, const char* output_path) {
 
-    char* pFilename = strrchr(pPath, '/');
-    if (!pFilename) pFilename = pPath;
-    else pFilename++;
-
     unsigned char* dataBuf = (unsigned char*)memalign(0x40, BUFFER_SIZE);
     if (!dataBuf) {
         promptError("Out of memory.");
@@ -71,6 +67,7 @@ int DumpFile(char* pPath, const char* output_path) {
     FILE* pReadFile = fopen(pPath, "rb");
     if (!pReadFile) {
         promptError("Failed to open file.");
+        free(dataBuf);
         return -2;
     }
 
@@ -78,15 +75,20 @@ int DumpFile(char* pPath, const char* output_path) {
     if (!pWriteFile) {
         promptError("Failed to create file.");
         fclose(pReadFile);
+        free(dataBuf);
         return -3;
     }
 
-    unsigned int size = 0;
-    unsigned int ret;
-
-    while ((ret = fread(dataBuf, 0x1, BUFFER_SIZE, pReadFile)) > 0) {
-        fwrite(dataBuf, 0x01, ret, pWriteFile);
-        size += ret;
+    u32 rsize;
+    while ((rsize = fread(dataBuf, 0x1, BUFFER_SIZE, pReadFile)) > 0) {
+        u32 wsize = fwrite(dataBuf, 0x01, rsize, pWriteFile);
+        if (wsize!=rsize) {
+            promptError("Failed to write to file.");
+            fclose(pWriteFile);
+            fclose(pReadFile);
+            free(dataBuf);
+            return -4;
+        }
     }
 
     fclose(pWriteFile);
@@ -127,7 +129,11 @@ int DumpDir(char* pPath, const char* target_path) {
             snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", target_path, dirent->d_name);
 
             CreateSubfolder(targetPath);
-            DumpDir(pPath, targetPath);
+            if (DumpDir(pPath, targetPath)!=0) {
+                closedir(dir);
+                return -2;
+            }
+
             free(targetPath);
 
         } else {
@@ -139,7 +145,11 @@ int DumpDir(char* pPath, const char* target_path) {
             console_print_pos(0, 1, "From: %s", pPath);
             console_print_pos(0, 2, "To: %s", targetPath);
 
-            DumpFile(pPath, targetPath);
+            if (DumpFile(pPath, targetPath)!=0) {
+                closedir(dir);
+                return -3;
+            }
+
             free(targetPath);
 
         }
@@ -303,8 +313,24 @@ int getLoadiineUserDir(char* out, const char* fullSavePath, const char* userID) 
 
 }
 
+bool isSlotEmpty(u32 highID, u32 lowID, u8 slot) {
+    char path[PATH_SIZE];
+    sprintf(path, "sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+    DIR* dir = opendir(path);
+    if (dir==NULL) return 1;
+    else return closedir(dir);
+}
+
+int getEmptySlot(u32 highID, u32 lowID) {
+    for (int i = 0; i < 256; i++) {
+        if (isSlotEmpty(highID, lowID, i)) return i;
+    }
+    return -1;
+}
+
 void backupSavedata(Title* title, u8 slot, bool allusers, bool common) {
 
+    if (!isSlotEmpty(title->highID, title->lowID, slot) && !promptConfirm("Backup found on this slot. Overwrite it?")) return;
     u32 highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB, isWii = (highID==0x00010000);
     char srcPath[PATH_SIZE];
@@ -323,13 +349,19 @@ void backupSavedata(Title* title, u8 slot, bool allusers, bool common) {
         }
         sprintf(srcPath + offset, "/%s", usrPath);
     }
-    DumpDir(srcPath, dstPath);
+    if (DumpDir(srcPath, dstPath)!=0) promptError("Backup failed. DO NOT restore from this slot.");
 
 }
 
 void restoreSavedata(Title* title, u8 slot, bool allusers, bool common) {
 
+    if (isSlotEmpty(title->highID, title->lowID, slot)) {
+        promptError("No backup found on selected slot.");
+        return;
+    }
     if (!promptConfirm("Are you sure?")) return;
+    int slotb = getEmptySlot(title->highID, title->lowID);
+    if (slotb>=0 && promptConfirm("Backup current savedata first?")) backupSavedata(title, slotb, allusers, common);
     u32 highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB, isWii = (highID==0x00010000);
     char srcPath[PATH_SIZE];
@@ -348,13 +380,15 @@ void restoreSavedata(Title* title, u8 slot, bool allusers, bool common) {
         }
         sprintf(srcPath + offset, "/%s", usrPath);
     }
-    DumpDir(srcPath, dstPath);
+    if (DumpDir(srcPath, dstPath)!=0) promptError("Restore failed.");
 
 }
 
 void wipeSavedata(Title* title, bool allusers, bool common) {
 
     if (!promptConfirm("Are you sure?") || !promptConfirm("Hm, are you REALLY sure?")) return;
+    int slotb = getEmptySlot(title->highID, title->lowID);
+    if (slotb>=0 && promptConfirm("Backup current savedata first?")) backupSavedata(title, slotb, allusers, common);
     u32 highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB, isWii = (highID==0x00010000);
     char srcPath[PATH_SIZE];
@@ -377,6 +411,8 @@ void wipeSavedata(Title* title, bool allusers, bool common) {
 void importFromLoadiine(Title* title, bool common, int version) {
 
     if (!promptConfirm("Are you sure?")) return;
+    int slotb = getEmptySlot(title->highID, title->lowID);
+    if (slotb>=0 && promptConfirm("Backup current savedata first?")) backupSavedata(title, slotb, 0, common);
     u32 highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     char srcPath[PATH_SIZE];
