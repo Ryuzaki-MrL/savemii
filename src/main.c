@@ -229,7 +229,7 @@ int Menu_Main(void) {
     Title* wiititles = loadWiiTitles();
     int* versionList = (int*)malloc(0x100*sizeof(int));
 
-    while(wiiutitles!=NULL && wiititles!=NULL) {
+    while(1) {
 
         OSScreenClearBufferEx(0, 0);
         OSScreenClearBufferEx(1, 0);
@@ -328,15 +328,28 @@ int Menu_Main(void) {
         if (isPressed(VPAD_BUTTON_A)) {
             ucls();
             if (menu<3) {
-                if (menu==0) mode = cursor;
-                if (menu==1) targ = cursor+scroll;
+                if (menu==0) {
+                    mode = cursor;
+                    if (mode==0 && (!wiiutitles || !titleswiiu)) {
+                        promptError("No Wii U titles found.");
+                        continue;
+                    }
+                    if (mode==1 && (!wiititles || !titlesvwii)) {
+                        promptError("No vWii saves found.");
+                        continue;
+                    }
+                }
+                if (menu==1) {
+                    targ = cursor+scroll;
+                    if (titles[targ].highID==0 || titles[targ].lowID==0) continue;
+                }
                 if (menu==2) {
                     task = cursor;
                     if (task > 2) {
                         char gamePath[PATH_SIZE];
                         memset(versionList, 0, 0x100*sizeof(int));
-                        if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode)==0)
-                            getLoadiineSaveVersionList(versionList, gamePath);
+                        if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode)!=0) continue;
+                        getLoadiineSaveVersionList(versionList, gamePath);
                     }
                 }
                 menu++;
