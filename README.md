@@ -5,7 +5,7 @@ WiiU/vWii Save Manager
 
 This homebrew allows you to backup your Wii U and vWii savegames to the SD card and also restore them.
 Up to 256 backups can be made per title.
-Backups are stored in sd:/wiiu/apps/savemii/backups.
+Backups are stored in sd:/wiiu/backups.
 
 Please report any issues that may occur.
 
