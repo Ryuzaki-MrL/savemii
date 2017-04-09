@@ -106,10 +106,7 @@ int DumpDir(char* pPath, const char* target_path) {
     DIR* dir = NULL;
 
     dir = opendir(pPath);
-    if (dir == NULL) {
-        promptError("Failed to open directory.");
-        return -1;
-    }
+    if (dir == NULL) return -1;
 
     CreateSubfolder(target_path);
 
@@ -173,10 +170,7 @@ int DeleteDir(char* pPath) {
     DIR* dir = NULL;
 
     dir = opendir(pPath);
-    if (dir == NULL) {
-        promptError("Failed to open directory.");
-        return -1;
-    }
+    if (dir == NULL) return -1;
 
     while ((dirent = readdir(dir)) != 0) {
 
@@ -404,7 +398,7 @@ void wipeSavedata(Title* title, bool allusers, bool common) {
         getUserID(usrPath);
         sprintf(srcPath + offset, "/%s", usrPath);
     }
-    DeleteDir(srcPath);
+    if (DeleteDir(srcPath)!=0) promptError("Failed to delete savefile.");
 
 }
 

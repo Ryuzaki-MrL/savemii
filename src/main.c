@@ -135,10 +135,7 @@ Title* loadWiiTitles() {
     DIR* dir = NULL;
 
     dir = opendir("slccmpt01:/title/00010000");
-    if (dir == NULL) {
-        promptError("Failed to open directory.");
-        return NULL;
-    }
+    if (dir == NULL) return NULL;
 
     while ((dirent = readdir(dir)) != 0) {
         if(strcmp(dirent->d_name, "..")==0 || strcmp(dirent->d_name, ".")==0) continue;
