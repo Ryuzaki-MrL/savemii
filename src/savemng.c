@@ -335,13 +335,15 @@ void backupSavedata(Title* title, u8 slot, bool allusers, bool common) {
     if (!allusers && !isWii) {
         char usrPath[16];
         getUserID(usrPath);
-        sprintf(dstPath + strlen(dstPath), "/%s", usrPath);
-        u32 offset = strlen(srcPath);
+        u32 srcOffset = strlen(srcPath);
+        u32 dstOffset = strlen(dstPath);
         if (common) {
-            strcpy(srcPath + offset, "/common");
+            strcpy(srcPath + srcOffset, "/common");
+            strcpy(dstPath + dstOffset, "/common");
             if (DumpDir(srcPath, dstPath)!=0) promptError("Common save not found.");
         }
-        sprintf(srcPath + offset, "/%s", usrPath);
+        sprintf(srcPath + srcOffset, "/%s", usrPath);
+        sprintf(dstPath + dstOffset, "/%s", usrPath);
     }
     if (DumpDir(srcPath, dstPath)!=0) promptError("Backup failed. DO NOT restore from this slot.");
 
@@ -366,13 +368,15 @@ void restoreSavedata(Title* title, u8 slot, bool allusers, bool common) {
     if (!allusers && !isWii) {
         char usrPath[16];
         getUserID(usrPath);
-        sprintf(dstPath + strlen(dstPath), "/%s", usrPath);
-        u32 offset = strlen(srcPath);
+        u32 srcOffset = strlen(srcPath);
+        u32 dstOffset = strlen(dstPath);
         if (common) {
-            strcpy(srcPath + offset, "/common");
+            strcpy(srcPath + srcOffset, "/common");
+            strcpy(dstPath + dstOffset, "/common");
             if (DumpDir(srcPath, dstPath)!=0) promptError("Common save not found.");
         }
-        sprintf(srcPath + offset, "/%s", usrPath);
+        sprintf(srcPath + srcOffset, "/%s", usrPath);
+        sprintf(dstPath + dstOffset, "/%s", usrPath);
     }
     if (DumpDir(srcPath, dstPath)!=0) promptError("Restore failed.");
 
