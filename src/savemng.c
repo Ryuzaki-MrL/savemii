@@ -2,7 +2,7 @@
 
 #define BUFFER_SIZE 0x80000
 
-void console_print_pos(int x, int y, const char* format, ...) {
+void console_print_pos(int x, int y, const char* format, ...) { // Source: ftpiiu
 
 	char* tmp = NULL;
 
@@ -55,8 +55,7 @@ void promptError(const char* message) {
     }
 }
 
-// Source: ft2sd
-int DumpFile(char* pPath, const char* output_path) {
+int DumpFile(char* pPath, const char* output_path) { // Source: ft2sd
 
     unsigned char* dataBuf = (unsigned char*)memalign(0x40, BUFFER_SIZE);
     if (!dataBuf) {
@@ -99,8 +98,7 @@ int DumpFile(char* pPath, const char* output_path) {
 
 }
 
-// Source: ft2sd
-int DumpDir(char* pPath, const char* target_path) {
+int DumpDir(char* pPath, const char* target_path) { // Source: ft2sd
 
     struct dirent* dirent = NULL;
     DIR* dir = NULL;
@@ -203,8 +201,7 @@ int DeleteDir(char* pPath) {
 
 }
 
-// Source: loadiine_gx2
-void getUserID(char* out) {
+void getUserID(char* out) { // Source: loadiine_gx2
 
     /* get persistent ID - thanks to Maschell */
     unsigned int nn_act_handle;
@@ -424,9 +421,9 @@ void importFromLoadiine(Title* title, bool common, int version) {
     sprintf(dstPath, "storage_%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
     u32 dstOffset = strlen(dstPath);
     sprintf(dstPath + dstOffset, "/%s", usrPath);
-    DumpDir(srcPath, dstPath);
-    strcpy(srcPath + srcOffset, "/c");
-    strcpy(dstPath + dstOffset, "/common");
+    if (DumpDir(srcPath, dstPath)!=0) promptError("Failed to import savedata from loadiine.");
+    strcpy(srcPath + srcOffset, "/c\0");
+    strcpy(dstPath + dstOffset, "/common\0");
     if (DumpDir(srcPath, dstPath)!=0) promptError("Common save not found.");
 
 }
@@ -447,9 +444,9 @@ void exportToLoadiine(Title* title, bool common, int version) {
     sprintf(srcPath, "storage_%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
     u32 srcOffset = strlen(srcPath);
     sprintf(srcPath + srcOffset, "/%s", usrPath);
-    DumpDir(srcPath, dstPath);
-    strcpy(dstPath + dstOffset, "/c");
-    strcpy(srcPath + srcOffset, "/common");
+    if (DumpDir(srcPath, dstPath)!=0) promptError("Failed to export savedata to loadiine.");
+    strcpy(dstPath + dstOffset, "/c\0");
+    strcpy(srcPath + srcOffset, "/common\0");
     if (DumpDir(srcPath, dstPath)!=0) promptError("Common save not found.");
 
 }
