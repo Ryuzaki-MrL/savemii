@@ -21,12 +21,11 @@ void ucls() {
     OSScreenClearBufferEx(1, 0);
     flipBuffers();
   }
-  curr_line=0;
 }
 
 void ScreenInit() {
   //Init screen and screen buffers
-  OSScreenInit();	
+  OSScreenInit();
   screen_buf0_size = OSScreenGetBufferSizeEx(0);
   screen_buf1_size = OSScreenGetBufferSizeEx(1);
   screenBuffer = MEM1_alloc(screen_buf0_size + screen_buf1_size, 0x40);
@@ -35,42 +34,6 @@ void ScreenInit() {
   OSScreenEnableEx(0, 1);
   OSScreenEnableEx(1, 1);
   ucls(); //Clear screens
-}
-
-void uprintf(int x, int y, const char* format, ...) {
-  char buff[255];
-  va_list argptr;
-  va_start(argptr, format);
-  vsnprintf(buff, 255, format, argptr);
-  va_end(argptr);
-  char tmp_c;
-  int curr_x;
-  int curr_line_tmp;
-  for(int i=0; i<2; i++) {	//Print on both Buffers
-    curr_line_tmp=y;
-    curr_x=x;
-    for(size_t ii=0; ii<strlen(buff); ii++) {
-      if(buff[ii]!='\n') { //HACKY! Check for carrige returns 
-        tmp_c=buff[ii];
-        OSScreenPutFontEx(0, curr_x, curr_line_tmp, &tmp_c);  //That is printed to TV
-        OSScreenPutFontEx(1, curr_x, curr_line_tmp, &tmp_c);  //That is printed on GamePad
-        curr_x++; //Next char
-      } else {
-        curr_x=0;
-        curr_line_tmp++;
-        if(curr_line_tmp==19) { //Out of gamepad screen
-          ucls(); //Clear Screen
-          curr_line_tmp=0; //Reset curr_line
-        }
-      }
-    }
-    flipBuffers();
-  }
-  curr_line=curr_line_tmp;
-}
-
-int64_t uGetTime() {
-	return OSGetTime()/SECS_TO_TICKS(1);
 }
 
 void updatePressedButtons() {
@@ -89,18 +52,15 @@ void updateReleasedButtons() {
 }
 
 int isPressed(int button) {
-	if(buttons_pressed&button) return 1;
-	else return 0;
+	return (buttons_pressed&button);
 }
 
 int isHeld(int button) {
-	if(buttons_hold&button) return 1;
-	else return 0;
+	return (buttons_hold&button);
 }
 
 int isReleased(int button) {
-	if(buttons_released&button) return 1;
-	else return 0;
+	return (buttons_released&button);
 }
 
 void uInit() {

@@ -38,10 +38,7 @@
 #include "utils/utils.h"
 #include "common/common.h"
 
-
 unsigned char *screenBuffer;
-int curr_line; //Current print line
-int curr_column; //Current print column
 uint32_t buttons_hold; //Held buttons
 uint32_t buttons_pressed; //Pressed buttons
 uint32_t buttons_released; //Released buttons
@@ -49,8 +46,6 @@ uint32_t buttons_released; //Released buttons
 void ucls();
 void ScreenInit();
 void flipBuffers();
-void uprintf(int x, int y, const char* format, ...);
-int64_t uGetTime();
 void updatePressedButtons();
 void updateHeldButtons();
 void updateReleasedButtons();
