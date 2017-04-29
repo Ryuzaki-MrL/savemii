@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <app version="1">
   <name>SaveMii</name>
-  <coder>Ryuzaki_MrL</coder>
+  <coder>Ryuzaki_MrL original (GabyPCgeeK mod)</coder>
   <version>1.2.0</version>
-  <release_date>20170404000000</release_date>
+  <release_date>20170429000000</release_date>
   <short_description>WiiU/vWii Save Manager</short_description>
   <long_description>WiiU/vWii Save Manager
 
 You need to run iosuhax/mocha cfw first in order for this homebrew to work.
 
-This homebrew allows you to backup your Wii U and vWii savegames to the SD card and also restore them. Up to 256 backups can be made per title. Backups are stored in sd:/wiiu/backups.</long_description>
+This homebrew allows you to backup your Wii U and vWii savegames to the SD card and also restore them. Can also copy saves from NAND<->USB if title is installed to both. Up to 256 backups can be made per title. Backups are stored in sd:/wiiu/backups.</long_description>
 <category>tool</category>
 <url>https://github.com/Ryuzaki-MrL/savemii/releases</url>
 </app>
