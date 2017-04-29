@@ -269,7 +269,7 @@ int Menu_Main(void) {
                 entrycount = 1 + 2*(mode==0);
                 console_print_pos(0, 2, "Select %s:", task>2 ? "version" : "slot");
                 if (task > 2) console_print_pos(0, 3, "   < v%u >", versionList ? versionList[slot] : 0);
-                else console_print_pos(0, 3, "   < %03u >", slot);
+                else console_print_pos(0, 3, "   < %03u > (%s)", slot, isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot) ? "Empty" : "Used");
                 if (mode==0) {
                     console_print_pos(0, 5, "Select user:");
                     console_print_pos(0, 6, "   < %s >", (allusers&&(task<3)) ? "all users" : "this user");

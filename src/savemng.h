@@ -32,6 +32,8 @@ int getLoadiineGameSaveDir(char* out, const char* productCode);
 int getLoadiineSaveVersionList(int* out, const char* gamePath);
 int getLoadiineUserDir(char* out, const char* fullSavePath, const char* userID);
 
+bool isSlotEmpty(u32 highID, u32 lowID, u8 slot);
+
 void backupSavedata(Title* title, u8 slot, bool allusers, bool common);
 void restoreSavedata(Title* title, u8 slot, bool allusers, bool common);
 void wipeSavedata(Title* title, bool allusers, bool common);
