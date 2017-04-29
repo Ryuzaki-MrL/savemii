@@ -111,6 +111,16 @@ Title* loadWiiUTitles() {
                 free(xmlBuf);
             }
         }
+	
+	    titles[titleswiiu].isTitleDupe = false;
+	    for (int i = 0; i < titleswiiu; i++) {	
+		    if ((titles[i].highID == highID) && (titles[i].lowID == lowID)) {
+			    titles[titleswiiu].isTitleDupe = true;
+			    titles[titleswiiu].dupeID = i;
+			    titles[i].isTitleDupe = true;
+			    titles[i].dupeID = titleswiiu;
+		    }
+	    }
 
         titles[titleswiiu].highID = highID;
         titles[titleswiiu].lowID = lowID;
@@ -250,29 +260,35 @@ int Menu_Main(void) {
                 entrycount = count;
                 for (int i = 0; i < 14; i++) {
                     if (i+scroll<0 || i+scroll>=count) break;
-                    if (strlen(titles[i+scroll].shortName)) console_print_pos(0, i+2, "   %s (%s)", titles[i+scroll].shortName, titles[i+scroll].isTitleOnUSB ? "USB" : "NAND");
+                    if (strlen(titles[i+scroll].shortName)) console_print_pos(0, i+2, "   %s (%s) %s", titles[i+scroll].shortName, titles[i+scroll].isTitleOnUSB ? "USB" : "NAND", titles[i+scroll].isTitleDupe ? "[D]" : "");
                     else console_print_pos(0, i+2, "   %08lx%08lx", titles[i+scroll].highID, titles[i+scroll].lowID);
                 } console_print_pos(0, 2 + cursor, "->");
             } break;
             case 2: { // Select Task
-                entrycount = 3 + 2*(mode==0);
+                entrycount = 3 + 2*(mode==0) + 1*((mode==0) && (titles[targ].isTitleDupe));
                 console_print_pos(0, 2, "   Backup savedata");
                 console_print_pos(0, 3, "   Restore savedata");
                 console_print_pos(0, 4, "   Wipe savedata");
                 if (mode==0) {
                     console_print_pos(0, 5, "   Import from loadiine");
                     console_print_pos(0, 6, "   Export to loadiine");
+		                if (titles[targ].isTitleDupe) {
+		                    console_print_pos(0, 7, "   Copy Savedata to Title in %s", titles[targ].isTitleOnUSB ? "NAND" : "USB");
+		                }
                 }
+		
+
                 console_print_pos(0, 2 + cursor, "->");
             } break;
             case 3: { // Select Options
                 entrycount = 1 + 2*(mode==0);
                 console_print_pos(0, 2, "Select %s:", task>2 ? "version" : "slot");
-                if (task > 2) console_print_pos(0, 3, "   < v%u >", versionList ? versionList[slot] : 0);
+		        if (task == 5) console_print_pos(0, 3, "   < %s >", titles[targ].isTitleOnUSB ? "NAND" : "USB");
+                else if (task > 2) console_print_pos(0, 3, "   < v%u >", versionList ? versionList[slot] : 0);
                 else console_print_pos(0, 3, "   < %03u > (%s)", slot, isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot) ? "Empty" : "Used");
                 if (mode==0) {
                     console_print_pos(0, 5, "Select user:");
-                    console_print_pos(0, 6, "   < %s >", (allusers&&(task<3)) ? "all users" : "this user");
+                    console_print_pos(0, 6, "   < %s >", (allusers&&((task<3) || task==5)) ? "all users" : "this user");
                     console_print_pos(0, 8, "Include 'common' save?");
                     console_print_pos(0, 9, "   < %s >", common ? "yes" : "no ");
                     console_print_pos(0, 3 + cursor*3, "->");
@@ -365,6 +381,7 @@ int Menu_Main(void) {
                     case 2: wipeSavedata(&titles[targ], allusers, common); break;
                     case 3: importFromLoadiine(&titles[targ], common, versionList ? versionList[slot] : 0); break;
                     case 4: exportToLoadiine(&titles[targ], common, versionList ? versionList[slot] : 0); break;
+		            case 5: copySavedata(&titles[targ], &titles[titles[targ].dupeID], allusers, common); break;
                 }
             }
         } else if (isPressed(VPAD_BUTTON_B) && menu>0) {

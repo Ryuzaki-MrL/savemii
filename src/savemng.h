@@ -22,6 +22,8 @@ typedef struct {
     char shortName[256];
     char productCode[32];
     bool isTitleOnUSB;
+    bool isTitleDupe;
+    u16 dupeID;
 } Title;
 
 void console_print_pos(int x, int y, const char* format, ...);
@@ -34,6 +36,7 @@ int getLoadiineUserDir(char* out, const char* fullSavePath, const char* userID);
 
 bool isSlotEmpty(u32 highID, u32 lowID, u8 slot);
 
+void copySavedata(Title* title, Title* titled, bool allusers, bool common);
 void backupSavedata(Title* title, u8 slot, bool allusers, bool common);
 void restoreSavedata(Title* title, u8 slot, bool allusers, bool common);
 void wipeSavedata(Title* title, bool allusers, bool common);

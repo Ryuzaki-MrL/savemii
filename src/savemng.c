@@ -319,6 +319,43 @@ int getEmptySlot(u32 highID, u32 lowID) {
     return -1;
 }
 
+void copySavedata(Title* title, Title* titleb, bool allusers, bool common) {
+    u32 highID = title->highID, lowID = title->lowID;
+    bool isUSB = title->isTitleOnUSB;
+    u32 highIDb = titleb->highID, lowIDb = titleb->lowID;
+    bool isUSBb = titleb->isTitleOnUSB;
+
+    if (!promptConfirm("Are you sure?")) return;
+    int slotb = getEmptySlot(titleb->highID, titleb->lowID);
+    if (slotb>=0 && promptConfirm("Backup current savedata first?")) {
+	backupSavedata(titleb, slotb, allusers, common);
+	promptError("Backup done. Now copying Savedata.");
+    }
+
+    char srcPath[PATH_SIZE];
+    char dstPath[PATH_SIZE];
+    const char* path = (isUSB ? "storage_usb:/usr/save" : "storage_mlc:/usr/save");
+    const char* pathb = (isUSBb ? "storage_usb:/usr/save" : "storage_mlc:/usr/save");
+    sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, "user");
+    sprintf(dstPath, "%s/%08x/%08x/%s", pathb, highIDb, lowIDb, "user");
+    if (!allusers) {
+        char usrPath[16];
+        getUserID(usrPath);
+        u32 srcOffset = strlen(srcPath);
+        u32 dstOffset = strlen(dstPath);
+        if (common) {
+            strcpy(srcPath + srcOffset, "/common");
+            strcpy(dstPath + dstOffset, "/common");
+            if (DumpDir(srcPath, dstPath)!=0) promptError("Common save not found.");
+        }
+        sprintf(srcPath + srcOffset, "/%s", usrPath);
+        sprintf(dstPath + dstOffset, "/%s", usrPath);
+    }
+    if (DumpDir(srcPath, dstPath)!=0) promptError("Copy failed.");
+    promptError(srcPath);
+    promptError(dstPath);
+}
+
 void backupSavedata(Title* title, u8 slot, bool allusers, bool common) {
 
     if (!isSlotEmpty(title->highID, title->lowID, slot) && !promptConfirm("Backup found on this slot. Overwrite it?")) return;
