@@ -17,6 +17,7 @@ u8 slot = 0;
 bool allusers = 0, common = 1;
 int menu = 0, mode = 0, task = 0, targ = 0;
 int cursor = 0, scroll = 0;
+int cursorb = 0, scrollb = 0;
 int titleswiiu = 0, titlesvwii = 0;
 
 //just to be able to call async
@@ -338,6 +339,8 @@ int Menu_Main(void) {
                 }
                 if (menu==1) {
                     targ = cursor+scroll;
+		            cursorb = cursor;
+		            scrollb = scroll;
                     if (titles[targ].highID==0 || titles[targ].lowID==0) continue;
                 }
                 if (menu==2) {
@@ -368,6 +371,10 @@ int Menu_Main(void) {
             ucls();
             menu--;
             cursor = scroll = 0;
+	        if (menu==1) {
+		        cursor = cursorb;
+		        scroll = scrollb;
+	        }
         }
 
         if (isPressed(VPAD_BUTTON_HOME)) break;
