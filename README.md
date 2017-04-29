@@ -1,4 +1,4 @@
-# savemii
+# savemii (Original by Ryuzaki-MrL, modded by GabyPCgeeK)
 WiiU/vWii Save Manager
 
 **You need to run iosuhax/mocha cfw first in order for this homebrew to work.**
