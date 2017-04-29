@@ -250,7 +250,7 @@ int Menu_Main(void) {
                 entrycount = count;
                 for (int i = 0; i < 14; i++) {
                     if (i+scroll<0 || i+scroll>=count) break;
-                    if (strlen(titles[i+scroll].shortName)) console_print_pos(0, i+2, "   %s", titles[i+scroll].shortName);
+                    if (strlen(titles[i+scroll].shortName)) console_print_pos(0, i+2, "   %s (%s)", titles[i+scroll].shortName, titles[i+scroll].isTitleOnUSB ? "USB" : "NAND");
                     else console_print_pos(0, i+2, "   %08lx%08lx", titles[i+scroll].highID, titles[i+scroll].lowID);
                 } console_print_pos(0, 2 + cursor, "->");
             } break;
