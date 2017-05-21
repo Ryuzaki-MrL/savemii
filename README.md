@@ -7,7 +7,10 @@ This homebrew allows you to backup your Wii U and vWii savegames to the SD card 
 Up to 256 backups can be made per title.
 Backups are stored in sd:/wiiu/backups.
 
-Please report any issues that may occur.
+Use it at your own risk and please report any issues that may occur.
+
+Known issues:
+- some games exhibit unexpected behaviour when the savefile is restored
 
 TODO:
 - installable package
