@@ -328,8 +328,8 @@ void copySavedata(Title* title, Title* titleb, bool allusers, bool common) {
     if (!promptConfirm("Are you sure?")) return;
     int slotb = getEmptySlot(titleb->highID, titleb->lowID);
     if (slotb>=0 && promptConfirm("Backup current savedata first?")) {
-	backupSavedata(titleb, slotb, allusers, common);
-	promptError("Backup done. Now copying Savedata.");
+	    backupSavedata(titleb, slotb, allusers, common);
+	    promptError("Backup done. Now copying Savedata.");
     }
 
     char srcPath[PATH_SIZE];

@@ -49,6 +49,7 @@ void flipBuffers();
 void updatePressedButtons();
 void updateHeldButtons();
 void updateReleasedButtons();
+bool stickPos(u8 stick, f32 value);
 int isPressed(int button);
 int isHeld(int button);
 int isReleased(int button);

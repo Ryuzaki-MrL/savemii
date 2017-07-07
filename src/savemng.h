@@ -19,6 +19,7 @@ extern "C" {
 typedef struct {
     u32 highID;
     u32 lowID;
+    u16 listID;
     char shortName[256];
     char productCode[32];
     bool isTitleOnUSB;
@@ -29,6 +30,7 @@ typedef struct {
 void console_print_pos(int x, int y, const char* format, ...);
 bool promptConfirm(const char* question);
 void promptError(const char* message);
+void getUserID(char* out);
 
 int getLoadiineGameSaveDir(char* out, const char* productCode);
 int getLoadiineSaveVersionList(int* out, const char* gamePath);

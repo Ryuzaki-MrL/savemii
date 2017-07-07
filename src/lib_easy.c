@@ -51,6 +51,21 @@ void updateReleasedButtons() {
 	buttons_released = vpad.btns_r;
 }
 
+bool stickPos(u8 stick, f32 value) {
+   switch(stick) {
+      case 0 :
+          return (value > 0) ? (vpad.lstick.x > value): (vpad.lstick.x < value);
+      case 1 :
+          return ((value > 0) ? (vpad.lstick.y > value): (vpad.lstick.y < value));
+      case 2 :
+          return (value > 0) ? (vpad.rstick.x > value): (vpad.rstick.x < value);
+      case 3 :
+          return (value > 0) ? (vpad.rstick.y > value): (vpad.rstick.y < value);
+      default :
+          return 0;
+   }	
+}
+
 int isPressed(int button) {
 	return (buttons_pressed&button);
 }

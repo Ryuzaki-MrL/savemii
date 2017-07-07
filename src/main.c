@@ -15,10 +15,11 @@
 
 u8 slot = 0;
 bool allusers = 0, common = 1;
-int menu = 0, mode = 0, task = 0, targ = 0;
+int menu = 0, mode = 0, task = 0, targ = 0, tsort = 0, sorta = 1;
 int cursor = 0, scroll = 0;
 int cursorb = 0, scrollb = 0;
 int titleswiiu = 0, titlesvwii = 0;
+const char *sortn[4] = {"None", "Name", "Storage", "Storage+Name"};
 
 //just to be able to call async
 void someFunc(void *arg) {
@@ -51,17 +52,45 @@ void MCPHookClose() {
     mcp_hook_fd = -1;
 }
 
-Title* loadWiiUTitles() {
+int titleSort(const void *c1, const void *c2)
+{
+    if (tsort==0) {
+        return ((Title*)c1)->listID - ((Title*)c2)->listID;
+    } else if (tsort==1) {
+        return strcmp(((Title*)c1)->shortName,((Title*)c2)->shortName) * sorta;
+    } else if (tsort==2) {
+        if (((Title*)c1)->isTitleOnUSB == ((Title*)c2)->isTitleOnUSB)
+            return 0;
+        if (((Title*)c1)->isTitleOnUSB)
+            return 1 * sorta;
+        if (((Title*)c2)->isTitleOnUSB)
+            return -1 * sorta;
+        return 0;
+    } else if (tsort==3) {
+        if (((Title*)c1)->isTitleOnUSB && !((Title*)c2)->isTitleOnUSB)
+            return 1 * sorta;
+        if (!((Title*)c1)->isTitleOnUSB && ((Title*)c2)->isTitleOnUSB)
+            return -1 * sorta;
 
+        return strcmp(((Title*)c1)->shortName,((Title*)c2)->shortName) * sorta;
+    }
+}
+
+Title* loadWiiUTitles(int run) {
+    static char *tList;
+    static int receivedCount;
     // Source: haxchi installer
-    int mcp_handle = MCP_Open();
-    int count = MCP_TitleCount(mcp_handle);
-    int listSize = count*0x61;
-    char *tList = memalign(32, listSize);
-    memset(tList, 0, listSize);
-    int receivedCount = count;
-    MCP_TitleList(mcp_handle, &receivedCount, tList, listSize);
-    MCP_Close(mcp_handle);
+    if (run == 0) {
+        int mcp_handle = MCP_Open();
+        int count = MCP_TitleCount(mcp_handle);
+        int listSize = count*0x61;
+        tList = memalign(32, listSize);
+        memset(tList, 0, listSize);
+        receivedCount = count;
+        MCP_TitleList(mcp_handle, &receivedCount, tList, listSize);
+        MCP_Close(mcp_handle);
+        return NULL;
+    }
 
     Title* titles = malloc(receivedCount*sizeof(Title));
     if (!titles) {
@@ -111,9 +140,9 @@ Title* loadWiiUTitles() {
                 free(xmlBuf);
             }
         }
-	
+
 	    titles[titleswiiu].isTitleDupe = false;
-	    for (int i = 0; i < titleswiiu; i++) {	
+	    for (int i = 0; i < titleswiiu; i++) {
 		    if ((titles[i].highID == highID) && (titles[i].lowID == lowID)) {
 			    titles[titleswiiu].isTitleDupe = true;
 			    titles[titleswiiu].dupeID = i;
@@ -125,6 +154,7 @@ Title* loadWiiUTitles() {
         titles[titleswiiu].highID = highID;
         titles[titleswiiu].lowID = lowID;
         titles[titleswiiu].isTitleOnUSB = isTitleOnUSB;
+        titles[titleswiiu].listID = titleswiiu;
         titleswiiu++;
 
         OSScreenClearBufferEx(0, 0);
@@ -205,6 +235,7 @@ void unloadTitles(Title* titles) {
 int Menu_Main(void) {
 
     mount_sd_fat("sd");
+    loadWiiUTitles(0);
 
     int res = IOSUHAX_Open(NULL);
     if (res < 0) {
@@ -233,7 +264,7 @@ int Menu_Main(void) {
     mount_fs("storage_odd", fsaFd, "/dev/odd03", "/vol/storage_odd_content");
 
     ucls();
-    Title* wiiutitles = loadWiiUTitles();
+    Title* wiiutitles = loadWiiUTitles(1);
     Title* wiititles = loadWiiTitles();
     int* versionList = (int*)malloc(0x100*sizeof(int));
 
@@ -242,7 +273,7 @@ int Menu_Main(void) {
         OSScreenClearBufferEx(0, 0);
         OSScreenClearBufferEx(1, 0);
 
-        console_print_pos(0, 0, "SaveMii v%u.%u.%u", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
+        console_print_pos(0, 0, "SaveMii v%u.%u.%u.%s", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO, "mod2");
         console_print_pos(0, 1, "--------------------------------------------------");
 
         Title* titles = mode ? wiititles : wiiutitles;
@@ -252,11 +283,12 @@ int Menu_Main(void) {
         switch(menu) {
             case 0: { // Main Menu
                 entrycount = 2;
-                console_print_pos(0, 2, "   Wii U Save Management");
-                console_print_pos(0, 3, "   vWii Save Management");
+                console_print_pos(0, 2, "   Wii U Save Management (%u Title%s)", titleswiiu, (titleswiiu > 1) ? "s": "");
+                console_print_pos(0, 3, "   vWii Save Management (%u Title%s)", titlesvwii, (titlesvwii > 1) ? "s": "");
                 console_print_pos(0, 2 + cursor, "->");
             } break;
             case 1: { // Select Title
+                console_print_pos(30, 0, "Sort: %s %s", sortn[tsort], (tsort > 0) ? ((sorta == 1) ? "v": "^"): "");
                 entrycount = count;
                 for (int i = 0; i < 14; i++) {
                     if (i+scroll<0 || i+scroll>=count) break;
@@ -276,7 +308,7 @@ int Menu_Main(void) {
 		                    console_print_pos(0, 7, "   Copy Savedata to Title in %s", titles[targ].isTitleOnUSB ? "NAND" : "USB");
 		                }
                 }
-		
+
 
                 console_print_pos(0, 2 + cursor, "->");
             } break;
@@ -288,7 +320,9 @@ int Menu_Main(void) {
                 else console_print_pos(0, 3, "   < %03u > (%s)", slot, isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot) ? "Empty" : "Used");
                 if (mode==0) {
                     console_print_pos(0, 5, "Select user:");
-                    console_print_pos(0, 6, "   < %s >", (allusers&&((task<3) || task==5)) ? "all users" : "this user");
+                    char usrPath[16];
+                    getUserID(usrPath);
+                    console_print_pos(0, 6, "   < %s > %s", (allusers&&((task<3) || task==5)) ? "all users" : "this user", (allusers&&((task<3) || task==5)) ? "" : usrPath);
                     console_print_pos(0, 8, "Include 'common' save?");
                     console_print_pos(0, 9, "   < %s >", common ? "yes" : "no ");
                     console_print_pos(0, 3 + cursor*3, "->");
@@ -305,13 +339,13 @@ int Menu_Main(void) {
         updatePressedButtons();
         updateHeldButtons();
 
-        if (isPressed(VPAD_BUTTON_DOWN) || isHeld(VPAD_BUTTON_DOWN)) {
+        if (isPressed(VPAD_BUTTON_DOWN) || isHeld(VPAD_BUTTON_DOWN) || stickPos(1, -0.7)) {
             if (entrycount<=14) cursor = (cursor + 1) % entrycount;
             else if (cursor < 6) cursor++;
             else if ((cursor+scroll+1) % entrycount) scroll++;
             else cursor = scroll = 0;
             usleep(100000);
-        } else if (isPressed(VPAD_BUTTON_UP) || isHeld(VPAD_BUTTON_UP)) {
+        } else if (isPressed(VPAD_BUTTON_UP) || isHeld(VPAD_BUTTON_UP) || stickPos(1, 0.7)) {
             if (scroll > 0) cursor -= (cursor>6) ? 1 : 0*(scroll--);
             else if (cursor > 0) cursor--;
             else if (entrycount>14) scroll = entrycount - (cursor = 6) - 1;
@@ -319,7 +353,7 @@ int Menu_Main(void) {
             usleep(100000);
         }
 
-        if (isPressed(VPAD_BUTTON_LEFT) || isHeld(VPAD_BUTTON_LEFT)) {
+        if (isPressed(VPAD_BUTTON_LEFT) || isHeld(VPAD_BUTTON_LEFT) || stickPos(0, -0.7)) {
             if (menu==3) {
                 switch(cursor) {
                     case 0: slot--; break;
@@ -328,7 +362,7 @@ int Menu_Main(void) {
                 }
             }
             usleep(100000);
-        } else if (isPressed(VPAD_BUTTON_RIGHT) || isHeld(VPAD_BUTTON_RIGHT)) {
+        } else if (isPressed(VPAD_BUTTON_RIGHT) || isHeld(VPAD_BUTTON_RIGHT) || stickPos(0, 0.7)) {
             if (menu==3) {
                 switch(cursor) {
                     case 0: slot++; break;
@@ -339,6 +373,15 @@ int Menu_Main(void) {
             usleep(100000);
         }
 
+        if (isPressed(VPAD_BUTTON_R) && (menu==1)) {
+            tsort = (tsort + 1) % 4;
+            qsort(wiiutitles, titleswiiu, sizeof(Title), titleSort);
+        }
+
+        if (isPressed(VPAD_BUTTON_L) && (menu==1) && (tsort > 0)) {
+            sorta *= -1;
+            qsort(wiiutitles, titleswiiu, sizeof(Title), titleSort);
+        }
         if (isPressed(VPAD_BUTTON_A)) {
             ucls();
             if (menu<3) {
@@ -355,8 +398,8 @@ int Menu_Main(void) {
                 }
                 if (menu==1) {
                     targ = cursor+scroll;
-		            cursorb = cursor;
-		            scrollb = scroll;
+                    cursorb = cursor;
+                    scrollb = scroll;
                     if (titles[targ].highID==0 || titles[targ].lowID==0) continue;
                 }
                 if (menu==2) {
