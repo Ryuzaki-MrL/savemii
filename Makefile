@@ -56,7 +56,7 @@ MAKEFLAGS += --no-print-directory
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:= -lfat -liosuhax -lxml2
+LIBS	:= -lfat -liosuhax
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

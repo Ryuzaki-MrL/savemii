@@ -12,6 +12,7 @@
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 2
 #define VERSION_MICRO 0
+#define VERSION_MOD "mod3"
 
 u8 slot = 0;
 bool allusers = 0, common = 1;
@@ -30,7 +31,7 @@ static int mcp_hook_fd = -1;
 int MCPHookOpen() {
     //take over mcp thread
     mcp_hook_fd = MCP_Open();
-    if(mcp_hook_fd < 0) return -1;
+    if (mcp_hook_fd < 0) return -1;
     IOS_IoctlAsync(mcp_hook_fd, 0x62, (void*)0, 0, (void*)0, 0, someFunc, (void*)0);
     //let wupserver start up
     sleep(1);
@@ -43,7 +44,7 @@ int MCPHookOpen() {
 }
 
 void MCPHookClose() {
-    if(mcp_hook_fd < 0) return;
+    if (mcp_hook_fd < 0) return;
     //close down wupserver, return control to mcp
     IOSUHAX_Close();
     //wait for mcp to return
@@ -76,7 +77,7 @@ int titleSort(const void *c1, const void *c2)
     }
 }
 
-Title* loadWiiUTitles(int run) {
+Title* loadWiiUTitles(int run, int fsaFd) {
     static char *tList;
     static int receivedCount;
     // Source: haxchi installer
@@ -99,44 +100,35 @@ Title* loadWiiUTitles(int run) {
     }
 
     for (int i = 0; i < receivedCount; i++) {
-
+        int srcFd = -1;
         char* element = tList+(i*0x61);
         u32 highID = *(u32*)(element), lowID = *(u32*)(element+4);
         if (highID!=0x00050000) continue;
         bool isTitleOnUSB = (memcmp(element+0x56,"usb",4)==0);
         char path[255];
         memset(path, 0, 255);
-        if (memcmp(element+0x56,"odd",4)==0) strcpy(path, "storage_odd:/meta/meta.xml");
-        else sprintf(path, "storage_%s:/usr/title/%08x/%08x/meta/meta.xml", element+0x56, highID, lowID);
+        if (memcmp(element+0x56,"odd",4)==0) strcpy(path, "/vol/storage_odd_content/meta/meta.xml");
+        else sprintf(path, "/vol/storage_%s01/usr/title/%08x/%08x/meta/meta.xml", element+0x56, highID, lowID);
 
-        FILE* xmlFile = fopen(path, "rb");
-        if (xmlFile) {
-            fseek(xmlFile, 0, SEEK_END);
-            size_t xmlSize = ftell(xmlFile);
-            fseek(xmlFile, 0, SEEK_SET);
+        int ret = IOSUHAX_FSA_OpenFile(fsaFd, path, "rb", &srcFd);
+        if (ret >= 0) {
+            fileStat_s fStat;
+        	IOSUHAX_FSA_StatFile(fsaFd, srcFd, &fStat);
+            size_t xmlSize = fStat.size;
+
             char* xmlBuf = malloc(xmlSize+1);
             if (xmlBuf) {
                 memset(xmlBuf, 0, xmlSize+1);
-                fread(xmlBuf, 1, xmlSize, xmlFile);
-                fclose(xmlFile);
+                IOSUHAX_FSA_ReadFile(fsaFd, xmlBuf, 0x01, xmlSize, srcFd, 0);
+                IOSUHAX_FSA_CloseFile(fsaFd, srcFd);
 
-                xmlDocPtr tmp = xmlReadMemory(xmlBuf, xmlSize, "meta.xml", "utf-8", 0);
-                xmlNode* root_element = xmlDocGetRootElement(tmp);
-                xmlNode* cur_node = NULL;
-                for (cur_node = root_element->children; cur_node; cur_node = cur_node->next) {
-                    if (
-                        (cur_node->type != XML_ELEMENT_NODE) ||
-                        (xmlNodeGetContent(cur_node) == NULL) ||
-                        (!strlen((char*)xmlNodeGetContent(cur_node)))
-                    ) continue;
+                char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
+                strncpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<"));
 
-                    if (!memcmp(cur_node->name, "shortname_en", 13))
-                        strcpy(titles[titleswiiu].shortName, (char*)xmlNodeGetContent(cur_node));
-                    if (!memcmp(cur_node->name, "product_code", 13))
-                        strcpy(titles[titleswiiu].productCode, (char*)(xmlNodeGetContent(cur_node)+6));
-                }
+                cptr = strchr(strstr(xmlBuf, "shortname_en"), '>') + 1;
+                memset(titles[titleswiiu].shortName, 0, sizeof(titles[titleswiiu].shortName));
+                strncpy(titles[titleswiiu].shortName, cptr, strcspn(cptr, "<"));
 
-                xmlFreeDoc(tmp);
                 free(xmlBuf);
             }
         }
@@ -170,18 +162,20 @@ Title* loadWiiUTitles(int run) {
 
 }
 
-Title* loadWiiTitles() {
+Title* loadWiiTitles(int fsaFd) {
+    int dirH;
 
-    struct dirent* dirent = NULL;
-    DIR* dir = NULL;
+    if (IOSUHAX_FSA_OpenDir(fsaFd, "/vol/storage_slccmpt01/title/00010000", &dirH) < 0) return -1;
 
-    dir = opendir("slccmpt01:/title/00010000");
-    if (dir == NULL) return NULL;
+    while (1) {
+        directoryEntry_s data;
+		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
+		if (ret != 0)
+			break;
 
-    while ((dirent = readdir(dir)) != 0) {
-        if(strcmp(dirent->d_name, "..")==0 || strcmp(dirent->d_name, ".")==0) continue;
+        if (strcmp(data.name, "..") == 0 || strcmp(data.name, ".") == 0) continue;
         titlesvwii++;
-    } rewinddir(dir);
+    } IOSUHAX_FSA_RewindDir(fsaFd, dirH);
 
     Title* titles = malloc(titlesvwii*sizeof(Title));
     if (!titles) {
@@ -190,28 +184,52 @@ Title* loadWiiTitles() {
     }
 
     int i = 0;
-    while ((dirent = readdir(dir)) != 0) {
+    while (1) {
+        directoryEntry_s data;
+		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
+		if (ret != 0)
+			break;
 
-        if(strcmp(dirent->d_name, "..")==0 || strcmp(dirent->d_name, ".")==0) continue;
+        if (strcmp(data.name, "..") == 0 || strcmp(data.name, ".") == 0) continue;
 
+        int srcFd = -1;
         char path[256];
-        sprintf(path, "slccmpt01:/title/00010000/%s/data/banner.bin", dirent->d_name);
-        FILE* bnrFile = fopen(path, "rb");
-        if (bnrFile) {
-            fseek(bnrFile, 0x20, SEEK_SET);
+        sprintf(path, "/vol/storage_slccmpt01/title/00010000/%s/data/banner.bin", data.name);
+        ret = IOSUHAX_FSA_OpenFile(fsaFd, path, "rb", &srcFd);
+        if (ret >= 0) {
+            IOSUHAX_FSA_SetFilePos(fsaFd, srcFd, 0x20);
             u16* bnrBuf = (u16*)malloc(0x40);
             if (bnrBuf) {
-                fread(bnrBuf, 0x02, 0x20, bnrFile);
-                fclose(bnrFile);
+                IOSUHAX_FSA_ReadFile(fsaFd, bnrBuf, 0x02, 0x20, srcFd, 0);
+                IOSUHAX_FSA_CloseFile(fsaFd, srcFd);
+
+                int uni = 0;
                 for (int j = 0, k = 0; j < 0x20; j++) {
-                    titles[i].shortName[k++] = (char)bnrBuf[j];
+                    if (bnrBuf[j] > 127) {
+                        titles[i].shortName[k++] = '?';
+                        uni++;
+                    } else {
+                        titles[i].shortName[k++] = (char)bnrBuf[j];
+                        if ((char)bnrBuf[j] == 0)
+                            uni++;
+                    }
                 }
                 free(bnrBuf);
+                if (uni == 0x20)
+                    sprintf(titles[i].shortName, "00010000%s (No ASCII char in title)", data.name);
             }
+        } else {
+            sprintf(titles[i].shortName, "00010000%s (No banner.bin)", data.name);
         }
 
         titles[i].highID = 0x00010000;
-        titles[i].lowID = strtoul(dirent->d_name, NULL, 16);
+        titles[i].lowID = strtoul(data.name, NULL, 16);
+
+        titles[i].listID = i;
+        sprintf(titles[i].productCode, "?");
+        titles[i].isTitleOnUSB = false;
+        titles[i].isTitleDupe = false;
+        titles[i].dupeID = 0;
         i++;
 
         OSScreenClearBufferEx(0, 0);
@@ -219,10 +237,9 @@ Title* loadWiiTitles() {
         console_print_pos(0, 1, "Loaded %i Wii titles.", i);
         OSScreenFlipBuffersEx(0);
         OSScreenFlipBuffersEx(1);
-
     }
 
-    closedir(dir);
+    IOSUHAX_FSA_CloseDir(fsaFd, dirH);
     return titles;
 
 }
@@ -234,8 +251,8 @@ void unloadTitles(Title* titles) {
 /* Entry point */
 int Menu_Main(void) {
 
-    mount_sd_fat("sd");
-    loadWiiUTitles(0);
+    //mount_sd_fat("sd");
+    loadWiiUTitles(0, -1);
 
     int res = IOSUHAX_Open(NULL);
     if (res < 0) {
@@ -247,25 +264,28 @@ int Menu_Main(void) {
         return EXIT_SUCCESS;
     }
 
-    fatInitDefault();
+    //fatInitDefault();
 
     int fsaFd = IOSUHAX_FSA_Open();
     if (fsaFd < 0) {
         promptError("IOSUHAX_FSA_Open failed.");
-        unmount_sd_fat("sd");
+        //unmount_sd_fat("sd");
         if (mcp_hook_fd >= 0) MCPHookClose();
         else IOSUHAX_Close();
         return EXIT_SUCCESS;
     }
+    setFSAFD(fsaFd);
 
+    IOSUHAX_FSA_Mount(fsaFd, "/dev/sdcard01", "/vol/storage_sdcard", 2, (void*)0, 0);
+    //mount_fs("sd", fsaFd, NULL, "/vol/storage_sdcard");
     mount_fs("slccmpt01", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
     mount_fs("storage_mlc", fsaFd, NULL, "/vol/storage_mlc01");
     mount_fs("storage_usb", fsaFd, NULL, "/vol/storage_usb01");
     mount_fs("storage_odd", fsaFd, "/dev/odd03", "/vol/storage_odd_content");
 
     ucls();
-    Title* wiiutitles = loadWiiUTitles(1);
-    Title* wiititles = loadWiiTitles();
+    Title* wiiutitles = loadWiiUTitles(1, fsaFd);
+    Title* wiititles = loadWiiTitles(fsaFd);
     int* versionList = (int*)malloc(0x100*sizeof(int));
 
     while(1) {
@@ -273,7 +293,7 @@ int Menu_Main(void) {
         OSScreenClearBufferEx(0, 0);
         OSScreenClearBufferEx(1, 0);
 
-        console_print_pos(0, 0, "SaveMii v%u.%u.%u.%s", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO, "mod2");
+        console_print_pos(0, 0, "SaveMii v%u.%u.%u.%s", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO, VERSION_MOD);
         console_print_pos(0, 1, "--------------------------------------------------");
 
         Title* titles = mode ? wiititles : wiiutitles;
@@ -292,25 +312,27 @@ int Menu_Main(void) {
                 entrycount = count;
                 for (int i = 0; i < 14; i++) {
                     if (i+scroll<0 || i+scroll>=count) break;
-                    if (strlen(titles[i+scroll].shortName)) console_print_pos(0, i+2, "   %s (%s) %s", titles[i+scroll].shortName, titles[i+scroll].isTitleOnUSB ? "USB" : "NAND", titles[i+scroll].isTitleDupe ? "[D]" : "");
+                    if (strlen(titles[i+scroll].shortName)) console_print_pos(0, i+2, "   %s %s %s", titles[i+scroll].shortName, titles[i+scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i+scroll].isTitleDupe ? "[D]" : "");
                     else console_print_pos(0, i+2, "   %08lx%08lx", titles[i+scroll].highID, titles[i+scroll].lowID);
                 } console_print_pos(0, 2 + cursor, "->");
             } break;
             case 2: { // Select Task
                 entrycount = 3 + 2*(mode==0) + 1*((mode==0) && (titles[targ].isTitleDupe));
-                console_print_pos(0, 2, "   Backup savedata");
-                console_print_pos(0, 3, "   Restore savedata");
-                console_print_pos(0, 4, "   Wipe savedata");
+                console_print_pos(0, 2, "   [%08X%08X]", titles[targ].highID, titles[targ].lowID);
+                console_print_pos(0, 3, "   [%s] %s", titles[targ].productCode, titles[targ].shortName);
+                console_print_pos(0, 2+3, "   Backup savedata");
+                console_print_pos(0, 3+3, "   Restore savedata");
+                console_print_pos(0, 4+3, "   Wipe savedata");
                 if (mode==0) {
-                    console_print_pos(0, 5, "   Import from loadiine");
-                    console_print_pos(0, 6, "   Export to loadiine");
+                    console_print_pos(0, 5+3, "   Import from loadiine");
+                    console_print_pos(0, 6+3, "   Export to loadiine");
 		                if (titles[targ].isTitleDupe) {
-		                    console_print_pos(0, 7, "   Copy Savedata to Title in %s", titles[targ].isTitleOnUSB ? "NAND" : "USB");
+		                    console_print_pos(0, 7+3, "   Copy Savedata to Title in %s", titles[targ].isTitleOnUSB ? "NAND" : "USB");
 		                }
                 }
 
 
-                console_print_pos(0, 2 + cursor, "->");
+                console_print_pos(0, 2+3 + cursor, "->");
             } break;
             case 3: { // Select Options
                 entrycount = 1 + 2*(mode==0);
@@ -323,8 +345,14 @@ int Menu_Main(void) {
                     char usrPath[16];
                     getUserID(usrPath);
                     console_print_pos(0, 6, "   < %s > %s", (allusers&&((task<3) || task==5)) ? "all users" : "this user", (allusers&&((task<3) || task==5)) ? "" : usrPath);
-                    console_print_pos(0, 8, "Include 'common' save?");
-                    console_print_pos(0, 9, "   < %s >", common ? "yes" : "no ");
+                    if (hasCommonSave(&titles[targ], (task == 0 ? false : true), (task < 3 ? false : true), slot, versionList ? versionList[slot] : 0)) {
+                        console_print_pos(0, 8, "Include 'common' save?");
+                        console_print_pos(0, 9, "   < %s >", common ? "yes" : "no ");
+                    } else {
+                        common = false;
+                        console_print_pos(0, 8, "No 'common' save found.");
+                        entrycount--;
+                    }
                     console_print_pos(0, 3 + cursor*3, "->");
                 }
             } break;
@@ -382,30 +410,43 @@ int Menu_Main(void) {
             sorta *= -1;
             qsort(wiiutitles, titleswiiu, sizeof(Title), titleSort);
         }
+
+        if (isPressed(VPAD_BUTTON_X) && (menu == 1) && (mode == 0)) {
+            /*targ = cursor+scroll;
+            if (titles[targ].highID == 0 || titles[targ].lowID == 0) continue;
+            SYSCheckTitleExists((uint64_t) titles[targ].highID << 32 | titles[targ].lowID);
+
+            if (SYSCheckTitleExists((uint64_t) titles[targ].highID << 32 | titles[targ].lowID)) {
+                SYSLaunchTitle((uint64_t) titles[targ].highID << 32 | titles[targ].lowID);
+                break;
+            }*/
+        }
+
         if (isPressed(VPAD_BUTTON_A)) {
             ucls();
-            if (menu<3) {
-                if (menu==0) {
+            if (menu < 3) {
+                if (menu == 0) {
                     mode = cursor;
-                    if (mode==0 && (!wiiutitles || !titleswiiu)) {
+                    if (mode == 0 && (!wiiutitles || !titleswiiu)) {
                         promptError("No Wii U titles found.");
                         continue;
                     }
-                    if (mode==1 && (!wiititles || !titlesvwii)) {
+                    if (mode == 1 && (!wiititles || !titlesvwii)) {
                         promptError("No vWii saves found.");
                         continue;
                     }
                 }
-                if (menu==1) {
+                if (menu == 1) {
                     targ = cursor+scroll;
                     cursorb = cursor;
                     scrollb = scroll;
                     if (titles[targ].highID==0 || titles[targ].lowID==0) continue;
                 }
-                if (menu==2) {
+                if (menu == 2) {
                     task = cursor;
-                    if (task==2) {
-                        wipeSavedata(&titles[targ], allusers, common);
+                    if (task == 2) {
+                        allusers = promptConfirm("Delete save from all users?");
+                        wipeSavedata(&titles[targ], allusers, hasCommonSave(&titles[targ], false, false, 0, 0));
                         continue;
                     }
                     if (task > 2) {
@@ -421,20 +462,22 @@ int Menu_Main(void) {
                 switch(task) {
                     case 0: backupSavedata(&titles[targ], slot, allusers, common); break;
                     case 1: restoreSavedata(&titles[targ], slot, allusers, common); break;
-                    case 2: wipeSavedata(&titles[targ], allusers, common); break;
+                    case 2:
+                    allusers = promptConfirm("Delete save from all users? A-Yes B-No");
+                    wipeSavedata(&titles[targ], allusers, hasCommonSave(&titles[targ], false, false, 0, 0)); break;
                     case 3: importFromLoadiine(&titles[targ], common, versionList ? versionList[slot] : 0); break;
                     case 4: exportToLoadiine(&titles[targ], common, versionList ? versionList[slot] : 0); break;
 		            case 5: copySavedata(&titles[targ], &titles[titles[targ].dupeID], allusers, common); break;
                 }
             }
-        } else if (isPressed(VPAD_BUTTON_B) && menu>0) {
+        } else if (isPressed(VPAD_BUTTON_B) && menu > 0) {
             ucls();
             menu--;
             cursor = scroll = 0;
-	        if (menu==1) {
-		        cursor = cursorb;
-		        scroll = scrollb;
-	        }
+            if (menu == 1) {
+                cursor = cursorb;
+                scroll = scrollb;
+            }
         }
 
         if (isPressed(VPAD_BUTTON_HOME)) break;
@@ -451,6 +494,7 @@ int Menu_Main(void) {
     IOSUHAX_usb_disc_interface.shutdown();
 
     unmount_fs("slccmpt01");
+    //unmount_fs("sd");
     unmount_fs("storage_mlc");
     unmount_fs("storage_usb");
     unmount_fs("storage_odd");
