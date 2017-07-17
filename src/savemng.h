@@ -22,10 +22,18 @@ typedef struct {
     u16 listID;
     char shortName[256];
     char productCode[32];
+    bool saveInit;
     bool isTitleOnUSB;
     bool isTitleDupe;
     u16 dupeID;
 } Title;
+
+typedef struct {
+    u32 highID;
+    u32 lowID;
+    u8 dev;
+    bool found;
+} Saves;
 
 void console_print_pos(int x, int y, const char* format, ...);
 bool promptConfirm(const char* question);

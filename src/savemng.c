@@ -100,20 +100,14 @@ void console_print_pos(int x, int y, const char* format, ...) { // Source: ftpii
 }
 
 void console_print_pos_va(int x, int y, const char* format, va_list va) { // Source: ftpiiu
-
 	char* tmp = NULL;
 
 	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
-
         if (strlen(tmp) > 79) tmp[79] = 0;
-
         OSScreenPutFontEx(0, x, y, tmp);
         OSScreenPutFontEx(1, x, y, tmp);
-
 	}
-
 	if (tmp) free(tmp);
-
 }
 
 bool promptConfirm(const char* question) {
@@ -526,6 +520,8 @@ void copySavedata(Title* title, Title* titleb, bool allusers, bool common) {
     const char* pathb = (isUSBb ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save");
     sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, "user");
     sprintf(dstPath, "%s/%08x/%08x/%s", pathb, highIDb, lowIDb, "user");
+	createFolder(dstPath);
+
     if (!allusers) {
         char usrPath[16];
         getUserID(usrPath);
@@ -557,11 +553,9 @@ void backupSavedata(Title* title, u8 slot, bool allusers, bool common) {
     char dstPath[PATH_SIZE];
     const char* path = (isWii ? "/vol/storage_slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save"));
     sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
-	IOSUHAX_FSA_MakeDir(fsaFd, "/vol/storage_sdcard/wiiu/backups", 0x666);
-	sprintf(dstPath, "/vol/storage_sdcard/wiiu/backups/%08x%08x", highID, lowID);
-	IOSUHAX_FSA_MakeDir(fsaFd, dstPath, 0x666);
 	sprintf(dstPath, "/vol/storage_sdcard/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
-	IOSUHAX_FSA_MakeDir(fsaFd, dstPath, 0x666);
+	createFolder(dstPath);
+
     if (!allusers && !isWii) {
         char usrPath[16];
         getUserID(usrPath);
@@ -604,6 +598,8 @@ void restoreSavedata(Title* title, u8 slot, bool allusers, bool common) {
     const char* path = (isWii ? "/vol/storage_slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save"));
     sprintf(srcPath, "/vol/storage_sdcard/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
     sprintf(dstPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
+	createFolder(dstPath);
+
     if (!allusers && !isWii) {
         char usrPath[16];
         getUserID(usrPath);
@@ -676,6 +672,7 @@ void importFromLoadiine(Title* title, bool common, int version) {
     u32 srcOffset = strlen(srcPath);
     getLoadiineUserDir(srcPath, srcPath, usrPath);
     sprintf(dstPath, "/vol/storage_%s01/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
+	createFolder(dstPath);
     u32 dstOffset = strlen(dstPath);
     sprintf(dstPath + dstOffset, "/%s", usrPath);
     if (DumpDir(srcPath, dstPath) != 0) promptError("Failed to import savedata from loadiine.");

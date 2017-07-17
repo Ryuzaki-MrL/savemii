@@ -12,11 +12,11 @@
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 2
 #define VERSION_MICRO 0
-#define VERSION_MOD "mod3"
+#define VERSION_MOD "mod4"
 
 u8 slot = 0;
 bool allusers = 0, common = 1;
-int menu = 0, mode = 0, task = 0, targ = 0, tsort = 0, sorta = 1;
+int menu = 0, mode = 0, task = 0, targ = 0, tsort = 1, sorta = 1;
 int cursor = 0, scroll = 0;
 int cursorb = 0, scrollb = 0;
 int titleswiiu = 0, titlesvwii = 0;
@@ -63,15 +63,15 @@ int titleSort(const void *c1, const void *c2)
         if (((Title*)c1)->isTitleOnUSB == ((Title*)c2)->isTitleOnUSB)
             return 0;
         if (((Title*)c1)->isTitleOnUSB)
-            return 1 * sorta;
-        if (((Title*)c2)->isTitleOnUSB)
             return -1 * sorta;
+        if (((Title*)c2)->isTitleOnUSB)
+            return 1 * sorta;
         return 0;
     } else if (tsort==3) {
         if (((Title*)c1)->isTitleOnUSB && !((Title*)c2)->isTitleOnUSB)
-            return 1 * sorta;
-        if (!((Title*)c1)->isTitleOnUSB && ((Title*)c2)->isTitleOnUSB)
             return -1 * sorta;
+        if (!((Title*)c1)->isTitleOnUSB && ((Title*)c2)->isTitleOnUSB)
+            return 1 * sorta;
 
         return strcmp(((Title*)c1)->shortName,((Title*)c2)->shortName) * sorta;
     }
@@ -93,22 +93,112 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         return NULL;
     }
 
-    Title* titles = malloc(receivedCount*sizeof(Title));
+    int usable = receivedCount, j = 0;
+    Saves* savesl = malloc(receivedCount*sizeof(Saves));
+    if (!savesl) {
+        promptError("Out of memory.");
+        return NULL;
+    }
+    for (int i = 0; i < receivedCount; i++) {
+        char* element = tList+(i*0x61);
+        savesl[j].highID = *(u32*)(element);
+        if (savesl[j].highID != 0x00050000) {
+            usable--;
+            continue;
+        }
+        savesl[j].lowID = *(u32*)(element+4);
+        savesl[j].dev = !(memcmp(element+0x56, "usb", 4) == 0);
+        savesl[j].found = false;
+        j++;
+    }
+    savesl = realloc(savesl, usable*sizeof(Saves));
+
+    int dirUH, dirNH, foundCount = 0, pos = 0, tNoSave = usable;
+    for(int i = 0; i <= 1; i++) {
+        char path[255];
+        sprintf(path, "/vol/storage_%s01/usr/save/00050000", (i == 0) ? "usb" : "mlc");
+        if (IOSUHAX_FSA_OpenDir(fsaFd, path, &dirUH) >= 0) {
+            while (1) {
+                directoryEntry_s data;
+        		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
+        		if (ret != 0)
+        			break;
+
+                sprintf(path, "/vol/storage_%s01/usr/save/00050000/%s/user", (i == 0) ? "usb" : "mlc", data.name);
+                if (checkEntry(path) == 2) {
+                    sprintf(path, "/vol/storage_%s01/usr/save/00050000/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", data.name);
+                    if (checkEntry(path) == 1) {
+                        for (int i = 0; i < usable; i++) {
+                            if ((savesl[i].highID == 0x00050000) && (strtoul(data.name, NULL, 16) == savesl[i].lowID)) {
+                                savesl[i].found = true;
+                                tNoSave--;
+                                break;
+                            }
+                        }
+                        foundCount++;
+                    }
+                }
+            }
+            IOSUHAX_FSA_CloseDir(fsaFd, dirUH);
+        }
+    }
+
+    foundCount += tNoSave;
+    Saves* saves = malloc((foundCount + tNoSave)*sizeof(Saves));
+    if (!saves) {
+        promptError("Out of memory.");
+        return NULL;
+    }
+    for(int i = 0; i <= 1; i++) {
+        char path[255];
+        sprintf(path, "/vol/storage_%s01/usr/save/00050000", (i == 0) ? "usb" : "mlc");
+        if (IOSUHAX_FSA_OpenDir(fsaFd, path, &dirUH) >= 0) {
+            while (1) {
+                directoryEntry_s data;
+        		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
+        		if (ret != 0)
+        			break;
+
+                sprintf(path, "/vol/storage_%s01/usr/save/00050000/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", data.name);
+                if (checkEntry(path) == 1) {
+                    saves[pos].highID = 0x00050000;
+                    saves[pos].lowID = strtoul(data.name, NULL, 16);
+                    saves[pos].dev = i;
+                    saves[pos].found = false;
+                    pos++;
+                }
+            }
+            IOSUHAX_FSA_CloseDir(fsaFd, dirUH);
+        }
+    }
+    for (int i = 0; i < usable; i++) {
+        if (!savesl[i].found) {
+            saves[pos].highID = savesl[i].highID;
+            saves[pos].lowID = savesl[i].lowID;
+            saves[pos].dev = savesl[i].dev;
+            saves[pos].found = true;
+            pos++;
+        }
+    }
+
+    Title* titles = malloc(foundCount*sizeof(Title));
     if (!titles) {
         promptError("Out of memory.");
         return NULL;
     }
 
-    for (int i = 0; i < receivedCount; i++) {
+    for (int i = 0; i < foundCount; i++) {
         int srcFd = -1;
-        char* element = tList+(i*0x61);
-        u32 highID = *(u32*)(element), lowID = *(u32*)(element+4);
-        if (highID!=0x00050000) continue;
-        bool isTitleOnUSB = (memcmp(element+0x56,"usb",4)==0);
+        u32 highID = saves[i].highID, lowID = saves[i].lowID;
+        bool isTitleOnUSB = !saves[i].dev;
+
         char path[255];
         memset(path, 0, 255);
-        if (memcmp(element+0x56,"odd",4)==0) strcpy(path, "/vol/storage_odd_content/meta/meta.xml");
-        else sprintf(path, "/vol/storage_%s01/usr/title/%08x/%08x/meta/meta.xml", element+0x56, highID, lowID);
+        if (saves[i].found)
+            sprintf(path, "/vol/storage_%s01/usr/title/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", highID, lowID);
+        else
+            sprintf(path, "/vol/storage_%s01/usr/save/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", highID, lowID);
+        titles[titleswiiu].saveInit = !saves[i].found;
 
         int ret = IOSUHAX_FSA_OpenFile(fsaFd, path, "rb", &srcFd);
         if (ret >= 0) {
@@ -157,6 +247,8 @@ Title* loadWiiUTitles(int run, int fsaFd) {
 
     }
 
+    free(savesl);
+    free(saves);
     free(tList);
     return titles;
 
@@ -166,14 +258,12 @@ Title* loadWiiTitles(int fsaFd) {
     int dirH;
 
     if (IOSUHAX_FSA_OpenDir(fsaFd, "/vol/storage_slccmpt01/title/00010000", &dirH) < 0) return -1;
-
     while (1) {
         directoryEntry_s data;
 		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
 		if (ret != 0)
 			break;
 
-        if (strcmp(data.name, "..") == 0 || strcmp(data.name, ".") == 0) continue;
         titlesvwii++;
     } IOSUHAX_FSA_RewindDir(fsaFd, dirH);
 
@@ -189,8 +279,6 @@ Title* loadWiiTitles(int fsaFd) {
 		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
 		if (ret != 0)
 			break;
-
-        if (strcmp(data.name, "..") == 0 || strcmp(data.name, ".") == 0) continue;
 
         int srcFd = -1;
         char path[256];
@@ -288,6 +376,8 @@ int Menu_Main(void) {
     Title* wiititles = loadWiiTitles(fsaFd);
     int* versionList = (int*)malloc(0x100*sizeof(int));
 
+    qsort(wiiutitles, titleswiiu, sizeof(Title), titleSort);
+    qsort(wiititles, titlesvwii, sizeof(Title), titleSort);
     while(1) {
 
         OSScreenClearBufferEx(0, 0);
@@ -312,7 +402,7 @@ int Menu_Main(void) {
                 entrycount = count;
                 for (int i = 0; i < 14; i++) {
                     if (i+scroll<0 || i+scroll>=count) break;
-                    if (strlen(titles[i+scroll].shortName)) console_print_pos(0, i+2, "   %s %s %s", titles[i+scroll].shortName, titles[i+scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i+scroll].isTitleDupe ? "[D]" : "");
+                    if (strlen(titles[i+scroll].shortName)) console_print_pos(0, i+2, "   %s %s%s%s", titles[i+scroll].shortName, titles[i+scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i+scroll].isTitleDupe ? " [D]" : "", titles[i+scroll].saveInit ? "" : " [Not Init]");
                     else console_print_pos(0, i+2, "   %08lx%08lx", titles[i+scroll].highID, titles[i+scroll].lowID);
                 } console_print_pos(0, 2 + cursor, "->");
             } break;
@@ -330,8 +420,6 @@ int Menu_Main(void) {
 		                    console_print_pos(0, 7+3, "   Copy Savedata to Title in %s", titles[targ].isTitleOnUSB ? "NAND" : "USB");
 		                }
                 }
-
-
                 console_print_pos(0, 2+3 + cursor, "->");
             } break;
             case 3: { // Select Options
@@ -403,12 +491,12 @@ int Menu_Main(void) {
 
         if (isPressed(VPAD_BUTTON_R) && (menu==1)) {
             tsort = (tsort + 1) % 4;
-            qsort(wiiutitles, titleswiiu, sizeof(Title), titleSort);
+            qsort(titles, count, sizeof(Title), titleSort);
         }
 
         if (isPressed(VPAD_BUTTON_L) && (menu==1) && (tsort > 0)) {
             sorta *= -1;
-            qsort(wiiutitles, titleswiiu, sizeof(Title), titleSort);
+            qsort(titles, count, sizeof(Title), titleSort);
         }
 
         if (isPressed(VPAD_BUTTON_X) && (menu == 1) && (mode == 0)) {
@@ -441,12 +529,37 @@ int Menu_Main(void) {
                     cursorb = cursor;
                     scrollb = scroll;
                     if (titles[targ].highID==0 || titles[targ].lowID==0) continue;
+                    if ((mode == 0) && (strcmp(titles[targ].shortName, "DONT TOUCH ME") == 0)) {
+                        if (!promptConfirm("Haxchi/CBHC save. Could be dangerous to modify. Continue?") || !promptConfirm("Are you REALLY sure?")) {
+                            cursor = cursorb;
+                            scroll = scrollb;
+                            continue;
+                        }
+                    }
+                    if ((mode == 0) && (!titles[targ].saveInit)) {
+                        if (!promptConfirm("Recommended to run Game at least one time. Continue?") || !promptConfirm("Are you REALLY sure?")) {
+                            cursor = cursorb;
+                            scroll = scrollb;
+                            continue;
+                        }
+                    }
                 }
                 if (menu == 2) {
                     task = cursor;
+                    if (task == 0) {
+                        if (!titles[targ].saveInit) {
+                            promptError("No save to Backup.");
+                            continue;
+                        }
+                    }
                     if (task == 2) {
-                        allusers = promptConfirm("Delete save from all users?");
-                        wipeSavedata(&titles[targ], allusers, hasCommonSave(&titles[targ], false, false, 0, 0));
+                        allusers = promptConfirm("Delete save from all users? A-Yes B-No");
+                        if (hasCommonSave(&titles[targ], false, false, 0, 0)) {
+                            if (!allusers) promptConfirm("Delete common save? A-Yes B-No");
+                        } else {
+                            common = false;
+                        }
+                        wipeSavedata(&titles[targ], allusers, common); break;
                         continue;
                     }
                     if (task > 2) {
@@ -464,7 +577,12 @@ int Menu_Main(void) {
                     case 1: restoreSavedata(&titles[targ], slot, allusers, common); break;
                     case 2:
                     allusers = promptConfirm("Delete save from all users? A-Yes B-No");
-                    wipeSavedata(&titles[targ], allusers, hasCommonSave(&titles[targ], false, false, 0, 0)); break;
+                    if (hasCommonSave(&titles[targ], false, false, 0, 0)) {
+                        if (!allusers) promptConfirm("Delete common save? A-Yes B-No");
+                    } else {
+                        common = false;
+                    }
+                    wipeSavedata(&titles[targ], allusers, common); break;
                     case 3: importFromLoadiine(&titles[targ], common, versionList ? versionList[slot] : 0); break;
                     case 4: exportToLoadiine(&titles[targ], common, versionList ? versionList[slot] : 0); break;
 		            case 5: copySavedata(&titles[targ], &titles[titles[targ].dupeID], allusers, common); break;
