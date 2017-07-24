@@ -433,7 +433,7 @@ int Menu_Main(void) {
                     char usrPath[16];
                     getUserID(usrPath);
                     console_print_pos(0, 6, "   < %s > %s", (allusers&&((task<3) || task==5)) ? "all users" : "this user", (allusers&&((task<3) || task==5)) ? "" : usrPath);
-                    if (hasCommonSave(&titles[targ], (task == 0 ? false : true), (task < 3 ? false : true), slot, versionList ? versionList[slot] : 0)) {
+                    if (hasCommonSave(&titles[targ], (task == 0 ? false : true), ((task < 3) || (task == 5) ? false : true), slot, versionList ? versionList[slot] : 0)) {
                         console_print_pos(0, 8, "Include 'common' save?");
                         console_print_pos(0, 9, "   < %s >", common ? "yes" : "no ");
                     } else {
@@ -562,7 +562,7 @@ int Menu_Main(void) {
                         wipeSavedata(&titles[targ], allusers, common); break;
                         continue;
                     }
-                    if (task > 2) {
+                    if ((task == 3) || (task == 4)) {
                         char gamePath[PATH_SIZE];
                         memset(versionList, 0, 0x100*sizeof(int));
                         if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode)!=0) continue;
@@ -585,7 +585,7 @@ int Menu_Main(void) {
                     wipeSavedata(&titles[targ], allusers, common); break;
                     case 3: importFromLoadiine(&titles[targ], common, versionList ? versionList[slot] : 0); break;
                     case 4: exportToLoadiine(&titles[targ], common, versionList ? versionList[slot] : 0); break;
-		            case 5: copySavedata(&titles[targ], &titles[titles[targ].dupeID], allusers, common); break;
+                    case 5: copySavedata(&titles[targ], &titles[titles[targ].dupeID], allusers, common); break;
                 }
             }
         } else if (isPressed(VPAD_BUTTON_B) && menu > 0) {
