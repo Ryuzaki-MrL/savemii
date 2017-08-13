@@ -43,9 +43,7 @@ uint32_t buttons_hold; //Held buttons
 uint32_t buttons_pressed; //Pressed buttons
 uint32_t buttons_released; //Released buttons
 
-void ucls();
 void ScreenInit();
-void flipBuffers();
 void updatePressedButtons();
 void updateHeldButtons();
 void updateReleasedButtons();

@@ -24,7 +24,7 @@
 #include "os_functions.h"
 #include "gx2_types.h"
 
-unsigned int gx2_handle __attribute__((section(".data"))) = 0;
+u32 gx2_handle __attribute__((section(".data"))) = 0;
 
 EXPORT_DECL(void, GX2Init, u32 * init_attribs);
 EXPORT_DECL(void, GX2Shutdown, void);
@@ -93,7 +93,7 @@ EXPORT_DECL(s32, GX2GetSystemDRCScanMode, void);
 EXPORT_DECL(void, GX2RSetAllocator, void * (* allocFunc)(u32, u32, u32), void (* freeFunc)(u32, void*));
 EXPORT_DECL(void, GX2CopySurface, GX2Surface * srcSurface,u32 srcMip,u32 srcSlice,GX2Surface * dstSurface,u32 dstMip,u32 dstSlice );
 
-EXPORT_DECL(void, GX2ClearBuffersEx, GX2ColorBuffer * colorBuffer,GX2DepthBuffer * depthBuffer,f32 r, f32 g, f32 b, f32 a,f32 depthValue,u8 stencilValue,int clearFlags);
+EXPORT_DECL(void, GX2ClearBuffersEx, GX2ColorBuffer * colorBuffer,GX2DepthBuffer * depthBuffer,f32 r, f32 g, f32 b, f32 a,f32 depthValue,u8 stencilValue,s32 clearFlags);
 
 void InitAcquireGX2(void)
 {
@@ -102,7 +102,7 @@ void InitAcquireGX2(void)
 
 void InitGX2FunctionPointers(void)
 {
-    unsigned int *funcPointer = 0;
+    u32 *funcPointer = 0;
     InitAcquireGX2();
 
     OS_FIND_EXPORT(gx2_handle, GX2Init);

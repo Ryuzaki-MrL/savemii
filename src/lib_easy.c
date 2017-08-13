@@ -6,34 +6,18 @@ VPADData vpad;
 int screen_buf0_size = 0;
 int screen_buf1_size = 0;
 
-void flipBuffers() {
-    // Flush the cache
-    DCFlushRange(screenBuffer, screen_buf0_size);
-    DCFlushRange((screenBuffer + screen_buf0_size), screen_buf1_size);
-    // Flip buffers
-    OSScreenFlipBuffersEx(0);
-    OSScreenFlipBuffersEx(1);
-}
-
-void ucls() {
-    for(int i=0;i<2;i++) {
-        OSScreenClearBufferEx(0, 0);
-        OSScreenClearBufferEx(1, 0);
-        flipBuffers();
-    }
-}
-
 void ScreenInit() {
     //Init screen and screen buffers
     OSScreenInit();
     screen_buf0_size = OSScreenGetBufferSizeEx(0);
     screen_buf1_size = OSScreenGetBufferSizeEx(1);
-    screenBuffer = MEM1_alloc(screen_buf0_size + screen_buf1_size, 0x40);
+    screenBuffer = MEM1_alloc(screen_buf0_size + screen_buf1_size, 0x100);
     OSScreenSetBufferEx(0, screenBuffer);
     OSScreenSetBufferEx(1, (screenBuffer + screen_buf0_size));
     OSScreenEnableEx(0, 1);
     OSScreenEnableEx(1, 1);
-    ucls(); //Clear screens
+    clearBuffers(); //Clear screens
+    initDraw(screenBuffer, screen_buf0_size, screen_buf1_size);
 }
 
 void updatePressedButtons() {
@@ -56,11 +40,17 @@ bool stickPos(u8 stick, f32 value) {
         case 0 :
             return (value > 0) ? (vpad.lstick.x > value): (vpad.lstick.x < value);
         case 1 :
-            return ((value > 0) ? (vpad.lstick.y > value): (vpad.lstick.y < value));
+            return (value > 0) ? (vpad.lstick.y > value): (vpad.lstick.y < value);
         case 2 :
             return (value > 0) ? (vpad.rstick.x > value): (vpad.rstick.x < value);
         case 3 :
             return (value > 0) ? (vpad.rstick.y > value): (vpad.rstick.y < value);
+        case 4 :
+            return ((vpad.lstick.x > value) || (vpad.lstick.x < -value)) || \
+                   ((vpad.lstick.y > value) || (vpad.lstick.y < -value)) || \
+                   ((vpad.rstick.x > value) || (vpad.rstick.x < -value)) || \
+                   ((vpad.rstick.y > value) || (vpad.rstick.y < -value));
+
         default :
             return 0;
     }

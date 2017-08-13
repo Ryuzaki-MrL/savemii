@@ -30,7 +30,7 @@ extern "C" {
 
 #include <gctypes.h>
 
-extern unsigned int acp_handle;
+extern u32 acp_handle;
 
 void InitACPFunctionPointers(void);
 void InitAcquireACP(void);

@@ -5,6 +5,7 @@
 #include "utils/utils.h"
 #include "main.h"
 #include "lib_easy.h"
+#include "draw.h"
 
 int __entry_menu(int argc, char **argv)
 {

@@ -24,65 +24,69 @@
 #include "fs_functions.h"
 #include "os_functions.h"
 
-EXPORT_DECL(int, FSInit, void);
-EXPORT_DECL(int, FSShutdown, void);
-EXPORT_DECL(int, FSAddClientEx, void *pClient, int unk_zero_param, int errHandling);
-EXPORT_DECL(int, FSDelClient, void *pClient);
+EXPORT_DECL(s32, FSInit, void);
+EXPORT_DECL(s32, FSShutdown, void);
+EXPORT_DECL(s32, FSAddClient, void *pClient, s32 errHandling);
+EXPORT_DECL(s32, FSAddClientEx, void *pClient, s32 unk_zero_param, s32 errHandling);
+EXPORT_DECL(s32, FSDelClient, void *pClient);
 EXPORT_DECL(void, FSInitCmdBlock, void *pCmd);
-EXPORT_DECL(int, FSGetMountSource, void *pClient, void *pCmd, int type, void *source, int errHandling);
+EXPORT_DECL(void *, FSGetCurrentCmdBlock, void *pClient);
+EXPORT_DECL(s32, FSGetMountSource, void *pClient, void *pCmd, s32 type, void *source, s32 errHandling);
 
-EXPORT_DECL(int, FSMount, void *pClient, void *pCmd, void *source, char *target, uint32_t bytes, int errHandling);
-EXPORT_DECL(int, FSUnmount, void *pClient, void *pCmd, const char *target, int errHandling);
+EXPORT_DECL(s32, FSMount, void *pClient, void *pCmd, void *source, char *target, u32 bytes, s32 errHandling);
+EXPORT_DECL(s32, FSUnmount, void *pClient, void *pCmd, const char *target, s32 errHandling);
 
-EXPORT_DECL(int, FSGetStat, void *pClient, void *pCmd, const char *path, FSStat *stats, int errHandling);
-EXPORT_DECL(int, FSGetStatAsync, void *pClient, void *pCmd, const char *path, void *stats, int error, void *asyncParams);
-EXPORT_DECL(int, FSRename, void *pClient, void *pCmd, const char *oldPath, const char *newPath, int error);
-EXPORT_DECL(int, FSRenameAsync, void *pClient, void *pCmd, const char *oldPath, const char *newPath, int error, void *asyncParams);
-EXPORT_DECL(int, FSRemove, void *pClient, void *pCmd, const char *path, int error);
-EXPORT_DECL(int, FSRemoveAsync, void *pClient, void *pCmd, const char *path, int error, void *asyncParams);
-EXPORT_DECL(int, FSFlushQuota, void *pClient, void *pCmd, const char* path, int error);
-EXPORT_DECL(int, FSFlushQuotaAsync, void *pClient, void *pCmd, const char *path, int error, void *asyncParams);
-EXPORT_DECL(int, FSGetFreeSpaceSize, void *pClient, void *pCmd, const char *path, uint64_t *returnedFreeSize, int error);
-EXPORT_DECL(int, FSGetFreeSpaceSizeAsync, void *pClient, void *pCmd, const char *path, uint64_t *returnedFreeSize, int error, void *asyncParams);
-EXPORT_DECL(int, FSRollbackQuota, void *pClient, void *pCmd, const char *path, int error);
-EXPORT_DECL(int, FSRollbackQuotaAsync, void *pClient, void *pCmd, const char *path, int error, void *asyncParams);
+EXPORT_DECL(s32, FSGetStat, void *pClient, void *pCmd, const char *path, FSStat *stats, s32 errHandling);
+EXPORT_DECL(s32, FSGetStatAsync, void *pClient, void *pCmd, const char *path, void *stats, s32 error, void *asyncParams);
+EXPORT_DECL(s32, FSRename, void *pClient, void *pCmd, const char *oldPath, const char *newPath, s32 error);
+EXPORT_DECL(s32, FSRenameAsync, void *pClient, void *pCmd, const char *oldPath, const char *newPath, s32 error, void *asyncParams);
+EXPORT_DECL(s32, FSRemove, void *pClient, void *pCmd, const char *path, s32 error);
+EXPORT_DECL(s32, FSRemoveAsync, void *pClient, void *pCmd, const char *path, s32 error, void *asyncParams);
+EXPORT_DECL(s32, FSFlushQuota, void *pClient, void *pCmd, const char* path, s32 error);
+EXPORT_DECL(s32, FSFlushQuotaAsync, void *pClient, void *pCmd, const char *path, s32 error, void *asyncParams);
+EXPORT_DECL(s32, FSGetFreeSpaceSize, void *pClient, void *pCmd, const char *path, uint64_t *returnedFreeSize, s32 error);
+EXPORT_DECL(s32, FSGetFreeSpaceSizeAsync, void *pClient, void *pCmd, const char *path, uint64_t *returnedFreeSize, s32 error, void *asyncParams);
+EXPORT_DECL(s32, FSRollbackQuota, void *pClient, void *pCmd, const char *path, s32 error);
+EXPORT_DECL(s32, FSRollbackQuotaAsync, void *pClient, void *pCmd, const char *path, s32 error, void *asyncParams);
 
-EXPORT_DECL(int, FSOpenDir, void *pClient, void *pCmd, const char *path, int *dh, int errHandling);
-EXPORT_DECL(int, FSOpenDirAsync, void *pClient, void* pCmd, const char *path, int *handle, int error, void *asyncParams);
-EXPORT_DECL(int, FSReadDir, void *pClient, void *pCmd, int dh, FSDirEntry *dir_entry, int errHandling);
-EXPORT_DECL(int, FSRewindDir, void *pClient, void *pCmd, int dh, int errHandling);
-EXPORT_DECL(int, FSCloseDir, void *pClient, void *pCmd, int dh, int errHandling);
-EXPORT_DECL(int, FSChangeDir, void *pClient, void *pCmd, const char *path, int errHandling);
-EXPORT_DECL(int, FSChangeDirAsync, void *pClient, void *pCmd, const char *path, int error, void *asyncParams);
-EXPORT_DECL(int, FSMakeDir, void *pClient, void *pCmd, const char *path, int errHandling);
-EXPORT_DECL(int, FSMakeDirAsync, void *pClient, void *pCmd, const char *path, int error, void *asyncParams);
+EXPORT_DECL(s32, FSOpenDir, void *pClient, void *pCmd, const char *path, s32 *dh, s32 errHandling);
+EXPORT_DECL(s32, FSOpenDirAsync, void *pClient, void* pCmd, const char *path, s32 *handle, s32 error, void *asyncParams);
+EXPORT_DECL(s32, FSReadDir, void *pClient, void *pCmd, s32 dh, FSDirEntry *dir_entry, s32 errHandling);
+EXPORT_DECL(s32, FSRewindDir, void *pClient, void *pCmd, s32 dh, s32 errHandling);
+EXPORT_DECL(s32, FSCloseDir, void *pClient, void *pCmd, s32 dh, s32 errHandling);
+EXPORT_DECL(s32, FSChangeDir, void *pClient, void *pCmd, const char *path, s32 errHandling);
+EXPORT_DECL(s32, FSChangeDirAsync, void *pClient, void *pCmd, const char *path, s32 error, void *asyncParams);
+EXPORT_DECL(s32, FSMakeDir, void *pClient, void *pCmd, const char *path, s32 errHandling);
+EXPORT_DECL(s32, FSMakeDirAsync, void *pClient, void *pCmd, const char *path, s32 error, void *asyncParams);
 
-EXPORT_DECL(int, FSOpenFile, void *pClient, void *pCmd, const char *path, const char *mode, int *fd, int errHandling);
-EXPORT_DECL(int, FSOpenFileAsync, void *pClient, void *pCmd, const char *path, const char *mode, int *handle, int error, const void *asyncParams);
-EXPORT_DECL(int, FSReadFile, void *pClient, void *pCmd, void *buffer, int size, int count, int fd, int flag, int errHandling);
-EXPORT_DECL(int, FSCloseFile, void *pClient, void *pCmd, int fd, int errHandling);
+EXPORT_DECL(s32, FSOpenFile, void *pClient, void *pCmd, const char *path, const char *mode, s32 *fd, s32 errHandling);
+EXPORT_DECL(s32, FSOpenFileAsync, void *pClient, void *pCmd, const char *path, const char *mode, s32 *handle, s32 error, const void *asyncParams);
+EXPORT_DECL(s32, FSReadFile, void *pClient, void *pCmd, void *buffer, s32 size, s32 count, s32 fd, s32 flag, s32 errHandling);
+EXPORT_DECL(s32, FSCloseFile, void *pClient, void *pCmd, s32 fd, s32 errHandling);
 
-EXPORT_DECL(int, FSFlushFile, void *pClient, void *pCmd, int fd, int error);
-EXPORT_DECL(int, FSTruncateFile, void *pClient, void *pCmd, int fd, int error);
-EXPORT_DECL(int, FSGetStatFile, void *pClient, void *pCmd, int fd, void *buffer, int error);
-EXPORT_DECL(int, FSSetPosFile, void *pClient, void *pCmd, int fd, int pos, int error);
-EXPORT_DECL(int, FSWriteFile, void *pClient, void *pCmd, const void *source, int block_size, int block_count, int fd, int flag, int error);
+EXPORT_DECL(s32, FSFlushFile, void *pClient, void *pCmd, s32 fd, s32 error);
+EXPORT_DECL(s32, FSTruncateFile, void *pClient, void *pCmd, s32 fd, s32 error);
+EXPORT_DECL(s32, FSGetStatFile, void *pClient, void *pCmd, s32 fd, void *buffer, s32 error);
+EXPORT_DECL(s32, FSSetPosFile, void *pClient, void *pCmd, s32 fd, s32 pos, s32 error);
+EXPORT_DECL(s32, FSWriteFile, void *pClient, void *pCmd, const void *source, s32 block_size, s32 block_count, s32 fd, s32 flag, s32 error);
 
-EXPORT_DECL(int, FSBindMount, void *pClient, void *pCmd, char *source, char *target, int error);
-EXPORT_DECL(int, FSBindUnmount, void *pClient, void *pCmd, char *target, int error);
+EXPORT_DECL(s32, FSBindMount, void *pClient, void *pCmd, char *source, char *target, s32 error);
+EXPORT_DECL(s32, FSBindUnmount, void *pClient, void *pCmd, char *target, s32 error);
 
-EXPORT_DECL(int, FSMakeQuota, void *pClient, void *pCmd, const char *path,u32 mode, u64 size, int errHandling);
-EXPORT_DECL(int, FSMakeQuotaAsync ,void *pClient, void *pCmd, const char *path,u32 mode, u64 size, int errHandling,const void  *asyncParams);
+EXPORT_DECL(s32, FSMakeQuota, void *pClient, void *pCmd, const char *path,u32 mode, u64 size, s32 errHandling);
+EXPORT_DECL(s32, FSMakeQuotaAsync ,void *pClient, void *pCmd, const char *path,u32 mode, u64 size, s32 errHandling,const void  *asyncParams);
 
 void InitFSFunctionPointers(void)
 {
-    unsigned int *funcPointer = 0;
+    u32 *funcPointer = 0;
 
     OS_FIND_EXPORT(coreinit_handle, FSInit);
     OS_FIND_EXPORT(coreinit_handle, FSShutdown);
+    OS_FIND_EXPORT(coreinit_handle, FSAddClient);
     OS_FIND_EXPORT(coreinit_handle, FSAddClientEx);
     OS_FIND_EXPORT(coreinit_handle, FSDelClient);
     OS_FIND_EXPORT(coreinit_handle, FSInitCmdBlock);
+    OS_FIND_EXPORT(coreinit_handle, FSGetCurrentCmdBlock);
     OS_FIND_EXPORT(coreinit_handle, FSGetMountSource);
 
     OS_FIND_EXPORT(coreinit_handle, FSMount);

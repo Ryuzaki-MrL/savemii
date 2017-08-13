@@ -13,8 +13,7 @@ For sorting Titles press R to change sorting method and press L to change betwee
 
 Use it at your own risk and please report any issues that may occur.
 
-Known issues:
-- some games exhibit unexpected behaviour when the savefile is restored
+**Needs freetype-2.8 library for compiling.**
 
 TODO:
 - installable package

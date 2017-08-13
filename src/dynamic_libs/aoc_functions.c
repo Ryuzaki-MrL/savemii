@@ -24,7 +24,7 @@
 #include "os_functions.h"
 #include "aoc_functions.h"
 
-unsigned int aoc_handle __attribute__((section(".data"))) = 0;
+u32 aoc_handle __attribute__((section(".data"))) = 0;
 
 EXPORT_DECL(s32, AOC_Initialize, void);
 EXPORT_DECL(s32, AOC_Finalize, void);
