@@ -1,5 +1,5 @@
 #ifndef FS_DEFS_H
-#define	FS_DEFS_H
+#define FS_DEFS_H
 
 #include <gctypes.h>
 
@@ -17,7 +17,7 @@ extern "C" {
 #define FS_STATUS_OK                    0
 #define FS_RET_UNSUPPORTED_CMD          0x0400
 #define FS_RET_NO_ERROR                 0x0000
-#define FS_RET_ALL_ERROR                (unsigned int)(-1)
+#define FS_RET_ALL_ERROR                (u32)(-1)
 
 #define FS_STAT_FLAG_IS_DIRECTORY       0x80000000
 
@@ -31,6 +31,13 @@ extern "C" {
 #define FS_CLIENT_SIZE                  0x1700
 #define FS_CMD_BLOCK_SIZE               0xA80
 
+#define FSA_STATUS_OK                       0
+#define FSA_STATUS_END_OF_DIRECTORY         -4
+#define FSA_STATUS_END_OF_FILE              -5
+#define FSA_STATUS_ALREADY_EXISTS           -22
+#define FSA_STATUS_NOT_FOUND                -23
+#define FSA_STATUS_NOT_EMPTY                -24
+
 typedef struct
 {
     uint32_t flag;
@@ -43,7 +50,7 @@ typedef struct
     uint32_t ent_id;
     uint64_t ctime;
     uint64_t mtime;
-    uint8_t attributes[48];
+    uint8_t  attributes[48];
 } __attribute__((packed)) FSStat;
 
 typedef struct
@@ -52,10 +59,17 @@ typedef struct
     char        name[FS_MAX_ENTNAME_SIZE];
 } FSDirEntry;
 
+typedef void (*FSAsyncCallback)(void *pClient, void *pCmd, int result, void *context);
+typedef struct
+{
+    FSAsyncCallback userCallback;
+    void            *userContext;
+    void            *ioMsgQueue;
+} FSAsyncParams;
+
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif	/* FS_DEFS_H */
-
+#endif  /* FS_DEFS_H */

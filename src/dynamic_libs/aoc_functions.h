@@ -28,7 +28,9 @@
 extern "C" {
 #endif
 
-extern unsigned int aoc_handle;
+#include <gctypes.h>
+
+extern u32 aoc_handle;
 
 #define AOC_TITLE_SIZE              104
 

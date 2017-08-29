@@ -41,7 +41,7 @@ void InitAcquireCurl(void)
 void InitCurlFunctionPointers(void)
 {
     InitAcquireCurl();
-    unsigned int *funcPointer = 0;
+    u32 *funcPointer = 0;
 
     OS_FIND_EXPORT_EX(libcurl_handle, curl_global_init, n_curl_global_init);
     OS_FIND_EXPORT_EX(libcurl_handle, curl_easy_init, n_curl_easy_init);

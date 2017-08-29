@@ -34,18 +34,18 @@
 //! Memory functions
 //! This is the only place where those are needed so lets keep them more or less private
 //!----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-extern unsigned int * pMEMAllocFromDefaultHeapEx;
-extern unsigned int * pMEMAllocFromDefaultHeap;
-extern unsigned int * pMEMFreeToDefaultHeap;
+extern u32 * pMEMAllocFromDefaultHeapEx;
+extern u32 * pMEMAllocFromDefaultHeap;
+extern u32 * pMEMFreeToDefaultHeap;
 
-extern int (* MEMGetBaseHeapHandle)(int mem_arena);
-extern unsigned int (* MEMGetAllocatableSizeForFrmHeapEx)(int heap, int align);
-extern void *(* MEMAllocFromFrmHeapEx)(int heap, unsigned int size, int align);
-extern void (* MEMFreeToFrmHeap)(int heap, int mode);
-extern void *(* MEMAllocFromExpHeapEx)(int heap, unsigned int size, int align);
-extern int (* MEMCreateExpHeapEx)(void* address, unsigned int size, unsigned short flags);
-extern void *(* MEMDestroyExpHeap)(int heap);
-extern void (* MEMFreeToExpHeap)(int heap, void* ptr);
+extern s32 (* MEMGetBaseHeapHandle)(s32 mem_arena);
+extern u32 (* MEMGetAllocatableSizeForFrmHeapEx)(s32 heap, s32 align);
+extern void *(* MEMAllocFromFrmHeapEx)(s32 heap, u32 size, s32 align);
+extern void (* MEMFreeToFrmHeap)(s32 heap, s32 mode);
+extern void *(* MEMAllocFromExpHeapEx)(s32 heap, u32 size, s32 align);
+extern s32 (* MEMCreateExpHeapEx)(void* address, u32 size, unsigned short flags);
+extern void *(* MEMDestroyExpHeap)(s32 heap);
+extern void (* MEMFreeToExpHeap)(s32 heap, void* ptr);
 
 static int mem1_heap = -1;
 static int bucket_heap = -1;

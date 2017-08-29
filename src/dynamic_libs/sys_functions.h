@@ -28,17 +28,19 @@
 extern "C" {
 #endif
 
-extern unsigned int sysapp_handle;
+#include <gctypes.h>
+
+extern u32 sysapp_handle;
 
 void InitSysFunctionPointers(void);
 void InitAcquireSys(void);
 
-extern int(*_SYSLaunchTitleByPathFromLauncher)(const char* path, int len, int zero);
-extern int (* SYSRelaunchTitle)(int argc, char** argv);
+extern int(*_SYSLaunchTitleByPathFromLauncher)(const char* path, s32 len, s32 zero);
+extern int (* SYSRelaunchTitle)(s32 argc, char** argv);
 extern int (* SYSLaunchMenu)(void);
 extern int (* SYSCheckTitleExists)(u64 titleId);
 extern int (* SYSLaunchTitle)(u64 titleId);
-extern int (* SYSLaunchSettings)(int unk);
+extern int (* SYSLaunchSettings)(s32 unk);
 
 
 #ifdef __cplusplus

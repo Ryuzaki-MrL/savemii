@@ -30,9 +30,19 @@ extern "C" {
 
 #include "dynamic_libs/vpad_functions.h"
 
-extern unsigned int padscore_handle;
+extern u32 padscore_handle;
 
 #include <gctypes.h>
+
+#define WPAD_EXT_CORE           0
+#define WPAD_EXT_NUNCHUK        1
+#define WPAD_EXT_CLASSIC        2
+#define WPAD_EXT_MPLUS          5
+#define WPAD_EXT_MPLUS_NUNCHUK  6
+#define WPAD_EXT_MPLUS_CLASSIC  7
+#define WPAD_EXT_PRO_CONTROLLER 31
+
+#define WPAD_FMT_PRO_CONTROLLER 22
 
 #define WPAD_BUTTON_LEFT                    0x0001
 #define WPAD_BUTTON_RIGHT                   0x0002
@@ -140,17 +150,36 @@ typedef struct _KPADData
             f32 lstick_y;
             f32 rstick_x;
             f32 rstick_y;
-            int charging;
-            int wired;
+            s32 charging;
+            s32 wired;
         } pro;
 
         u32 unused_6[20];
     };
     u32 unused_7[16];
 } KPADData;
+
+typedef struct WPADReadData_ {
+    u8 unknown[40];
+    u8 dev;
+    u8 err;
+    u8 unknown1[2];
+    u32 buttons;
+    s16 l_stick_x;
+    s16 l_stick_y;
+    s16 r_stick_x;
+    s16 r_stick_y;
+    u8 unknown2[8];
+    u8 fmt;
+}WPADReadData;
+
+typedef WPADReadData KPADUnifiedWpadData;
+
 void InitPadScoreFunctionPointers(void);
 void InitAcquirePadScore(void);
 
+typedef void (* wpad_sampling_callback_t)(s32 chan);
+typedef void (* wpad_extension_callback_t)(s32 chan, s32 status);
 typedef void (* wpad_connect_callback_t)(s32 chan, s32 status);
 
 extern void (* KPADInit)(void);

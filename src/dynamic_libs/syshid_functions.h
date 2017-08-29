@@ -28,60 +28,62 @@
 extern "C" {
 #endif
 
-extern unsigned int syshid_handle;
+#include <gctypes.h>
+
+extern u32 syshid_handle;
 
 typedef struct
 {
-	unsigned int handle;
-	unsigned int physical_device_inst;
-	unsigned short vid;
-	unsigned short pid;
-	unsigned char interface_index;
-	unsigned char sub_class;
-	unsigned char protocol;
+    u32 handle;
+    u32 physical_device_inst;
+    u16 vid;
+    u16 pid;
+    u8 interface_index;
+    u8 sub_class;
+    u8 protocol;
 
-	unsigned short max_packet_size_rx;
-	unsigned short max_packet_size_tx;
+    u16 max_packet_size_rx;
+    u16 max_packet_size_tx;
 
 } HIDDevice;
 
 typedef struct _HIDClient HIDClient;
 
-#define HID_DEVICE_DETACH	0
-#define HID_DEVICE_ATTACH	1
+#define HID_DEVICE_DETACH   0
+#define HID_DEVICE_ATTACH   1
 
-typedef int (*HIDAttachCallback)(HIDClient *p_hc,HIDDevice *p_hd,unsigned int attach);
+typedef s32 (*HIDAttachCallback)(HIDClient *p_hc,HIDDevice *p_hd,u32 attach);
 
 struct _HIDClient
 {
-	HIDClient *next;
-	HIDAttachCallback attach_cb;
+    HIDClient *next;
+    HIDAttachCallback attach_cb;
 };
 
-typedef void (*HIDCallback)(unsigned int handle,int error,unsigned char *p_buffer,unsigned int bytes_transferred,void *p_user);
+typedef void (*HIDCallback)(u32 handle,s32 error,u8 *p_buffer,u32 bytes_transferred,void *p_user);
 
 void InitSysHIDFunctionPointers(void);
 void InitAcquireSysHID(void);
 
-extern int(*HIDSetup)(void);
-extern int(*HIDTeardown)(void);
+extern s32(*HIDSetup)(void);
+extern s32(*HIDTeardown)(void);
 
-extern int(*HIDAddClient)(HIDClient *p_client, HIDAttachCallback attach_callback);
-extern int(*HIDDelClient)(HIDClient *p_client);
+extern s32(*HIDAddClient)(HIDClient *p_client, HIDAttachCallback attach_callback);
+extern s32(*HIDDelClient)(HIDClient *p_client);
 
-extern int(*HIDGetDescriptor)(unsigned int handle,u8 descriptor_type,u8 descriptor_index, u16 language_id, unsigned char *p_buffer, unsigned int buffer_length, HIDCallback hc, void *p_user);
-extern int(*HIDSetDescriptor)(unsigned int handle,u8 descriptor_type,u8 descriptor_index, u16 language_id, unsigned char *p_buffer, unsigned int buffer_length, HIDCallback hc, void *p_user);
+extern s32(*HIDGetDescriptor)(u32 handle,u8 descriptor_type,u8 descriptor_index, u16 language_id, u8 *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
+extern s32(*HIDSetDescriptor)(u32 handle,u8 descriptor_type,u8 descriptor_index, u16 language_id, u8 *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
 
-extern int(*HIDGetReport)(u32 handle, u8 report_type, u8 report_id, u8 *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
-extern int(*HIDSetReport)(u32 handle, u8 report_type, u8 report_id, u8 *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
+extern s32(*HIDGetReport)(u32 handle, u8 report_type, u8 report_id, u8 *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
+extern s32(*HIDSetReport)(u32 handle, u8 report_type, u8 report_id, u8 *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
 
-extern int(*HIDSetIdle)(unsigned int handle, u8 interface_index,u8 duration, HIDCallback hc, void *p_user);
+extern s32(*HIDSetIdle)(u32 handle, u8 s32erface_index,u8 duration, HIDCallback hc, void *p_user);
 
-extern int(* HIDSetProtocol)(unsigned int handle,u8 interface_index,u8 protocol, HIDCallback hc, void *p_user);
-extern int(* HIDGetProtocol)(unsigned int handle,u8 interface_index,u8 * protocol, HIDCallback hc, void *p_user);
+extern s32(* HIDSetProtocol)(u32 handle,u8 s32erface_index,u8 protocol, HIDCallback hc, void *p_user);
+extern s32(* HIDGetProtocol)(u32 handle,u8 s32erface_index,u8 * protocol, HIDCallback hc, void *p_user);
 
-extern int(*HIDRead)(unsigned int handle, unsigned char *p_buffer, unsigned int buffer_length, HIDCallback hc, void *p_user);
-extern int(*HIDWrite)(unsigned int handle, unsigned char *p_buffer, unsigned int buffer_length, HIDCallback hc, void *p_user);
+extern s32(*HIDRead)(u32 handle, u8 *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
+extern s32(*HIDWrite)(u32 handle, u8 *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
 
 #ifdef __cplusplus
 }

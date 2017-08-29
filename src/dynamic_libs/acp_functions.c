@@ -24,7 +24,7 @@
 #include "os_functions.h"
 #include "acp_functions.h"
 
-unsigned int acp_handle __attribute__((section(".data"))) = 0;
+u32 acp_handle __attribute__((section(".data"))) = 0;
 
 EXPORT_DECL(void, GetMetaXml, void * _ACPMetaXml);
 

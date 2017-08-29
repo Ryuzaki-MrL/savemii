@@ -43,12 +43,11 @@ uint32_t buttons_hold; //Held buttons
 uint32_t buttons_pressed; //Pressed buttons
 uint32_t buttons_released; //Released buttons
 
-void ucls();
 void ScreenInit();
-void flipBuffers();
 void updatePressedButtons();
 void updateHeldButtons();
 void updateReleasedButtons();
+bool stickPos(u8 stick, f32 value);
 int isPressed(int button);
 int isHeld(int button);
 int isReleased(int button);

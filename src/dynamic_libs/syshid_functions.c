@@ -24,27 +24,27 @@
 #include "os_functions.h"
 #include "syshid_functions.h"
 
-unsigned int syshid_handle __attribute__((section(".data"))) = 0;
+u32 syshid_handle __attribute__((section(".data"))) = 0;
 
-EXPORT_DECL(int, HIDSetup,void);
-EXPORT_DECL(int, HIDTeardown,void);
+EXPORT_DECL(s32, HIDSetup,void);
+EXPORT_DECL(s32, HIDTeardown,void);
 
-EXPORT_DECL(int, HIDAddClient,HIDClient *p_client, HIDAttachCallback attach_callback);
-EXPORT_DECL(int, HIDDelClient,HIDClient *p_client);
+EXPORT_DECL(s32, HIDAddClient,HIDClient *p_client, HIDAttachCallback attach_callback);
+EXPORT_DECL(s32, HIDDelClient,HIDClient *p_client);
 
-EXPORT_DECL(int, HIDGetDescriptor,unsigned int handle,u8 descriptor_type,u8 descriptor_index, u16 language_id, unsigned char *p_buffer, unsigned int buffer_length, HIDCallback hc, void *p_user);
-EXPORT_DECL(int, HIDSetDescriptor,unsigned int handle,u8 descriptor_type,u8 descriptor_index, u16 language_id, unsigned char *p_buffer, unsigned int buffer_length, HIDCallback hc, void *p_user);
+EXPORT_DECL(s32, HIDGetDescriptor,u32 handle,u8 descriptor_type,u8 descriptor_index, u16 language_id, unsigned char *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
+EXPORT_DECL(s32, HIDSetDescriptor,u32 handle,u8 descriptor_type,u8 descriptor_index, u16 language_id, unsigned char *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
 
-EXPORT_DECL(int, HIDSetProtocol,unsigned int handle,u8 interface_index,u8 protocol, HIDCallback hc, void *p_user);
-EXPORT_DECL(int, HIDGetProtocol,unsigned int handle,u8 interface_index,u8 * protocol, HIDCallback hc, void *p_user);
+EXPORT_DECL(s32, HIDSetProtocol,u32 handle,u8 s32erface_index,u8 protocol, HIDCallback hc, void *p_user);
+EXPORT_DECL(s32, HIDGetProtocol,u32 handle,u8 s32erface_index,u8 * protocol, HIDCallback hc, void *p_user);
 
-EXPORT_DECL(int, HIDGetReport,u32 handle, u8 report_type, u8 report_id, u8 *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
-EXPORT_DECL(int, HIDSetReport,u32 handle, u8 report_type, u8 report_id, u8 *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
+EXPORT_DECL(s32, HIDGetReport,u32 handle, u8 report_type, u8 report_id, u8 *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
+EXPORT_DECL(s32, HIDSetReport,u32 handle, u8 report_type, u8 report_id, u8 *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
 
-EXPORT_DECL(int, HIDSetIdle,unsigned int handle, u8 interface_index,u8 duration, HIDCallback hc, void *p_user);
+EXPORT_DECL(s32, HIDSetIdle,u32 handle, u8 s32erface_index,u8 duration, HIDCallback hc, void *p_user);
 
-EXPORT_DECL(int, HIDRead,unsigned int handle, unsigned char *p_buffer, unsigned int buffer_length, HIDCallback hc, void *p_user);
-EXPORT_DECL(int, HIDWrite,unsigned int handle, unsigned char *p_buffer, unsigned int buffer_length, HIDCallback hc, void *p_user);
+EXPORT_DECL(s32, HIDRead,u32 handle, unsigned char *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
+EXPORT_DECL(s32, HIDWrite,u32 handle, unsigned char *p_buffer, u32 buffer_length, HIDCallback hc, void *p_user);
 
 void InitAcquireSysHID(void)
 {
@@ -59,7 +59,7 @@ void InitSysHIDFunctionPointers(void)
         return;
     }
 
-    unsigned int funcPointer = 0;
+    u32 funcPointer = 0;
 
     //! assigning those is not mandatory and it does not always work to load them
     OS_FIND_EXPORT(syshid_handle, HIDSetup);

@@ -28,10 +28,10 @@
 extern "C" {
 #endif
 
-extern unsigned int vpad_handle;
-extern unsigned int vpadbase_handle;
-
 #include <gctypes.h>
+
+extern u32 vpad_handle;
+extern u32 vpadbase_handle;
 
 #define VPAD_BUTTON_A        0x8000
 #define VPAD_BUTTON_B        0x4000
@@ -75,6 +75,11 @@ typedef struct
 
 typedef struct
 {
+    f32 x,y,z;
+} Vec3D;
+
+typedef struct
+{
     u16 x, y;               /* Touch coordinates */
     u16 touched;            /* 1 = Touched, 0 = Not touched */
     u16 invalid;            /* 0 = All valid, 1 = X invalid, 2 = Y invalid, 3 = Both invalid? */
@@ -86,26 +91,29 @@ typedef struct
     u32 btns_d;                  /* Buttons that are pressed at that instant */
     u32 btns_r;                  /* Released buttons */
     Vec2D lstick, rstick;        /* Each contains 4-byte X and Y components */
-    char unknown1c[0x52 - 0x1c]; /* Contains accelerometer and gyroscope data somewhere */
+    char unknown1c[0x38 - 0x1c]; /* Contains accelerometer data somewhere */
+    Vec3D gyro;                  /* Gyro data */
+    Vec3D angle;                 /* Angle data */
+    char unknown50[0x52 - 0x50]; /* Two bytes of unknown data */
     VPADTPData tpdata;           /* Normal touchscreen data */
     VPADTPData tpdata1;          /* Modified touchscreen data 1 */
     VPADTPData tpdata2;          /* Modified touchscreen data 2 */
     char unknown6a[0xa0 - 0x6a];
-    uint8_t volume;
-    uint8_t battery;             /* 0 to 6 */
-    uint8_t unk_volume;          /* One less than volume */
+    u8 volume;
+    u8 battery;                  /* 0 to 6 */
+    u8 unk_volume;               /* One less than volume */
     char unknowna4[0xac - 0xa4];
 } VPADData;
 
 void InitVPadFunctionPointers(void);
 void InitAcquireVPad(void);
 
-extern int (* VPADRead)(int chan, VPADData *buffer, u32 buffer_size, s32 *error);
-extern int (* VPADGetLcdMode)(int padnum, int *lcdmode);
-extern int (* VPADSetLcdMode)(int padnum, int lcdmode);
+extern s32 (* VPADRead)(s32 chan, VPADData *buffer, u32 buffer_size, s32 *error);
+extern s32 (* VPADGetLcdMode)(s32 padnum, s32 *lcdmode);
+extern s32 (* VPADSetLcdMode)(s32 padnum, s32 lcdmode);
 extern void (* VPADInit)(void);
-extern int (* VPADBASEGetMotorOnRemainingCount)(int lcdmode);
-extern int (* VPADBASESetMotorOnRemainingCount)(int lcdmode,int counter);
+extern s32 (* VPADBASEGetMotorOnRemainingCount)(s32 lcdmode);
+extern s32 (* VPADBASESetMotorOnRemainingCount)(s32 lcdmode,s32 counter);
 
 #ifdef __cplusplus
 }

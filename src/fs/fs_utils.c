@@ -173,7 +173,7 @@ int CreateSubfolder(const char * fullpath)
 	if(!result)
 		return 0;
 
-	if (mkdir(dirnoslash, 0777) == -1)
+	if (mkdir(dirnoslash, 0x777) == -1)
 	{
 		return 0;
 	}

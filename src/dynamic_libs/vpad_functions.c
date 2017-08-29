@@ -24,15 +24,15 @@
 #include "os_functions.h"
 #include "vpad_functions.h"
 
-unsigned int vpad_handle __attribute__((section(".data"))) = 0;
-unsigned int vpadbase_handle __attribute__((section(".data"))) = 0;
+u32 vpad_handle __attribute__((section(".data"))) = 0;
+u32 vpadbase_handle __attribute__((section(".data"))) = 0;
 
 EXPORT_DECL(void, VPADInit, void);
-EXPORT_DECL(int, VPADRead, int chan, VPADData *buffer, u32 buffer_size, s32 *error);
-EXPORT_DECL(int, VPADGetLcdMode, int padnum, int *lcdmode);
-EXPORT_DECL(int, VPADSetLcdMode, int padnum, int lcdmode);
-EXPORT_DECL(int, VPADBASEGetMotorOnRemainingCount, int padnum);
-EXPORT_DECL(int, VPADBASESetMotorOnRemainingCount, int padnum, int counter);
+EXPORT_DECL(s32, VPADRead, s32 chan, VPADData *buffer, u32 buffer_size, s32 *error);
+EXPORT_DECL(s32, VPADGetLcdMode, s32 padnum, s32 *lcdmode);
+EXPORT_DECL(s32, VPADSetLcdMode, s32 padnum, s32 lcdmode);
+EXPORT_DECL(s32, VPADBASEGetMotorOnRemainingCount, s32 padnum);
+EXPORT_DECL(s32, VPADBASESetMotorOnRemainingCount, s32 padnum, s32 counter);
 
 void InitAcquireVPad(void)
 {
@@ -42,7 +42,7 @@ void InitAcquireVPad(void)
 
 void InitVPadFunctionPointers(void)
 {
-    unsigned int *funcPointer = 0;
+    u32 *funcPointer = 0;
 
     InitAcquireVPad();
 
