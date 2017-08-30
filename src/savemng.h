@@ -11,7 +11,7 @@
 #include "lib_easy.h"
 #include "draw.h"
 
-#define PATH_SIZE 0x200
+#define PATH_SIZE 0x400
 
 #ifdef __cplusplus
 extern "C" {
