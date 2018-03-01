@@ -300,8 +300,8 @@ bool promptConfirm(Style st, const char* question) {
 	int ret = 0;
 	while(1) {
         updatePressedButtons();
-        if (isPressed(VPAD_BUTTON_A | VPAD_BUTTON_B | VPAD_BUTTON_HOME)) {
-            ret = isPressed(VPAD_BUTTON_A);
+        if (isPressed(PAD_BUTTON_A | PAD_BUTTON_B | PAD_BUTTON_HOME)) {
+            ret = isPressed(PAD_BUTTON_A);
             break;
         }
     }
