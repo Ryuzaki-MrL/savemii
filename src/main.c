@@ -679,7 +679,7 @@ int Menu_Main(void) {
         while(1) {
             updatePressedButtons();
             updateHeldButtons();
-            if (isPressed(0xFFFF) || isHeld(0xFFFF) || stickPos(4, 0.7)) break;
+            if (isPressed(PAD_BUTTON_ANY) || isHeld(PAD_BUTTON_ANY) || stickPos(4, 0.7)) break;
         }
         updatePressedButtons();
         updateHeldButtons();

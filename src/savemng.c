@@ -300,7 +300,7 @@ bool promptConfirm(Style st, const char* question) {
 	int ret = 0;
 	while(1) {
         updatePressedButtons();
-        if (isPressed(PAD_BUTTON_A | PAD_BUTTON_B | PAD_BUTTON_HOME)) {
+        if (isPressed(PAD_BUTTON_ANY)) {
             ret = isPressed(PAD_BUTTON_A);
             break;
         }
@@ -330,7 +330,7 @@ void promptError(const char* message, ...) {
 	va_end(va);
 	while(1) {
         updatePressedButtons();
-        if (isPressed(0xFFFF)) break;
+        if (isPressed(PAD_BUTTON_ANY)) break;
     }
 }
 

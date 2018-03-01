@@ -61,7 +61,8 @@ enum buttons {
     PAD_BUTTON_SYNC,
     PAD_BUTTON_TV,
     PAD_BUTTON_1,
-    PAD_BUTTON_2
+    PAD_BUTTON_2,
+    PAD_BUTTON_ANY
 };
 
 unsigned char *screenBuffer;

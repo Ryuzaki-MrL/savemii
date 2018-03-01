@@ -115,6 +115,12 @@ bool isProController(KPADData *padData){
 }
 
 int isPressed(int button) {
+    //Check for any button at all
+    if (button == PAD_BUTTON_ANY) {
+        for (int i = 0; i < 5; i++) {
+            if (buttons_pressed[i] > 0) return 1;
+        }
+    }
 	//VPad buttons
     switch (button) {
         case PAD_BUTTON_A:
@@ -398,12 +404,21 @@ int isPressed(int button) {
                 }
             }
         }
+        else {
+            log_print("No padscore controllers found");
+        }
     }
 
     return 0;
 }
 
 int isHeld(int button) {
+    //Check for any button at all
+    if (button == PAD_BUTTON_ANY) {
+        for (int i = 0; i < 5; i++) {
+            if (buttons_hold[i] > 0) return 1;
+        }
+    }
     //VPad buttons
     switch (button) {
         case PAD_BUTTON_A:
@@ -693,6 +708,12 @@ int isHeld(int button) {
 }
 
 int isReleased(int button) {
+    //Check for any button at all
+    if (button == PAD_BUTTON_ANY) {
+        for (int i = 0; i < 5; i++) {
+            if (buttons_released[i] > 0) return 1;
+        }
+    }
     //VPad buttons
     switch (button) {
         case PAD_BUTTON_A:
@@ -998,7 +1019,7 @@ void uInit() {
 
     memoryInitialize();				//You probably shouldn't care about this for now :P
     VPADInit();						//Init GamePad input library (needed for getting gamepad input)
-    KPADInit();                     //Init controler input library for other wireless inputs
+    KPADInit();                     //Init controller input library for other wireless inputs
     WPADInit();
     ScreenInit();					//Init OSScreen (all the complex stuff is in easyfunctions.h :P )
 }
