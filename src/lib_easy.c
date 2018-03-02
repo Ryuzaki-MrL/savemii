@@ -38,11 +38,16 @@ void updatePressedButtons() {
     for (int i = 0; i < 4; i++) {
         if (padErrors[i] == 0) {
             KPADRead(i, &pads[i], 1);
-            if (pads[i].device_type < 2) {
+            if (isWiimote(&pads[i])) {
                 buttons_pressed[i + 1] = pads[i].btns_d;
-            } else {
+            }
+            else if (isClassicController(&pads[i])) {
                 buttons_pressed[i + 1] = pads[i].classic.btns_d;
             }
+            else if (isProController(&pads[i])) {
+                buttons_pressed[i + 1] = pads[i].pro.btns_d;
+            }
+
         }
     }
 }
@@ -55,10 +60,14 @@ void updateHeldButtons() {
     for (int i = 0; i < 4; i++) {
         if (padErrors[i] == 0) {
             KPADRead(i, &pads[i], 1);
-            if (pads[i].device_type < 2) {
-                buttons_hold[i + 1] = pads[i].btns_h;
-            } else {
-                buttons_hold[i + 1] = pads[i].classic.btns_h;
+            if (isWiimote(&pads[i])) {
+                buttons_pressed[i + 1] = pads[i].btns_h;
+            }
+            else if (isClassicController(&pads[i])) {
+                buttons_pressed[i + 1] = pads[i].classic.btns_h;
+            }
+            else if (isProController(&pads[i])) {
+                buttons_pressed[i + 1] = pads[i].pro.btns_h;
             }
         }
     }
@@ -72,10 +81,14 @@ void updateReleasedButtons() {
     for (int i = 0; i < 4; i++) {
         if (padErrors[i] == 0) {
             KPADRead(i, &pads[i], 1);
-            if (pads[i].device_type < 2) {
-                buttons_released[i + 1] = pads[i].btns_r;
-            } else {
-                buttons_released[i + 1] = pads[i].classic.btns_r;
+            if (isWiimote(&pads[i])) {
+                buttons_pressed[i + 1] = pads[i].btns_r;
+            }
+            else if (isClassicController(&pads[i])) {
+                buttons_pressed[i + 1] = pads[i].classic.btns_r;
+            }
+            else if (isProController(&pads[i])) {
+                buttons_pressed[i + 1] = pads[i].pro.btns_r;
             }
         }
     }
@@ -269,7 +282,9 @@ int isPressed(int button) {
                         break;
                 }
             }
-            else if (isClassicController(&pads[i])) {
+            //Turns out the Pro Controller and Classic Controller have almost the exact same mapping
+            //Except for the Pro Controller having clicky sticks
+            else if (isClassicController(&pads[i]) || isProController(&pads[i])) {
                 switch (button) {
                     case PAD_BUTTON_UP:
                         if (buttons_pressed[i + 1] & WPAD_CLASSIC_BUTTON_UP) return 1;
@@ -331,81 +346,19 @@ int isPressed(int button) {
                         if (buttons_pressed[i + 1] & WPAD_CLASSIC_BUTTON_HOME) return 1;
                         break;
                 }
-            }
-            else if (isProController(&pads[i])) {
-                switch (button) {
-                    case PAD_BUTTON_UP:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_UP) return 1;
-                        break;
+                //Here, we handle the aforementioned clicky sticks
+                if (isProController(&pads[i])) {
+                    switch (button) {
+                        case PAD_BUTTON_STICK_L:
+                            if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_STICK_L) return 1;
+                            break;
 
-                    case PAD_BUTTON_DOWN:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_DOWN) return 1;
-                        break;
-
-                    case PAD_BUTTON_LEFT:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_LEFT) return 1;
-                        break;
-
-                    case PAD_BUTTON_RIGHT:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_RIGHT) return 1;
-                        break;
-
-                    case PAD_BUTTON_A:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_A) return 1;
-                        break;
-
-                    case PAD_BUTTON_B:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_B) return 1;
-                        break;
-
-                    case PAD_BUTTON_X:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_X) return 1;
-                        break;
-
-                    case PAD_BUTTON_Y:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_Y) return 1;
-                        break;
-
-                    case PAD_BUTTON_L:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_TRIGGER_L) return 1;
-                        break;
-
-                    case PAD_BUTTON_R:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_TRIGGER_R) return 1;
-                        break;
-
-                    case PAD_BUTTON_ZL:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_TRIGGER_ZL) return 1;
-                        break;
-
-                    case PAD_BUTTON_ZR:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_TRIGGER_ZR) return 1;
-                        break;
-
-                    case PAD_BUTTON_PLUS:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_PLUS) return 1;
-                        break;
-
-                    case PAD_BUTTON_MINUS:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_MINUS) return 1;
-                        break;
-
-                    case PAD_BUTTON_HOME:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_HOME) return 1;
-                        break;
-
-                    case PAD_BUTTON_STICK_L:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_STICK_L) return 1;
-                        break;
-
-                    case PAD_BUTTON_STICK_R:
-                        if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_STICK_R) return 1;
-                        break;
+                        case PAD_BUTTON_STICK_R:
+                            if (buttons_pressed[i + 1] & WPAD_PRO_BUTTON_STICK_R) return 1;
+                            break;
+                    }
                 }
             }
-        }
-        else {
-            log_print("No padscore controllers found");
         }
     }
 
@@ -567,7 +520,9 @@ int isHeld(int button) {
                         break;
                 }
             }
-            else if (isClassicController(&pads[i])) {
+            //Turns out the Pro Controller and Classic Controller have almost the exact same mapping
+            //Except for the Pro Controller having clicky sticks
+            else if (isClassicController(&pads[i]) || isProController(&pads[i])) {
                 switch (button) {
                     case PAD_BUTTON_UP:
                         if (buttons_hold[i + 1] & WPAD_CLASSIC_BUTTON_UP) return 1;
@@ -629,76 +584,17 @@ int isHeld(int button) {
                         if (buttons_hold[i + 1] & WPAD_CLASSIC_BUTTON_HOME) return 1;
                         break;
                 }
-            }
-            else if (isProController(&pads[i])) {
-                switch (button) {
-                    case PAD_BUTTON_UP:
-                        if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_UP) return 1;
-                        break;
+                //Here, we handle the aforementioned clicky sticks
+                if (isProController(&pads[i])) {
+                    switch (button) {
+                        case PAD_BUTTON_STICK_L:
+                            if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_STICK_L) return 1;
+                            break;
 
-                    case PAD_BUTTON_DOWN:
-                        if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_DOWN) return 1;
-                        break;
-
-                    case PAD_BUTTON_LEFT:
-                        if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_LEFT) return 1;
-                        break;
-
-                    case PAD_BUTTON_RIGHT:
-                        if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_RIGHT) return 1;
-                        break;
-
-                    case PAD_BUTTON_A:
-                        if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_A) return 1;
-                        break;
-
-                    case PAD_BUTTON_B:
-                        if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_B) return 1;
-                        break;
-
-                    case PAD_BUTTON_X:
-                        if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_X) return 1;
-                        break;
-
-                    case PAD_BUTTON_Y:
-                        if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_Y) return 1;
-                        break;
-
-                    case PAD_BUTTON_L:
-                        if (buttons_hold[i + 1] & WPAD_PRO_TRIGGER_L) return 1;
-                        break;
-
-                    case PAD_BUTTON_R:
-                        if (buttons_hold[i + 1] & WPAD_PRO_TRIGGER_R) return 1;
-                        break;
-
-                    case PAD_BUTTON_ZL:
-                        if (buttons_hold[i + 1] & WPAD_PRO_TRIGGER_ZL) return 1;
-                        break;
-
-                    case PAD_BUTTON_ZR:
-                        if (buttons_hold[i + 1] & WPAD_PRO_TRIGGER_ZR) return 1;
-                        break;
-
-                    case PAD_BUTTON_PLUS:
-                        if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_PLUS) return 1;
-                        break;
-
-                    case PAD_BUTTON_MINUS:
-                        if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_MINUS) return 1;
-                        break;
-
-                    case PAD_BUTTON_HOME:
-                        if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_HOME) return 1;
-                        break;
-
-                    case PAD_BUTTON_STICK_L:
-                        if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_STICK_L) return 1;
-                        break;
-
-                    case PAD_BUTTON_STICK_R:
-                        if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_STICK_R) return 1;
-                        break;
+                        case PAD_BUTTON_STICK_R:
+                            if (buttons_hold[i + 1] & WPAD_PRO_BUTTON_STICK_R) return 1;
+                            break;
+                    }
                 }
             }
         }
@@ -862,7 +758,9 @@ int isReleased(int button) {
                         break;
                 }
             }
-            else if (isClassicController(&pads[i])) {
+            //Turns out the Pro Controller and Classic Controller have almost the exact same mapping
+            //Except for the Pro Controller having clicky sticks
+            else if (isClassicController(&pads[i]) || isProController(&pads[i])) {
                 switch (button) {
                     case PAD_BUTTON_UP:
                         if (buttons_released[i + 1] & WPAD_CLASSIC_BUTTON_UP) return 1;
@@ -924,76 +822,17 @@ int isReleased(int button) {
                         if (buttons_released[i + 1] & WPAD_CLASSIC_BUTTON_HOME) return 1;
                         break;
                 }
-            }
-            else if (isProController(&pads[i])) {
-                switch (button) {
-                    case PAD_BUTTON_UP:
-                        if (buttons_released[i + 1] & WPAD_PRO_BUTTON_UP) return 1;
-                        break;
+                //Here, we handle the aforementioned clicky sticks
+                if (isProController(&pads[i])) {
+                    switch (button) {
+                        case PAD_BUTTON_STICK_L:
+                            if (buttons_released[i + 1] & WPAD_PRO_BUTTON_STICK_L) return 1;
+                            break;
 
-                    case PAD_BUTTON_DOWN:
-                        if (buttons_released[i + 1] & WPAD_PRO_BUTTON_DOWN) return 1;
-                        break;
-
-                    case PAD_BUTTON_LEFT:
-                        if (buttons_released[i + 1] & WPAD_PRO_BUTTON_LEFT) return 1;
-                        break;
-
-                    case PAD_BUTTON_RIGHT:
-                        if (buttons_released[i + 1] & WPAD_PRO_BUTTON_RIGHT) return 1;
-                        break;
-
-                    case PAD_BUTTON_A:
-                        if (buttons_released[i + 1] & WPAD_PRO_BUTTON_A) return 1;
-                        break;
-
-                    case PAD_BUTTON_B:
-                        if (buttons_released[i + 1] & WPAD_PRO_BUTTON_B) return 1;
-                        break;
-
-                    case PAD_BUTTON_X:
-                        if (buttons_released[i + 1] & WPAD_PRO_BUTTON_X) return 1;
-                        break;
-
-                    case PAD_BUTTON_Y:
-                        if (buttons_released[i + 1] & WPAD_PRO_BUTTON_Y) return 1;
-                        break;
-
-                    case PAD_BUTTON_L:
-                        if (buttons_released[i + 1] & WPAD_PRO_TRIGGER_L) return 1;
-                        break;
-
-                    case PAD_BUTTON_R:
-                        if (buttons_released[i + 1] & WPAD_PRO_TRIGGER_R) return 1;
-                        break;
-
-                    case PAD_BUTTON_ZL:
-                        if (buttons_released[i + 1] & WPAD_PRO_TRIGGER_ZL) return 1;
-                        break;
-
-                    case PAD_BUTTON_ZR:
-                        if (buttons_released[i + 1] & WPAD_PRO_TRIGGER_ZR) return 1;
-                        break;
-
-                    case PAD_BUTTON_PLUS:
-                        if (buttons_released[i + 1] & WPAD_PRO_BUTTON_PLUS) return 1;
-                        break;
-
-                    case PAD_BUTTON_MINUS:
-                        if (buttons_released[i + 1] & WPAD_PRO_BUTTON_MINUS) return 1;
-                        break;
-
-                    case PAD_BUTTON_HOME:
-                        if (buttons_released[i + 1] & WPAD_PRO_BUTTON_HOME) return 1;
-                        break;
-
-                    case PAD_BUTTON_STICK_L:
-                        if (buttons_released[i + 1] & WPAD_PRO_BUTTON_STICK_L) return 1;
-                        break;
-
-                    case PAD_BUTTON_STICK_R:
-                        if (buttons_released[i + 1] & WPAD_PRO_BUTTON_STICK_R) return 1;
-                        break;
+                        case PAD_BUTTON_STICK_R:
+                            if (buttons_released[i + 1] & WPAD_PRO_BUTTON_STICK_R) return 1;
+                            break;
+                    }
                 }
             }
         }
