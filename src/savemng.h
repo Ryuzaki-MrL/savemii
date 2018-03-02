@@ -10,6 +10,7 @@
 
 #include "lib_easy.h"
 #include "draw.h"
+#include "controllers.h"
 
 #define PATH_SIZE 0x400
 
