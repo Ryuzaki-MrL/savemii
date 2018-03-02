@@ -677,20 +677,18 @@ int Menu_Main(void) {
 
         flipBuffers();
         while(1) {
-            updatePressedButtons();
-            updateHeldButtons();
-            if (isPressed(PAD_BUTTON_ANY) || isHeld(PAD_BUTTON_ANY) || stickPos(4, 0.7)) break;
+            updateButtons();
+            if (checkButton(PAD_BUTTON_ANY, PRESS) || checkButton(PAD_BUTTON_ANY, HOLD) || stickPos(4, 0.7)) break;
         }
-        updatePressedButtons();
-        updateHeldButtons();
+        updateButtons();
 
-        if (isPressed(PAD_BUTTON_DOWN) || isHeld(PAD_BUTTON_DOWN) || stickPos(1, -0.7) || stickPos(3, -0.7)) {
+        if (checkButton(PAD_BUTTON_DOWN, PRESS) || checkButton(PAD_BUTTON_DOWN, HOLD) || stickPos(1, -0.7) || stickPos(3, -0.7)) {
             if (entrycount <= 14) cursor = (cursor + 1) % entrycount;
             else if (cursor < 6) cursor++;
             else if ((cursor + scroll + 1) % entrycount) scroll++;
             else cursor = scroll = 0;
             os_usleep(100000);
-        } else if (isPressed(PAD_BUTTON_UP) || isHeld(PAD_BUTTON_UP) || stickPos(1, 0.7) || stickPos(3, 0.7)) {
+        } else if (checkButton(PAD_BUTTON_UP, PRESS) || checkButton(PAD_BUTTON_UP, HOLD) || stickPos(1, 0.7) || stickPos(3, 0.7)) {
             if (scroll > 0) cursor -= (cursor>6) ? 1 : 0 * (scroll--);
             else if (cursor > 0) cursor--;
             else if (entrycount > 14) scroll = entrycount - (cursor = 6) - 1;
@@ -698,7 +696,7 @@ int Menu_Main(void) {
             os_usleep(100000);
         }
 
-        if (isPressed(PAD_BUTTON_LEFT) || isHeld(PAD_BUTTON_LEFT) || stickPos(0, -0.7) || stickPos(2, -0.7)) {
+        if (checkButton(PAD_BUTTON_LEFT, PRESS) || checkButton(PAD_BUTTON_LEFT, HOLD) || stickPos(0, -0.7) || stickPos(2, -0.7)) {
             if (menu==3) {
                 if (task == 5) {
                     switch(cursor) {
@@ -746,7 +744,7 @@ int Menu_Main(void) {
                 }
             }
             os_usleep(100000);
-        } else if (isPressed(PAD_BUTTON_RIGHT) || isHeld(PAD_BUTTON_RIGHT) || stickPos(0, 0.7) || stickPos(2, 0.7)) {
+        } else if (checkButton(PAD_BUTTON_RIGHT, PRESS) || checkButton(PAD_BUTTON_RIGHT, HOLD) || stickPos(0, 0.7) || stickPos(2, 0.7)) {
             if (menu == 3) {
                 if (task == 5) {
                     switch(cursor) {
@@ -796,7 +794,7 @@ int Menu_Main(void) {
             os_usleep(100000);
         }
 
-        if (isPressed(PAD_BUTTON_R)) {
+        if (checkButton(PAD_BUTTON_R, PRESS)) {
             if (menu == 1) {
                 tsort = (tsort + 1) % 4;
                 qsort(titles, count, sizeof(Title), titleSort);
@@ -806,7 +804,7 @@ int Menu_Main(void) {
             }
         }
 
-        if (isPressed(PAD_BUTTON_L)) {
+        if (checkButton(PAD_BUTTON_L, PRESS)) {
             if ((menu==1) && (tsort > 0)) {
                 sorta *= -1;
                 qsort(titles, count, sizeof(Title), titleSort);
@@ -816,7 +814,7 @@ int Menu_Main(void) {
             }
         }
 
-        if (isPressed(PAD_BUTTON_A)) {
+        if (checkButton(PAD_BUTTON_A, PRESS)) {
             clearBuffers();
             if (menu < 3) {
                 if (menu == 0) {
@@ -928,7 +926,7 @@ int Menu_Main(void) {
                         } break;
                 }
             }
-        } else if (isPressed(PAD_BUTTON_B) && menu > 0) {
+        } else if (checkButton(PAD_BUTTON_B, PRESS) && menu > 0) {
             clearBuffers();
             menu--;
             cursor = scroll = 0;
@@ -938,7 +936,7 @@ int Menu_Main(void) {
             }
             if (menu == 2) cursor = cursort;
         }
-        if (isPressed(PAD_BUTTON_HOME)) break;
+        if (checkButton(PAD_BUTTON_HOME, PRESS)) break;
     }
 
     if (tgaBufDRC) free(tgaBufDRC);

@@ -31,20 +31,25 @@ enum buttons {
     PAD_BUTTON_ANY
 };
 
+enum buttonStates {
+    PRESS,
+    HOLD,
+    RELEASE
+};
+
 uint32_t buttons_hold[5]; //Held buttons
 uint32_t buttons_pressed[5]; //Pressed buttons
 uint32_t buttons_released[5]; //Released buttons
 
 void pingControllers();
-void updatePressedButtons();
-void updateHeldButtons();
-void updateReleasedButtons();
+void updateButtons();
 bool stickPos(u8 stick, f32 value);
 bool isWiimote(KPADData *padData);
 bool isClassicController(KPADData *padData);
 bool isProController(KPADData *padData);
-int isPressed(int button);
-int isHeld(int button);
-int isReleased(int button);
+int checkButton(int button, int state);
+// int isPressed(int button);
+// int isHeld(int button);
+// int isReleased(int button);
 
 #endif //CONTROLLERS_H
