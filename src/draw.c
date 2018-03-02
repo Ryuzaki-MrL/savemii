@@ -345,21 +345,21 @@ void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y) {
 				}
 			}
 			break;
-		case FT_PIXEL_MODE_BGRA:
-			x_max = x + bitmap->width/2;
-			for (i = x, p = 0; i < x_max; i++, p++) {
-				for (j = y, q = 0; j < y_max; j++, q++) {
-					if (i < 0 || j < 0 || i >= 854 || j >= 480) continue;
-					u8 cb = bitmap->buffer[q * bitmap->pitch + p * 4];
-					u8 cg = bitmap->buffer[q * bitmap->pitch + p * 4 + 1];
-					u8 cr = bitmap->buffer[q * bitmap->pitch + p * 4 + 2];
-					u8 ca = bitmap->buffer[q * bitmap->pitch + p * 4 + 3];
-
-					if ((cr | cg | cb) == 0) continue;
-					drawPixel(i, j, cr, cg, cb, ca);
-				}
-			}
-			break;
+		// case FT_PIXEL_MODE_BGRA:
+		// 	x_max = x + bitmap->width/2;
+		// 	for (i = x, p = 0; i < x_max; i++, p++) {
+		// 		for (j = y, q = 0; j < y_max; j++, q++) {
+		// 			if (i < 0 || j < 0 || i >= 854 || j >= 480) continue;
+		// 			u8 cb = bitmap->buffer[q * bitmap->pitch + p * 4];
+		// 			u8 cg = bitmap->buffer[q * bitmap->pitch + p * 4 + 1];
+		// 			u8 cr = bitmap->buffer[q * bitmap->pitch + p * 4 + 2];
+		// 			u8 ca = bitmap->buffer[q * bitmap->pitch + p * 4 + 3];
+        //
+		// 			if ((cr | cg | cb) == 0) continue;
+		// 			drawPixel(i, j, cr, cg, cb, ca);
+		// 		}
+		// 	}
+		// 	break;
 	}
 }
 
@@ -507,7 +507,7 @@ int ttfStringWidth(char *string, s8 part) {
 			continue;
 		}
 
-		error = FT_Load_Glyph(face, glyph_index, FT_LOAD_BITMAP_METRICS_ONLY);
+		error = FT_Load_Glyph(face, glyph_index, 1/*FT_LOAD_BITMAP_METRICS_ONLY*/);
 		if (error)
 			continue;
 

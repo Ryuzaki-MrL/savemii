@@ -299,9 +299,9 @@ bool promptConfirm(Style st, const char* question) {
 
 	int ret = 0;
 	while(1) {
-        updatePressedButtons();
-        if (isPressed(VPAD_BUTTON_A | VPAD_BUTTON_B | VPAD_BUTTON_HOME)) {
-            ret = isPressed(VPAD_BUTTON_A);
+        updateButtons();
+        if (checkButton(PAD_BUTTON_ANY, PRESS)) {
+            ret = checkButton(PAD_BUTTON_A, PRESS);
             break;
         }
     }
@@ -329,8 +329,8 @@ void promptError(const char* message, ...) {
     flipBuffers();
 	va_end(va);
 	while(1) {
-        updatePressedButtons();
-        if (isPressed(0xFFFF)) break;
+        updateButtons();
+        if (checkButton(PAD_BUTTON_ANY, PRESS)) break;
     }
 }
 
