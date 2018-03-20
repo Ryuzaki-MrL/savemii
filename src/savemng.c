@@ -299,7 +299,7 @@ bool promptConfirm(Style st, const char* question) {
 
 	int ret = 0;
 	while(1) {
-        updateButtons();
+        updateControllers();
         if (checkButton(PAD_BUTTON_ANY, PRESS)) {
             ret = checkButton(PAD_BUTTON_A, PRESS);
             break;
@@ -329,7 +329,7 @@ void promptError(const char* message, ...) {
     flipBuffers();
 	va_end(va);
 	while(1) {
-        updateButtons();
+        updateControllers();
         if (checkButton(PAD_BUTTON_ANY, PRESS)) break;
     }
 }

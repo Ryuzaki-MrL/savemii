@@ -1,8 +1,8 @@
-//Based on code from lib_easy, current stickPos() is straight borrowed from there
+//Based on code from lib_easy by rw-r-r-0644
 
 #include "controllers.h"
 
-int vpadError = -1;
+s32 vpadError = -1;
 VPADData vpad;
 
 s32 padErrors[4];
@@ -15,11 +15,16 @@ void pingControllers() {
     }
 }
 
-void updateButtons() {
+void updateControllers() {
     VPADRead(0, &vpad, 1, &vpadError);
     buttons_pressed[0] = vpad.btns_d;
     buttons_hold[0] = vpad.btns_h;
     buttons_released[0] = vpad.btns_r;
+
+    stickPositions[0][0][0] = vpad.lstick.x;
+    stickPositions[0][0][1] = vpad.lstick.y;
+    stickPositions[0][1][0] = vpad.rstick.x;
+    stickPositions[0][1][1] = vpad.rstick.y;
 
     pingControllers();
     for (int i = 0; i < 4; i++) {
@@ -29,44 +34,44 @@ void updateButtons() {
                 buttons_pressed[i + 1] = pads[i].btns_d;
                 buttons_hold[i + 1] = pads[i].btns_h;
                 buttons_released[i + 1] = pads[i].btns_r;
+
+                if (hasNunchuck(&pads[i])) {
+                    stickPositions[i + 1][0][0] = pads[i].nunchuck.stick_x;
+                    stickPositions[i + 1][0][1] = pads[i].nunchuck.stick_y;
+                    stickPositions[i + 1][1][0] = 0;
+                    stickPositions[i + 1][1][1] = 0;
+                }
             }
             else if (isClassicController(&pads[i])) {
                 buttons_pressed[i + 1] = pads[i].classic.btns_d;
                 buttons_hold[i + 1] = pads[i].classic.btns_h;
                 buttons_released[i + 1] = pads[i].classic.btns_r;
+
+                stickPositions[i + 1][0][0] = pads[i].classic.lstick_x;
+                stickPositions[i + 1][0][1] = pads[i].classic.lstick_y;
+                stickPositions[i + 1][1][0] = pads[i].classic.rstick_x;
+                stickPositions[i + 1][1][1] = pads[i].classic.rstick_y;
             }
             else if (isProController(&pads[i])) {
                 buttons_pressed[i + 1] = pads[i].pro.btns_d;
                 buttons_hold[i + 1] = pads[i].pro.btns_h;
                 buttons_released[i + 1] = pads[i].pro.btns_r;
+
+                stickPositions[i + 1][0][0] = pads[i].pro.lstick_x;
+                stickPositions[i + 1][0][1] = pads[i].pro.lstick_y;
+                stickPositions[i + 1][1][0] = pads[i].pro.rstick_x;
+                stickPositions[i + 1][1][1] = pads[i].pro.rstick_y;
             }
         }
     }
 }
 
-bool stickPos(u8 stick, f32 value) {
-    switch(stick) {
-        case 0 :
-            return (value > 0) ? (vpad.lstick.x > value): (vpad.lstick.x < value);
-        case 1 :
-            return (value > 0) ? (vpad.lstick.y > value): (vpad.lstick.y < value);
-        case 2 :
-            return (value > 0) ? (vpad.rstick.x > value): (vpad.rstick.x < value);
-        case 3 :
-            return (value > 0) ? (vpad.rstick.y > value): (vpad.rstick.y < value);
-        case 4 :
-            return ((vpad.lstick.x > value) || (vpad.lstick.x < -value)) || \
-                   ((vpad.lstick.y > value) || (vpad.lstick.y < -value)) || \
-                   ((vpad.rstick.x > value) || (vpad.rstick.x < -value)) || \
-                   ((vpad.rstick.y > value) || (vpad.rstick.y < -value));
-
-        default :
-            return 0;
-    }
-}
-
 bool isWiimote(KPADData *padData){
     return padData->device_type == 0 || padData->device_type == 1 || padData->device_type == 5 || padData->device_type == 6;
+}
+
+bool hasNunchuck(KPADData *padData){
+    return padData->device_type == 1 || padData->device_type == 6;
 }
 
 bool isClassicController(KPADData *padData){
@@ -75,6 +80,60 @@ bool isClassicController(KPADData *padData){
 
 bool isProController(KPADData *padData){
     return padData->device_type == 31;
+}
+
+bool checkStick(u8 stick, u8 stickDirection, f32 threshold) {
+    if (stick == STICK_BOTH) {
+        return checkStick(STICK_L, stickDirection, threshold) \
+               || checkStick(STICK_R, stickDirection, threshold);
+    }
+
+    for (u8 i = 0; i < 4; i++) {
+        // Check the sticks on all controllers that aren't Wiimotes
+        if (!isWiimote(&pads[i]) || hasNunchuck(&pads[i])) {
+            f32 *stickState = stickPositions[i + 1][stick];
+
+            switch (stickDirection) {
+                case DIR_DOWN:
+                    return stickState[1] < threshold;
+
+                case DIR_UP:
+                    return stickState[1] > threshold;
+
+                case DIR_LEFT:
+                    return stickState[0] < threshold;
+
+                case DIR_RIGHT:
+                    return stickState[0] > threshold;
+
+                case DIR_ANY:
+                    return (threshold > 0) ? ((stickState[0] > threshold) || (stickState[1] > threshold)) : \
+                    ((stickState[0] < threshold) || (stickState[1] < threshold));
+            }
+        }
+    }
+
+    f32 *stickState = stickPositions[0][stick];
+    // Check the sticks on the gamepad
+    switch (stickDirection) {
+        case DIR_DOWN:
+            return stickState[1] < threshold;
+
+        case DIR_UP:
+            return stickState[1] > threshold;
+
+        case DIR_LEFT:
+            return stickState[0] < threshold;
+
+        case DIR_RIGHT:
+            return stickState[0] > threshold;
+
+        case DIR_ANY:
+            return (threshold > 0) ? ((stickState[0] > threshold) || (stickState[1] > threshold)) : \
+            ((stickState[0] < threshold) || (stickState[1] < threshold));
+    }
+
+    return false;
 }
 
 int checkButton(int button, int state) {

@@ -37,19 +37,35 @@ enum buttonStates {
     RELEASE
 };
 
-uint32_t buttons_hold[5]; //Held buttons
-uint32_t buttons_pressed[5]; //Pressed buttons
-uint32_t buttons_released[5]; //Released buttons
+enum sticks {
+    STICK_L = 0,
+    STICK_R = 1,
+    STICK_BOTH = 2
+};
+
+enum stickDirections {
+    DIR_UP,
+    DIR_DOWN,
+    DIR_LEFT,
+    DIR_RIGHT,
+    DIR_ANY
+};
+
+uint32_t buttons_hold[5]; // Held buttons
+uint32_t buttons_pressed[5]; // Pressed buttons
+uint32_t buttons_released[5]; // Released buttons
+f32 stickPositions[5][2][2];
+/* State of joysticks.
+First index is controller, second is stick (L and R) and third is direction (X or Y)
+These are to be read with checkStick(stick, stickDirection, threshold)*/
 
 void pingControllers();
-void updateButtons();
-bool stickPos(u8 stick, f32 value);
+void updateControllers();
 bool isWiimote(KPADData *padData);
+bool hasNunchuck(KPADData *padData);
 bool isClassicController(KPADData *padData);
 bool isProController(KPADData *padData);
+bool checkStick(u8 stick, u8 stickDirection, f32 threshold);
 int checkButton(int button, int state);
-// int isPressed(int button);
-// int isHeld(int button);
-// int isReleased(int button);
 
 #endif //CONTROLLERS_H

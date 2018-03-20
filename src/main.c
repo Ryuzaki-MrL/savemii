@@ -677,18 +677,18 @@ int Menu_Main(void) {
 
         flipBuffers();
         while(1) {
-            updateButtons();
-            if (checkButton(PAD_BUTTON_ANY, PRESS) || checkButton(PAD_BUTTON_ANY, HOLD) || stickPos(4, 0.7)) break;
+            updateControllers();
+            if (checkButton(PAD_BUTTON_ANY, PRESS) || checkButton(PAD_BUTTON_ANY, HOLD) || checkStick(STICK_BOTH, DIR_ANY, 0.7)) break;
         }
-        updateButtons();
+        updateControllers();
 
-        if (checkButton(PAD_BUTTON_DOWN, PRESS) || checkButton(PAD_BUTTON_DOWN, HOLD) || stickPos(1, -0.7) || stickPos(3, -0.7)) {
+        if (checkButton(PAD_BUTTON_DOWN, PRESS) || checkButton(PAD_BUTTON_DOWN, HOLD) || checkStick(STICK_BOTH, DIR_DOWN, -0.7)) {
             if (entrycount <= 14) cursor = (cursor + 1) % entrycount;
             else if (cursor < 6) cursor++;
             else if ((cursor + scroll + 1) % entrycount) scroll++;
             else cursor = scroll = 0;
             os_usleep(100000);
-        } else if (checkButton(PAD_BUTTON_UP, PRESS) || checkButton(PAD_BUTTON_UP, HOLD) || stickPos(1, 0.7) || stickPos(3, 0.7)) {
+        } else if (checkButton(PAD_BUTTON_UP, PRESS) || checkButton(PAD_BUTTON_UP, HOLD) || checkStick(STICK_BOTH, DIR_UP, 0.7)) {
             if (scroll > 0) cursor -= (cursor>6) ? 1 : 0 * (scroll--);
             else if (cursor > 0) cursor--;
             else if (entrycount > 14) scroll = entrycount - (cursor = 6) - 1;
@@ -696,7 +696,7 @@ int Menu_Main(void) {
             os_usleep(100000);
         }
 
-        if (checkButton(PAD_BUTTON_LEFT, PRESS) || checkButton(PAD_BUTTON_LEFT, HOLD) || stickPos(0, -0.7) || stickPos(2, -0.7)) {
+        if (checkButton(PAD_BUTTON_LEFT, PRESS) || checkButton(PAD_BUTTON_LEFT, HOLD) || checkStick(STICK_BOTH, DIR_LEFT, -0.7)) {
             if (menu==3) {
                 if (task == 5) {
                     switch(cursor) {
@@ -744,7 +744,7 @@ int Menu_Main(void) {
                 }
             }
             os_usleep(100000);
-        } else if (checkButton(PAD_BUTTON_RIGHT, PRESS) || checkButton(PAD_BUTTON_RIGHT, HOLD) || stickPos(0, 0.7) || stickPos(2, 0.7)) {
+        } else if (checkButton(PAD_BUTTON_RIGHT, PRESS) || checkButton(PAD_BUTTON_RIGHT, HOLD) || checkStick(STICK_BOTH, DIR_RIGHT, 0.7)) {
             if (menu == 3) {
                 if (task == 5) {
                     switch(cursor) {
