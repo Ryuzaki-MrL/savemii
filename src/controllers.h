@@ -1,8 +1,8 @@
 #ifndef CONTROLLERS_H
 #define CONTROLLERS_H
 
-#include "dynamic_libs/padscore_functions.h"
-#include "dynamic_libs/vpad_functions.h"
+#include <dynamic_libs/padscore_functions.h>
+#include <dynamic_libs/vpad_functions.h>
 
 enum buttons {
     PAD_BUTTON_A,
@@ -36,10 +36,6 @@ enum buttonStates {
     HOLD,
     RELEASE
 };
-
-uint32_t buttons_hold[5]; //Held buttons
-uint32_t buttons_pressed[5]; //Pressed buttons
-uint32_t buttons_released[5]; //Released buttons
 
 void pingControllers();
 void updateButtons();

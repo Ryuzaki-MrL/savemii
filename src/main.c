@@ -10,7 +10,6 @@
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 2
 #define VERSION_MICRO 0
-#define VERSION_MOD "mod5"
 #define M_OFF 3
 
 u8 slot = 0;
@@ -74,6 +73,8 @@ int titleSort(const void *c1, const void *c2)
             return 1 * sorta;
 
         return strcmp(((Title*)c1)->shortName,((Title*)c2)->shortName) * sorta;
+    } else {
+        return 0;
     }
 }
 
@@ -113,16 +114,16 @@ Title* loadWiiUTitles(int run, int fsaFd) {
     }
     savesl = realloc(savesl, usable * sizeof(Saves));
 
-    int dirUH, dirNH, foundCount = 0, pos = 0, tNoSave = usable;
+    int dirUH, foundCount = 0, pos = 0, tNoSave = usable;
     for (int i = 0; i <= 1; i++) {
         char path[255];
         sprintf(path, "/vol/storage_%s01/usr/save/00050000", (i == 0) ? "usb" : "mlc");
         if (IOSUHAX_FSA_OpenDir(fsaFd, path, &dirUH) >= 0) {
             while (1) {
                 directoryEntry_s data;
-        		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
-        		if (ret != 0)
-        			break;
+                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
+                if (ret != 0)
+                    break;
 
                 sprintf(path, "/vol/storage_%s01/usr/save/00050000/%s/user", (i == 0) ? "usb" : "mlc", data.name);
                 if (checkEntry(path) == 2) {
@@ -156,9 +157,9 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         if (IOSUHAX_FSA_OpenDir(fsaFd, path, &dirUH) >= 0) {
             while (1) {
                 directoryEntry_s data;
-        		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
-        		if (ret != 0)
-        			break;
+                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
+                if (ret != 0)
+                    break;
 
                 sprintf(path, "/vol/storage_%s01/usr/save/00050000/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", data.name);
                 if (checkEntry(path) == 1) {
@@ -190,20 +191,20 @@ Title* loadWiiUTitles(int run, int fsaFd) {
     }
 
     for (int i = 0; i < foundCount; i++) {
-        int srcFd = -1;
         u32 highID = saves[i].highID, lowID = saves[i].lowID;
         bool isTitleOnUSB = !saves[i].dev;
 
         char path[255];
         memset(path, 0, 255);
-        if (saves[i].found)
+        if (saves[i].found) {
             sprintf(path, "/vol/storage_%s01/usr/title/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", highID, lowID);
-        else
+        } else {
             sprintf(path, "/vol/storage_%s01/usr/save/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", highID, lowID);
+        }
         titles[titleswiiu].saveInit = !saves[i].found;
 
         char* xmlBuf = NULL;
-        if (loadFile(path, &xmlBuf) > 0) {
+        if (loadFile(path, (u8**)&xmlBuf) > 0) {
             char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
             memset(titles[titleswiiu].productCode, 0, sizeof(titles[titleswiiu].productCode));
             strncpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<"));
@@ -223,15 +224,15 @@ Title* loadWiiUTitles(int run, int fsaFd) {
             free(xmlBuf);
         }
 
-	    titles[titleswiiu].isTitleDupe = false;
-	    for (int i = 0; i < titleswiiu; i++) {
-		    if ((titles[i].highID == highID) && (titles[i].lowID == lowID)) {
-			    titles[titleswiiu].isTitleDupe = true;
-			    titles[titleswiiu].dupeID = i;
-			    titles[i].isTitleDupe = true;
-			    titles[i].dupeID = titleswiiu;
-		    }
-	    }
+        titles[titleswiiu].isTitleDupe = false;
+        for (int i = 0; i < titleswiiu; i++) {
+            if ((titles[i].highID == highID) && (titles[i].lowID == lowID)) {
+                titles[titleswiiu].isTitleDupe = true;
+                titles[titleswiiu].dupeID = i;
+                titles[i].isTitleDupe = true;
+                titles[i].dupeID = titleswiiu;
+            }
+        }
 
         titles[titleswiiu].highID = highID;
         titles[titleswiiu].lowID = lowID;
@@ -257,12 +258,14 @@ Title* loadWiiUTitles(int run, int fsaFd) {
 
 Title* loadWiiTitles(int fsaFd) {
     int dirH;
-    char* highIDs[3] = {"00010000", "00010001", "00010004"};
+    const char* highIDs[3] = {"00010000", "00010001", "00010004"};
     bool found = false;
-    u32* blacklist[7][2] = {{0x00010000, 0x00555044}, {0x00010000, 0x00555045}, \
-                            {0x00010000, 0x0055504A}, {0x00010000, 0x524F4E45}, \
-                            {0x00010000, 0x52543445}, {0x00010001, 0x48424344},
-                            {0x00010001, 0x554E454F}};
+    static const u32 blacklist[7][2] = {
+        {0x00010000, 0x00555044}, {0x00010000, 0x00555045},
+        {0x00010000, 0x0055504A}, {0x00010000, 0x524F4E45},
+        {0x00010000, 0x52543445}, {0x00010001, 0x48424344},
+        {0x00010001, 0x554E454F}
+    };
 
     char pathW[256];
     for (int k = 0; k < 3; k++) {
@@ -270,8 +273,8 @@ Title* loadWiiTitles(int fsaFd) {
         if (IOSUHAX_FSA_OpenDir(fsaFd, pathW, &dirH) >= 0) {
             while (1) {
                 directoryEntry_s data;
-        		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-        		if (ret != 0) break;
+                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
+                if (ret != 0) break;
                 for (int ii = 0; ii < 7; ii++) {
                     if (blacklist[ii][0] == strtoul(highIDs[k], NULL, 16)) {
                         if (blacklist[ii][1] == strtoul(data.name, NULL, 16)) {found = true; break;}
@@ -296,8 +299,8 @@ Title* loadWiiTitles(int fsaFd) {
         if (IOSUHAX_FSA_OpenDir(fsaFd, pathW, &dirH) >= 0) {
             while (1) {
                 directoryEntry_s data;
-        		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-        		if (ret != 0) break;
+                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
+                if (ret != 0) break;
                 for (int ii = 0; ii < 7; ii++) {
                     if (blacklist[ii][0] == strtoul(highIDs[k], NULL, 16)) {
                         if (blacklist[ii][1] == strtoul(data.name, NULL, 16)) {found = true; break;}
@@ -429,8 +432,11 @@ int Menu_Main(void) {
     if (fsaFd < 0) {
         promptError("IOSUHAX_FSA_Open failed.");
         //unmount_sd_fat("sd");
-        if (mcp_hook_fd >= 0) MCPHookClose();
-        else IOSUHAX_Close();
+        if (mcp_hook_fd >= 0) {
+            MCPHookClose();
+        } else {
+            IOSUHAX_Close();
+        }
         return EXIT_SUCCESS;
     }
     setFSAFD(fsaFd);
@@ -443,10 +449,12 @@ int Menu_Main(void) {
     mount_fs("storage_odd", fsaFd, "/dev/odd03", "/vol/storage_odd_content");
 
     u8* fontBuf = NULL;
-    s32 fsize = loadFile("/vol/storage_sdcard/wiiu/apps/savemii_mod/font.ttf", &fontBuf);
+    s32 fsize = loadFile("/vol/storage_sdcard/wiiu/apps/savemii/font.ttf", &fontBuf);
     if (fsize > 0) {
         initFont(fontBuf, fsize);
-    } else initFont(NULL, 0);
+    } else {
+        initFont(NULL, 0);
+    }
 
     disclaimer();
     clearBuffers();
@@ -464,16 +472,16 @@ int Menu_Main(void) {
     u8* fileContent = NULL;
     u32 wDRC = 0, hDRC = 0, wTV = 0, hTV = 0;
 
-    if (loadFile("/vol/storage_sdcard/wiiu/apps/savemii_mod/backgroundDRC.tga", &fileContent) > 0) {
+    if (loadFile("/vol/storage_sdcard/wiiu/apps/savemii/backgroundDRC.tga", &fileContent) > 0) {
         wDRC = tgaGetWidth(fileContent); hDRC = tgaGetHeight(fileContent);
-        tgaBufDRC = tgaRead(fileContent, TGA_READER_RGBA);
+        tgaBufDRC = (u8*)tgaRead(fileContent, TGA_READER_RGBA);
         free(fileContent);
         fileContent = NULL;
     }
 
-    if (loadFile("/vol/storage_sdcard/wiiu/apps/savemii_mod/backgroundTV.tga", &fileContent) > 0) {
+    if (loadFile("/vol/storage_sdcard/wiiu/apps/savemii/backgroundTV.tga", &fileContent) > 0) {
         wTV = tgaGetWidth(fileContent); hTV = tgaGetHeight(fileContent);
-        tgaBufTV = tgaRead(fileContent, TGA_READER_RGBA);
+        tgaBufTV = (u8*)tgaRead(fileContent, TGA_READER_RGBA);
         free(fileContent);
         fileContent = NULL;
     }
@@ -492,7 +500,7 @@ int Menu_Main(void) {
             OSScreenClearBufferEx(0, 0x00006F00);
         }
 
-        console_print_pos(0, 0, "SaveMii v%u.%u.%u.%s", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO, VERSION_MOD);
+        console_print_pos(0, 0, "SaveMii v%u.%u.%u", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
         console_print_pos(0, 1, "----------------------------------------------------------------------------");
 
         Title* titles = mode ? wiititles : wiiutitles;
@@ -552,9 +560,9 @@ int Menu_Main(void) {
                 if (mode == 0) {
                     console_print_pos(M_OFF, 8, "   Import from loadiine");
                     console_print_pos(M_OFF, 9, "   Export to loadiine");
-	                if (titles[targ].isTitleDupe) {
-	                    console_print_pos(M_OFF, 10, "   Copy Savedata to Title in %s", titles[targ].isTitleOnUSB ? "NAND" : "USB");
-	                }
+                    if (titles[targ].isTitleDupe) {
+                        console_print_pos(M_OFF, 10, "   Copy Savedata to Title in %s", titles[targ].isTitleOnUSB ? "NAND" : "USB");
+                    }
                     if (titles[targ].iconBuf) drawTGA(660, 80, 1, titles[targ].iconBuf);
                 } else if (mode == 1) {
                     if (titles[targ].iconBuf) drawRGB5A3(650, 80, 1, titles[targ].iconBuf);
@@ -566,7 +574,7 @@ int Menu_Main(void) {
                 entrycount = 3;
                 console_print_pos(M_OFF, 2, "[%08X-%08X] %s", titles[targ].highID, titles[targ].lowID, titles[targ].shortName);
 
-		        if (task == 5) {
+                if (task == 5) {
                     console_print_pos(M_OFF, 4, "Destination:");
                     console_print_pos(M_OFF, 5, "    (%s)", titles[targ].isTitleOnUSB ? "NAND" : "USB");
                 } else if (task > 2) {
@@ -799,8 +807,7 @@ int Menu_Main(void) {
                 tsort = (tsort + 1) % 4;
                 qsort(titles, count, sizeof(Title), titleSort);
             } else if (menu == 2) {
-
-                targ = ++targ % count;
+                targ = (targ + 1) % count;
             }
         }
 

@@ -1,8 +1,9 @@
 #ifndef DRAW_H
 #define DRAW_H
+
 #include <gctypes.h>
 //#include <math.h>
-#include "lib_easy.h"
+#include "wiiu.h"
 #include "tga_reader.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -22,7 +23,8 @@ typedef union _RGBAColor {
 #endif
 
 //Function declarations for my graphics library
-void initDraw(char* buf, int size0, int size1);
+void drawInit();
+void drawFini();
 void flipBuffers();
 void clearBuffers();
 void fillScreen(u8 r, u8 g, u8 b, u8 a);
@@ -47,7 +49,7 @@ void freeFont();
 bool ttfFontSize(u8 w, u8 h);
 void ttfFontColor32(u32 color);
 void ttfFontColor(u8 r, u8 g, u8 b, u8 a);
-int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX);
-int ttfStringWidth(char *string, s8 part);
+int ttfPrintString(int x, int y, const char *string, bool wWrap, bool ceroX);
+int ttfStringWidth(const char *string, s8 part);
 
 #endif /* DRAW_H */

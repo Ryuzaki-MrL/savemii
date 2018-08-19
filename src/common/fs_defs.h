@@ -31,6 +31,13 @@ extern "C" {
 #define FS_CLIENT_SIZE                  0x1700
 #define FS_CMD_BLOCK_SIZE               0xA80
 
+#define FSA_STATUS_OK                   0
+#define FSA_STATUS_END_OF_DIRECTORY     (-4)
+#define FSA_STATUS_END_OF_FILE          (-5)
+#define FSA_STATUS_ALREADY_EXISTS       (-22)
+#define FSA_STATUS_NOT_FOUND            (-23)
+#define FSA_STATUS_NOT_EMPTY            (-24)
+
 typedef struct
 {
     uint32_t flag;

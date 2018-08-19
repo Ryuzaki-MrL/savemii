@@ -1,6 +1,6 @@
 #include "draw.h"
 
-unsigned char *scrBuffer;
+uint8_t *scrBuffer;
 int scr_buf0_size = 0;
 int scr_buf1_size = 0;
 bool cur_buf1;
@@ -10,17 +10,26 @@ RGBAColor fcolor = {0xFFFFFFFF};
 FT_Library  library;
 FT_Face     face;
 
-void initDraw(char* buf, int size0, int size1) {
-	scrBuffer = buf;
-	scr_buf0_size = size0;
-	scr_buf1_size = size1;
-
+void drawInit() {
+	OSScreenInit();
+	scr_buf0_size = OSScreenGetBufferSizeEx(0);
+	scr_buf1_size = OSScreenGetBufferSizeEx(1);
+	scrBuffer = MEM1_alloc(scr_buf0_size + scr_buf1_size, 0x100);
+	OSScreenSetBufferEx(0, scrBuffer);
+	OSScreenSetBufferEx(1, (scrBuffer + scr_buf0_size));
+	OSScreenEnableEx(0, 1);
+	OSScreenEnableEx(1, 1);
 	clearBuffers();
-	uint32_t *screen2 = scrBuffer + scr_buf0_size;
+
+	u32* screen2 = (u32*)scrBuffer + scr_buf0_size;
 	OSScreenPutPixelEx(1, 0, 0, 0xABCDEFFF);
 
-	if (screen2[0] == 0xABCDEFFF) cur_buf1 = false;
-	else cur_buf1 = true;
+	cur_buf1 = screen2[0] != 0xABCDEFFF;
+}
+
+void drawFini() {
+	MEM1_free(scrBuffer);
+	scrBuffer = NULL;
 }
 
 void flipBuffers() {
@@ -34,11 +43,11 @@ void flipBuffers() {
 }
 
 void clearBuffers() {
-    for(int i = 0; i < 2; i++) {
-        OSScreenClearBufferEx(0, 0);
-        OSScreenClearBufferEx(1, 0);
-        flipBuffers();
-    }
+	for(int i = 0; i < 2; i++) {
+		OSScreenClearBufferEx(0, 0);
+		OSScreenClearBufferEx(1, 0);
+		flipBuffers();
+	}
 }
 
 void drawString(int x, int line, char* string) {
@@ -62,9 +71,10 @@ void drawPixel(int x, int y, u8 r, u8 g, u8 b, u8 a) {
 	/*uint32_t num = (r << 24) | (g << 16) | (b << 8) | a;
 	OSScreenPutPixelEx(0, x, y, num);
 	OSScreenPutPixelEx(1, x, y, num);*/
+	if (x < 0 || y < 0 || x >= 896 || y >= 480) return;
 
 	int width = 1280; //height = 1024 720?
-	char *screen = scrBuffer;
+	uint8_t *screen = scrBuffer;
 	int otherBuff0 = scr_buf0_size / 2;
 	int otherBuff1 = scr_buf1_size / 2;
 	float opacity = a / 255.0;
@@ -87,7 +97,7 @@ void drawPixel(int x, int y, u8 r, u8 g, u8 b, u8 a) {
 	screen[v + 3] = a;*/
 
 	width = 896; //height = 480;
-	char *screen2 = scrBuffer + scr_buf0_size;
+	uint8_t *screen2 = scrBuffer + scr_buf0_size;
 	u32 v = (x + y * width) * 4;
 	if (cur_buf1) v += otherBuff1;
 	screen2[v    ] = r * opacity + (1 - opacity) * screen2[v];
@@ -215,7 +225,7 @@ void drawPic(int x, int y, u32 w, u32 h, float scale, u32* pixels) {
 void drawTGA(int x, int y, float scale, u8* fileContent) {
 	u32 w = tgaGetWidth(fileContent), h = tgaGetHeight(fileContent);
 	u32 nw = w, nh = h;
-	u32* out = tgaRead(fileContent, TGA_READER_RGBA);
+	u32* out = (u32*)tgaRead(fileContent, TGA_READER_RGBA);
 
 	if (scale <= 0) scale = 1;
 	nw = w * scale; nh = h * scale;
@@ -230,7 +240,7 @@ void drawTGA(int x, int y, float scale, u8* fileContent) {
 }
 
 void drawRGB5A3(int x, int y, float scale, u8* fileContent) {
-	u32 w = 192, h = 64, num = 0;
+	u32 w = 192, h = 64;
 	u32 nw = w, nh = h;
 
 	if (scale <= 0) scale = 1;
@@ -266,25 +276,25 @@ void drawBackgroundDRC(u32 w, u32 h, u8* out) {
 	uint32_t *screen2 = NULL;
 	int otherBuff1 = scr_buf1_size / 2;
 
-	if (cur_buf1) screen2 = scrBuffer + scr_buf0_size + otherBuff1;
-	else screen2 = scrBuffer + scr_buf0_size;
+	if (cur_buf1) screen2 = (uint32_t*)scrBuffer + scr_buf0_size + otherBuff1;
+	else screen2 = (uint32_t*)scrBuffer + scr_buf0_size;
 	memcpy(screen2, out, w * h * 4);
 }
 
 void drawBackgroundTV(u32 w, u32 h, u8* out) {
-	uint32_t *screen1 = scrBuffer;
+	uint32_t *screen1 = (uint32_t*)scrBuffer;
 	int otherBuff0 = scr_buf0_size / 2;
 
-	if (cur_buf1) screen1 = scrBuffer + otherBuff0;
+	if (cur_buf1) screen1 = (uint32_t*)scrBuffer + otherBuff0;
 	memcpy(screen1, out, w * h * 4);
 }
 
 bool initFont(void* fontBuf, FT_Long fsize) {
-    FT_Long size = fsize;
+	FT_Long size = fsize;
 	if (fontBuf) {
 		ttfFont = fontBuf;
 	} else {
-    	OSGetSharedData(2, 0, &ttfFont, &size);
+		OSGetSharedData(2, 0, ttfFont, (u32*)&size);
 	}
 
 	FT_Error error;
@@ -305,7 +315,7 @@ bool initFont(void* fontBuf, FT_Long fsize) {
 
 void freeFont(void* fontBuf) {
 	FT_Done_Face(face);
-  	FT_Done_FreeType(library);
+	FT_Done_FreeType(library);
 	//if (fontBuf) free(fontBuf);
 }
 
@@ -315,7 +325,7 @@ void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y) {
 	FT_Int y_max = y + bitmap->rows;
 
 	switch(bitmap->pixel_mode) {
-		case FT_PIXEL_MODE_GRAY:
+		case FT_PIXEL_MODE_GRAY: {
 			x_max = x + bitmap->width;
 			for (i = x, p = 0; i < x_max; i++, p++) {
 				for (j = y, q = 0; j < y_max; j++, q++) {
@@ -331,7 +341,8 @@ void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y) {
 				}
 			}
 			break;
-		case FT_PIXEL_MODE_LCD:
+		}
+		case FT_PIXEL_MODE_LCD: {
 			x_max = x + bitmap->width / 3;
 			for (i = x, p = 0; i < x_max; i++, p++) {
 				for (j = y, q = 0; j < y_max; j++, q++) {
@@ -345,21 +356,7 @@ void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y) {
 				}
 			}
 			break;
-		// case FT_PIXEL_MODE_BGRA:
-		// 	x_max = x + bitmap->width/2;
-		// 	for (i = x, p = 0; i < x_max; i++, p++) {
-		// 		for (j = y, q = 0; j < y_max; j++, q++) {
-		// 			if (i < 0 || j < 0 || i >= 854 || j >= 480) continue;
-		// 			u8 cb = bitmap->buffer[q * bitmap->pitch + p * 4];
-		// 			u8 cg = bitmap->buffer[q * bitmap->pitch + p * 4 + 1];
-		// 			u8 cr = bitmap->buffer[q * bitmap->pitch + p * 4 + 2];
-		// 			u8 ca = bitmap->buffer[q * bitmap->pitch + p * 4 + 3];
-        //
-		// 			if ((cr | cg | cb) == 0) continue;
-		// 			drawPixel(i, j, cr, cg, cb, ca);
-		// 		}
-		// 	}
-		// 	break;
+		}
 	}
 }
 
@@ -379,19 +376,23 @@ void ttfFontColor32(u32 color) {
 }
 
 void ttfFontColor(u8 r, u8 g, u8 b, u8 a) {
-	RGBAColor color = {.r = r, .g = g, .b = b, .a = a};
+	RGBAColor color;
+	color.r = r;
+	color.g = g;
+	color.b = b;
+	color.a = a;
 	ttfFontColor32(color.c);
 }
 
-int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) {
+int ttfPrintString(int x, int y, const char *string, bool wWrap, bool ceroX) {
 	FT_GlyphSlot slot = face->glyph;
 	FT_Error error;
 	int pen_x = x, pen_y = y;
-	FT_UInt previous_glyph;
+	FT_UInt previous_glyph = 0;
 
-    while(*string) {
+	while(*string) {
 		uint32_t buf = *string++;
-		int dy = 0;
+		//int dy = 0;
 
 		if ((buf >> 6) == 3) {
 			if ((buf & 0xF0) == 0xC0) {
@@ -422,14 +423,14 @@ int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) {
 
 		//error = FT_Load_Char(face, buf, FT_LOAD_RENDER);
 
-        FT_UInt glyph_index;
+		FT_UInt glyph_index;
 		glyph_index = FT_Get_Char_Index(face, buf);
 
 		if (FT_HAS_KERNING(face)) {
 			FT_Vector vector;
 			FT_Get_Kerning(face, previous_glyph, glyph_index, FT_KERNING_DEFAULT, &vector);
 			pen_x += (vector.x >> 6);
-			dy = vector.y >> 6;
+			//dy = vector.y >> 6;
 		}
 
 		error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);//FT_LOAD_COLOR);//
@@ -458,13 +459,13 @@ int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) {
 	return pen_x;
 }
 
-int ttfStringWidth(char *string, s8 part) {
+int ttfStringWidth(const char *string, s8 part) {
 	FT_GlyphSlot slot = face->glyph;
 	FT_Error error;
 	int pen_x = 0, max_x = 0, spart = 1;
-	FT_UInt previous_glyph;
+	FT_UInt previous_glyph = 0;
 
-    while(*string) {
+	while(*string) {
 		uint32_t buf = *string++;
 		if ((buf >> 6) == 3) {
 			if ((buf & 0xF0) == 0xC0) {
@@ -488,7 +489,7 @@ int ttfStringWidth(char *string, s8 part) {
 
 		//error = FT_Load_Char(face, buf, FT_LOAD_RENDER);
 
-        FT_UInt glyph_index;
+		FT_UInt glyph_index;
 		glyph_index = FT_Get_Char_Index(face, buf);
 
 		if (FT_HAS_KERNING(face)) {

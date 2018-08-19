@@ -1,16 +1,32 @@
-#include <string.h>
-#include "dynamic_libs/os_functions.h"
-#include "dynamic_libs/sys_functions.h"
-#include "common/common.h"
-#include "utils/utils.h"
 #include "main.h"
-#include "lib_easy.h"
 #include "draw.h"
+#include "wiiu.h"
 
 int __entry_menu(int argc, char **argv)
 {
-    uInit(); //Init all the wii u stuff
-    int ret=Menu_Main(); //Jump to our application
-    uDeInit();
+    InitOSFunctionPointers();
+    InitSocketFunctionPointers();
+    InitACPFunctionPointers();
+    InitAocFunctionPointers();
+    InitAXFunctionPointers();
+    InitCurlFunctionPointers();
+    InitFSFunctionPointers();
+    InitGX2FunctionPointers();
+    InitPadScoreFunctionPointers();
+    InitSysFunctionPointers();
+    InitSysHIDFunctionPointers();
+    InitVPadFunctionPointers();
+
+    memoryInitialize();
+    VPADInit();
+    KPADInit();
+    WPADInit();
+    drawInit();
+
+    int ret = Menu_Main();
+
+    drawFini();
+    memoryRelease();
+
     return ret;
 }

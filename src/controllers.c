@@ -9,6 +9,10 @@ s32 padErrors[4];
 u32 padTypes[4];
 KPADData pads[4];
 
+uint32_t buttons_hold[5]; //Held buttons
+uint32_t buttons_pressed[5]; //Pressed buttons
+uint32_t buttons_released[5]; //Released buttons
+
 void pingControllers() {
     for (int i = 0; i < 4; i++) {
         padErrors[i] = WPADProbe(i, &padTypes[i]);
@@ -82,15 +86,15 @@ int checkButton(int button, int state) {
 
     switch(state) {
         case PRESS:
-            stateArray = &buttons_pressed;
+            stateArray = buttons_pressed;
             break;
 
         case HOLD:
-            stateArray =  &buttons_hold;
+            stateArray = buttons_hold;
             break;
 
         case RELEASE:
-            stateArray = &buttons_released;
+            stateArray = buttons_released;
             break;
 
         default:

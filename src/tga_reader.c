@@ -155,7 +155,7 @@ static int *createPixelsFromColormap(int width, int height, int depth, const uns
 				int i, j;
 				for(i=0; i<height; i++) {
 					for(j=0; j<width; j++) {
-						int colormapIndex = bytes[offset+width*i+j] & 0xFF - colormapOrigin;
+						int colormapIndex = (bytes[offset+width*i+j] & 0xFF) - colormapOrigin;
 						int color = 0xFFFFFFFF;
 						if(colormapIndex >= 0) {
 							int index = 3*colormapIndex+18;
@@ -174,7 +174,7 @@ static int *createPixelsFromColormap(int width, int height, int depth, const uns
 				int i, j;
 				for(i=0; i<height; i++) {
 					for(j=0; j<width; j++) {
-						int colormapIndex = bytes[offset+width*i+j] & 0xFF - colormapOrigin;
+						int colormapIndex = (bytes[offset+width*i+j] & 0xFF) - colormapOrigin;
 						int color = 0xFFFFFFFF;
 						if(colormapIndex >= 0) {
 							int index = 3*colormapIndex+18;
@@ -195,7 +195,7 @@ static int *createPixelsFromColormap(int width, int height, int depth, const uns
 				int i, j;
 				for(i=0; i<height; i++) {
 					for(j=0; j<width; j++) {
-						int colormapIndex = bytes[offset+width*i+j] & 0xFF - colormapOrigin;
+						int colormapIndex = (bytes[offset+width*i+j] & 0xFF) - colormapOrigin;
 						int color = 0xFFFFFFFF;
 						if(colormapIndex >= 0) {
 							int index = 3*colormapIndex+18;
@@ -214,7 +214,7 @@ static int *createPixelsFromColormap(int width, int height, int depth, const uns
 				int i, j;
 				for(i=0; i<height; i++) {
 					for(j=0; j<width; j++) {
-						int colormapIndex = bytes[offset+width*i+j] & 0xFF - colormapOrigin;
+						int colormapIndex = (bytes[offset+width*i+j] & 0xFF) - colormapOrigin;
 						int color = 0xFFFFFFFF;
 						if(colormapIndex >= 0) {
 							int index = 3*colormapIndex+18;
@@ -238,7 +238,7 @@ static int *createPixelsFromColormap(int width, int height, int depth, const uns
 				int i, j;
 				for(i=0; i<height; i++) {
 					for(j=0; j<width; j++) {
-						int colormapIndex = bytes[offset+width*i+j] & 0xFF - colormapOrigin;
+						int colormapIndex = (bytes[offset+width*i+j] & 0xFF) - colormapOrigin;
 						int color = 0xFFFFFFFF;
 						if(colormapIndex >= 0) {
 							int index = 4*colormapIndex+18;
@@ -257,7 +257,7 @@ static int *createPixelsFromColormap(int width, int height, int depth, const uns
 				int i, j;
 				for(i=0; i<height; i++) {
 					for(j=0; j<width; j++) {
-						int colormapIndex = bytes[offset+width*i+j] & 0xFF - colormapOrigin;
+						int colormapIndex = (bytes[offset+width*i+j] & 0xFF) - colormapOrigin;
 						int color = 0xFFFFFFFF;
 						if(colormapIndex >= 0) {
 							int index = 4*colormapIndex+18;
@@ -278,7 +278,7 @@ static int *createPixelsFromColormap(int width, int height, int depth, const uns
 				int i, j;
 				for(i=0; i<height; i++) {
 					for(j=0; j<width; j++) {
-						int colormapIndex = bytes[offset+width*i+j] & 0xFF - colormapOrigin;
+						int colormapIndex = (bytes[offset+width*i+j] & 0xFF) - colormapOrigin;
 						int color = 0xFFFFFFFF;
 						if(colormapIndex >= 0) {
 							int index = 4*colormapIndex+18;
@@ -297,7 +297,7 @@ static int *createPixelsFromColormap(int width, int height, int depth, const uns
 				int i, j;
 				for(i=0; i<height; i++) {
 					for(j=0; j<width; j++) {
-						int colormapIndex = bytes[offset+width*i+j] & 0xFF - colormapOrigin;
+						int colormapIndex = (bytes[offset+width*i+j] & 0xFF) - colormapOrigin;
 						int color = 0xFFFFFFFF;
 						if(colormapIndex >= 0) {
 							int index = 4*colormapIndex+18;

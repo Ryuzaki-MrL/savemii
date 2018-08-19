@@ -8,9 +8,9 @@
 #include <iosuhax_devoptab.h>
 #include <iosuhax_disc_interface.h>
 
-#include "lib_easy.h"
 #include "draw.h"
 #include "controllers.h"
+#include "wiiu.h"
 
 #define PATH_SIZE 0x400
 
@@ -63,6 +63,8 @@ bool promptConfirm(Style st, const char* question);
 void promptError(const char* message, ...);
 void getUserID(char* out);
 void getAccountsWiiU();
+void getAccountsSD(Title* title, u8 slot);
+bool hasAccountSave(Title* title, bool inSD, bool iine, u32 user, u8 slot, int version);
 
 int getLoadiineGameSaveDir(char* out, const char* productCode);
 int getLoadiineSaveVersionList(int* out, const char* gamePath);
@@ -87,8 +89,9 @@ s32 loadFile(const char * fPath, u8 **buf);
 s32 loadFilePart(const char * fPath, u32 start, u32 size, u8 **buf);
 s32 loadTitleIcon(Title* title);
 
-void show_file_operation(char* file_name, char* file_src, char* file_dest);
+void show_file_operation(const char* file_name, const char* file_src, const char* file_dest);
 void console_print_pos_multiline(int x, int y, char cdiv,const char* format, ...);
+void console_print_pos_aligned(int y, u16 offset, u8 align, const char* format, ...);
 
 #ifdef __cplusplus
 }
