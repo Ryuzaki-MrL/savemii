@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "common.h": "c",
+        "gx2_functions.h": "c",
+        "fs_defs.h": "c",
+        "statvfs.h": "c",
+        "string.h": "c",
+        "fs_utils.h": "c",
+        "lib_easy.h": "c",
+        "savemng.h": "c",
+        "memory.h": "c"
+    }
+}

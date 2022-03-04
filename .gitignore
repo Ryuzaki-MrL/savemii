@@ -1,0 +1,9 @@
+build
+output
+tmp
+encryptKeyWith
+*.elf
+*.zip
+*.bat
+*.jar
+*.rpx
