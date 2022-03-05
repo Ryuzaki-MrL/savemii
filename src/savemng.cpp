@@ -190,17 +190,18 @@ int createFolder(const char * fPath) { //Adapted from mkdir_p made by JonathonRe
 void console_print_pos_aligned(int y, u16 offset, u8 align, const char* format, ...) {
 	char* tmp = NULL;
 	int x = 0;
-
 	va_list va;
 	va_start(va, format);
 	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
+		if (strlen(tmp) > 79) tmp[79] = 0;
 		switch(align) {
 			case 0: x = (offset * 12); break;
-			case 1: x = (853 - ttfStringWidth(tmp, -2)) / 2; break;
-			case 2: x = 853 - (offset * 12) - ttfStringWidth(tmp, 0); break;
-			default:  x = (853 - ttfStringWidth(tmp, -2)) / 2; break;
+			case 1: x = (853 - strlen(tmp)) / 2; break;
+			case 2: x = 853 - (offset * 12) - strlen(tmp); break;
+			default:  x = (853 - strlen(tmp)) / 2; break;
 		}
-		ttfPrintString(x, (y + 1) * 24, tmp, false, false);
+        OSScreenPutFontEx(SCREEN_TV, x, y, tmp);
+        OSScreenPutFontEx(SCREEN_DRC, x, y, tmp);
 	}
 	va_end(va);
 	if (tmp) free(tmp);
@@ -212,10 +213,11 @@ void console_print_pos(int x, int y, const char* format, ...) { // Source: ftpii
 	va_list va;
 	va_start(va, format);
 	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
-		ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
-		//OSScreenPutFontEx(0, x, y, tmp);
-		//OSScreenPutFontEx(1, x, y, tmp);
+        if (strlen(tmp) > 79) tmp[79] = 0;
+        OSScreenPutFontEx(SCREEN_TV, x, y, tmp);
+        OSScreenPutFontEx(SCREEN_DRC, x, y, tmp);
 	}
+
 	va_end(va);
 	if (tmp) free(tmp);
 }
@@ -228,16 +230,16 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char* format, ..
 	va_start(va, format);
 	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
 
-		if ((ttfStringWidth(tmp, -1) / 12) > len) {
+		if ((strlen(tmp) / 12) > len) {
 			char* p = tmp;
 			if (strrchr(p, '\n') != NULL) p = strrchr(p, '\n') + 1;
-			while((ttfStringWidth(p, -1) / 12) > len) {
+			while((strlen(p) / 12) > len) {
 				char* q = p;
 				int l1 = strlen(q);
 				for(int i = l1; i > 0; i--) {
 					char o = q[l1];
 					q[l1] = '\0';
-					if ((ttfStringWidth(p, -1) / 12) <= len) {
+					if ((strlen(p) / 12) <= len) {
 						if (strrchr(p, cdiv) != NULL) p = strrchr(p, cdiv) + 1;
 						else p = q + l1;
 						q[l1] = o;
@@ -254,9 +256,8 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char* format, ..
 				len = 69;
 			}
 		}
-		ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, true, true);
-		//OSScreenPutFontEx(0, x, y, tmp);
-		//OSScreenPutFontEx(1, x, y, tmp);
+		OSScreenPutFontEx(SCREEN_TV, x, y, tmp);
+		OSScreenPutFontEx(SCREEN_DRC, x, y, tmp);
 	}
 	va_end(va);
 	if (tmp) free(tmp);
@@ -266,76 +267,43 @@ void console_print_pos_va(int x, int y, const char* format, va_list va) { // Sou
 	char* tmp = NULL;
 
 	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
-		ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
-		//OSScreenPutFontEx(0, x, y, tmp);
-		//OSScreenPutFontEx(1, x, y, tmp);
+		//ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
+		OSScreenPutFontEx(SCREEN_TV, x, y, tmp);
+		OSScreenPutFontEx(SCREEN_DRC, x, y, tmp);
 	}
 	if (tmp) free(tmp);
 }
 
-bool promptConfirm(Style st, const char* question) {
-	clearBuffers();
-	const char* msg1 = "\ue000 Yes - \ue001 No";
-	const char* msg2 = "\ue000 Confirm - \ue001 Cancel";
-	const char* msg;
-	switch(st & 0x0F) {
-		case ST_YES_NO: msg = msg1; break;
-		case ST_CONFIRM_CANCEL: msg = msg2; break;
-		default: msg = msg2;
-	}
-	if (st & ST_WARNING) {
-		OSScreenClearBufferEx(0, 0x7F7F0000);
-		OSScreenClearBufferEx(1, 0x7F7F0000);
-	} else if (st & ST_ERROR) {
-		OSScreenClearBufferEx(0, 0x7F000000);
-		OSScreenClearBufferEx(1, 0x7F000000);
-	} else {
-		OSScreenClearBufferEx(0, 0x007F0000);
-		OSScreenClearBufferEx(1, 0x007F0000);
-	}
-	if (st & ST_MULTILINE) {
-
-	} else {
-		console_print_pos(31 - (ttfStringWidth(question, 0) / 24), 7, question);
-		console_print_pos(31 - (ttfStringWidth(msg, -1) / 24), 9, msg);
-	}
-	flipBuffers();
-
-	int ret = 0;
-	while(1) {
-		updateButtons();
-		if (checkButton(PAD_BUTTON_ANY, PRESS)) {
-			ret = checkButton(PAD_BUTTON_A, PRESS);
-			break;
-		}
-	}
-	return ret;
+bool promptConfirm(const char* question) {
+    ucls();
+    const char* msg = "(A) Confirm - (B) Cancel";
+    int ret = 0;
+    while(1) {
+        OSScreenClearBufferEx(0, 0);
+        OSScreenClearBufferEx(1, 0);
+        console_print_pos(25 - (strlen(question)>>1), 8, question);
+        console_print_pos(25 - (strlen(msg)>>1), 10, msg);
+        OSScreenFlipBuffersEx(0);
+        OSScreenFlipBuffersEx(1);
+        VPADRead(VPAD_CHAN_0, &status, 1, &error);
+        if (status.trigger & (VPAD_BUTTON_A | VPAD_BUTTON_B | VPAD_BUTTON_HOME)) {
+            ret = VPAD_BUTTON_A;
+            break;
+        }
+    }
+    return ret;
 }
 
 void promptError(const char* message, ...) {
-	clearBuffers();
+    ucls();
 	va_list va;
 	va_start(va, message);
-	OSScreenClearBufferEx(0, 0x7F000000);
-	OSScreenClearBufferEx(1, 0x7F000000);
-
-	char* tmp = NULL;
-	if ((vasprintf(&tmp, message, va) >= 0) && tmp) {
-		//int x = 31 - (strlen(tmp)>>1), y = 9;
-		int x = 31 - (ttfStringWidth(tmp, -2) / 24), y = 8;
-		x = (x < -4 ? -4 : x);
-		ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, true, false);
-		//OSScreenPutFontEx(0, x, y, tmp);
-		//OSScreenPutFontEx(1, x, y, tmp);
-	}
-	if (tmp) free(tmp);
-
-	flipBuffers();
+    OSScreenClearBufferEx(0, 0);
+    OSScreenClearBufferEx(1, 0);
+    console_print_pos_va(25 - (strlen(message)>>1), 9, message, va);
+    OSScreenFlipBuffersEx(0);
+    OSScreenFlipBuffersEx(1);
 	va_end(va);
-	while(1) {
-		updateButtons();
-		if (checkButton(PAD_BUTTON_ANY, PRESS)) break;
-	}
 }
 
 void getAccountsWiiU() {
@@ -451,8 +419,8 @@ int DumpFile(char* pPath, const char* oPath) {
 				if(passedMs == 0)
 					passedMs = 1;
 
-				OSScreenClearBufferEx(0, 0);
-				OSScreenClearBufferEx(1, 0);
+				OSScreenClearBufferEx(SCREEN_TV, 0);
+				OSScreenClearBufferEx(SCREEN_DRC, 0);
 				show_file_operation(p1, pPath, oPath);
 				console_print_pos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", sizew, sizef,  (u32)(((u64)sizew * 1000) / ((u64)1024 * passedMs)));
 				flipBuffers();
@@ -487,8 +455,8 @@ int DumpDir(char* pPath, const char* tPath) { // Source: ft2sd
 		if (ret != 0)
 			break;
 
-		OSScreenClearBufferEx(0, 0);
-		OSScreenClearBufferEx(1, 0);
+		OSScreenClearBufferEx(SCREEN_TV, 0);
+		OSScreenClearBufferEx(SCREEN_DRC, 0);
 
 		if (strcmp(data.name, "..") == 0 || strcmp(data.name, ".") == 0) continue;
 
@@ -511,16 +479,16 @@ int DumpDir(char* pPath, const char* tPath) { // Source: ft2sd
 			snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", tPath, data.name);
 
 			p1 = data.name;
-			ttfFontSize(0, 20);
+			//ttfFontSize(0, 20);
 			show_file_operation(data.name, pPath, targetPath);
 
 			if (DumpFile(pPath, targetPath) != 0) {
-				ttfFontSize(0, 22);
+				//ttfFontSize(0, 22);
 				IOSUHAX_FSA_CloseDir(fsaFd, dirH);
 				return -3;
 			}
 
-			ttfFontSize(0, 22);
+			//ttfFontSize(0, 22);
 			free(targetPath);
 		}
 
@@ -543,8 +511,8 @@ int DeleteDir(char* pPath) {
 		if (ret != 0)
 			break;
 
-		OSScreenClearBufferEx(0, 0);
-		OSScreenClearBufferEx(1, 0);
+		OSScreenClearBufferEx(SCREEN_TV, 0);
+		OSScreenClearBufferEx(SCREEN_DRC, 0);
 
 		if (strcmp(data.name, "..") == 0 || strcmp(data.name, ".") == 0) continue;
 
@@ -556,8 +524,8 @@ int DeleteDir(char* pPath) {
 			sprintf(origPath, "%s", pPath);
 			DeleteDir(pPath);
 
-			OSScreenClearBufferEx(0, 0);
-			OSScreenClearBufferEx(1, 0);
+			OSScreenClearBufferEx(SCREEN_TV, 0);
+			OSScreenClearBufferEx(SCREEN_DRC, 0);
 
 			console_print_pos(-2, 0, "Deleting folder %s", data.name);
 			console_print_pos_multiline(-2, 2, '/', "From: \n%s", origPath);

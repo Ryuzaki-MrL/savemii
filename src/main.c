@@ -11,9 +11,6 @@
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
 
-#include "main.h"
-#include "savemng.h"
-
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 2
 #define VERSION_MICRO 0
@@ -216,9 +213,9 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         if (loadTitleIcon(&titles[titleswiiu]) < 0) titles[titleswiiu].iconBuf = NULL;
         titleswiiu++;
 
-        OSScreenClearBufferEx(0, 0);
-        OSScreenClearBufferEx(1, 0);
-        drawTGA(298, 144, 1, icon_tga);
+        OSScreenClearBufferEx(SCREEN_TV, 0);
+        OSScreenClearBufferEx(SCREEN_DRC, 0);
+        //drawTGA(298, 144, 1, icon_tga);
         console_print_pos_aligned(10, 0, 1, "Loaded %i Wii U titles.", titleswiiu);
         flipBuffers();
 
@@ -351,9 +348,9 @@ Title* loadWiiTitles(int fsaFd) {
                 if (!titles[i].saveInit || (loadTitleIcon(&titles[i]) < 0)) titles[i].iconBuf = NULL;
                 i++;
 
-                OSScreenClearBufferEx(0, 0);
-                OSScreenClearBufferEx(1, 0);
-                drawTGA(298, 144, 1, icon_tga);
+                OSScreenClearBufferEx(SCREEN_TV, 0);
+                OSScreenClearBufferEx(SCREEN_DRC, 0);
+                //drawTGA(298, 144, 1, icon_tga);
                 console_print_pos_aligned(10, 0, 1, "Loaded %i Wii U titles.", titleswiiu);
                 console_print_pos_aligned(11, 0, 1, "Loaded %i Wii titles.", i);
                 flipBuffers();
@@ -373,57 +370,39 @@ void unloadTitles(Title* titles, int count) {
 }
 
 void disclaimer() {
-    WHBLogPrint("in disclaimer");
     fillScreen(0, 0, 0, 0);
-    WHBLogPrint("in disclaimer: fillscreen");
-    console_print_pos_aligned(3, 0, 1, "Savemii Mod");
-    WHBLogPrint("in disclaimer: printpos");
-    //drawTGA(298, 36, 1, icon_tga);
-    console_print_pos_aligned(6, 0, 1, "Created by: Ryuzaki-MrL");
-    console_print_pos_aligned(7, 0, 1, "Modded by: GabyPCgeeK");
-    console_print_pos_aligned(11, 0, 1, "Disclaimer:");
-    console_print_pos_aligned(12, 0, 1, "There is always the potential for a brick.");
-    console_print_pos_aligned(13, 0, 1, "Everything you do with this software is your own responsibility");
+    console_print_pos(20, 3, "Savemii Mod");
+    console_print_pos(20, 6, "Created by: Ryuzaki-MrL");
+    console_print_pos(20, 7, "Modded by: GabyPCgeeK");
+    console_print_pos(24, 11, "Disclaimer:");
+    console_print_pos(15, 12, "There is always the potential for a brick.");
+    console_print_pos(3, 13, "Everything you do with this software is your own responsibility");
     flipBuffers();
     sleep(4);
 }
 
 /* Entry point */
 int main(void) {
-    OSScreenInit();
-    KPADInit();
-    WPADInit();
     drawInit();
     WHBProcInit();
     VPADInit();
     WHBMountSdCard();
-    WHBLogCafeInit();
-    WHBLogUdpInit();
-    WHBLogPrint("Hello World! Logging initialised.");
+
     loadWiiUTitles(0, -1);
     WHBLogPrint("load titles");
     int fsaFd = IOSUHAX_FSA_Open();
     
     setFSAFD(fsaFd);
 
-    //IOSUHAX_FSA_Mount(fsaFd, "/dev/sdcard01", "/vol/storage_sdcard", 2, (void*)0, 0);
     mount_fs("slccmpt01", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
     mount_fs("storage_mlc", fsaFd, NULL, "/vol/storage_mlc01");
     mount_fs("storage_usb", fsaFd, NULL, "/vol/storage_usb01");
     mount_fs("storage_odd", fsaFd, "/dev/odd03", "/vol/storage_odd_content");
     WHBLogPrint("mount");
+    
     u8* fontBuf = NULL;
-    s32 fsize = loadFile("/vol/storage_sdcard/wiiu/apps/savemii/font.ttf", &fontBuf);
-    if (fsize > 0) {
-        initFont(fontBuf, fsize);
-    } else {
-        initFont(NULL, 0);
-    }
-    WHBLogPrint("after font");
     disclaimer();
-    WHBLogPrint("after disclaimer");
     clearBuffers();
-    WHBLogPrint("after clearbuffers");
     Title* wiiutitles = loadWiiUTitles(1, fsaFd);
     Title* wiititles = loadWiiTitles(fsaFd);
     int* versionList = (int*)malloc(0x100 * sizeof(int));
@@ -437,34 +416,20 @@ int main(void) {
     u8* tgaBufTV = NULL;
     u8* fileContent = NULL;
     u32 wDRC = 0, hDRC = 0, wTV = 0, hTV = 0;
-
-    /*
-    if (loadFile("/vol/storage_sdcard/wiiu/apps/savemii/backgroundDRC.tga", &fileContent) > 0) {
-        wDRC = tgaGetWidth(fileContent); hDRC = tgaGetHeight(fileContent);
-        tgaBufDRC = (u8*)tgaRead(fileContent, TGA_READER_RGBA);
-        free(fileContent);
-        fileContent = NULL;
-    }
-
-    if (loadFile("/vol/storage_sdcard/wiiu/apps/savemii/backgroundTV.tga", &fileContent) > 0) {
-        wTV = tgaGetWidth(fileContent); hTV = tgaGetHeight(fileContent);
-        tgaBufTV = (u8*)tgaRead(fileContent, TGA_READER_RGBA);
-        free(fileContent);
-        fileContent = NULL;
-    }
-    */
+    VPADStatus status;
+    VPADReadError error;
     while(WHBProcIsRunning()) {
-        //u64 startTime = OSGetTime();
+        VPADRead(VPAD_CHAN_0, &status, 1, &error);
 
         if (tgaBufDRC) {
             drawBackgroundDRC(wDRC, hDRC, tgaBufDRC);
         } else {
-            OSScreenClearBufferEx(1, 0x00006F00);
+            OSScreenClearBufferEx(SCREEN_DRC, 0x00006F00);
         }
         if (tgaBufTV) {
             drawBackgroundTV(wTV, hTV, tgaBufTV);
         } else {
-            OSScreenClearBufferEx(0, 0x00006F00);
+            OSScreenClearBufferEx(SCREEN_TV, 0x00006F00);
         }
 
         console_print_pos(0, 0, "SaveMii v%u.%u.%u", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
@@ -480,8 +445,8 @@ int main(void) {
                 console_print_pos(M_OFF, 2, "   Wii U Save Management (%u Title%s)", titleswiiu, (titleswiiu > 1) ? "s": "");
                 console_print_pos(M_OFF, 3, "   vWii Save Management (%u Title%s)", titlesvwii, (titlesvwii > 1) ? "s": "");
                 console_print_pos(M_OFF, 4, "   Batch Backup");
-                console_print_pos(M_OFF, 2 + cursor, "\u2192");
-                console_print_pos_aligned(17, 4, 2, "\ue000: Select Mode");
+                console_print_pos(M_OFF, 2 + cursor, "->");
+                console_print_pos_aligned(17, 4, 2, "(A): Select Mode");
             } break;
             case 1: { // Select Title
                 if (mode == 2) {
@@ -489,38 +454,28 @@ int main(void) {
                     console_print_pos(M_OFF, 2, "   Backup All (%u Title%s)", titleswiiu + titlesvwii, ((titleswiiu + titlesvwii) > 1) ? "s": "");
                     console_print_pos(M_OFF, 3, "   Backup Wii U (%u Title%s)", titleswiiu, (titleswiiu > 1) ? "s": "");
                     console_print_pos(M_OFF, 4, "   Backup vWii (%u Title%s)", titlesvwii, (titlesvwii > 1) ? "s": "");
-                    console_print_pos(M_OFF, 2 + cursor, "\u2192");
-                    console_print_pos_aligned(17, 4, 2, "\ue000: Backup  \ue001: Back");
+                    console_print_pos(M_OFF, 2 + cursor, "->");
+                    console_print_pos_aligned(17, 4, 2, "(A): Backup  (B): Back");
                 } else {
                     console_print_pos(40, 0, "\ue084 Sort: %s %s", sortn[tsort], (tsort > 0) ? ((sorta == 1) ? "\u2193 \ue083": "\u2191 \ue083"): "");
                     entrycount = count;
                     for (int i = 0; i < 14; i++) {
                         if (i + scroll < 0 || i + scroll >= count) break;
-                        ttfFontColor32(0x00FF00FF);
-                        if (!titles[i + scroll].saveInit) ttfFontColor32(0xFFFF00FF);
-                        if (strcmp(titles[i + scroll].shortName, "DONT TOUCH ME") == 0) ttfFontColor32(0xFF0000FF);
                         if (strlen(titles[i + scroll].shortName)) console_print_pos(M_OFF, i+2, "   %s %s%s%s", titles[i + scroll].shortName, titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i + scroll].isTitleDupe ? " [D]" : "", titles[i + scroll].saveInit ? "" : " [Not Init]");
                         else console_print_pos(M_OFF, i+2, "   %08lx%08lx", titles[i + scroll].highID, titles[i + scroll].lowID);
-                        ttfFontColor32(0xFFFFFFFF);
-                        if (mode == 0) {
-                            if (titles[i + scroll].iconBuf) drawTGA((M_OFF + 4) * 12 - 2, (i + 3) * 24, 0.18, titles[i + scroll].iconBuf);
-                        } else if (mode == 1) {
-                            if (titles[i + scroll].iconBuf) drawRGB5A3((M_OFF + 2) * 12 - 2, (i + 3) * 24 + 3, 0.25, titles[i + scroll].iconBuf);
-                        }
                     }
                     if (mode == 0) {
-                        console_print_pos(0, 2 + cursor, "\u2192");
+                        console_print_pos(0, 2 + cursor, "->");
                     } else if (mode == 1) {
-                        console_print_pos(-1, 2 + cursor, "\u2192");
+                        console_print_pos(-1, 2 + cursor, "->");
                     }
-                    console_print_pos_aligned(17, 4, 2, "\ue000: Select Game  \ue001: Back");
+                    console_print_pos_aligned(17, 4, 2, "(A): Select Game  (B): Back");
                 }
             } break;
             case 2: { // Select Task
                 entrycount = 3 + 2 * (mode == 0) + 1 * ((mode == 0) && (titles[targ].isTitleDupe));
                 console_print_pos(M_OFF, 2, "   [%08X-%08X] [%s]", titles[targ].highID, titles[targ].lowID, titles[targ].productCode);
                 console_print_pos(M_OFF, 3, "   %s", titles[targ].shortName);
-                //console_print_pos(M_OFF, 4, "   %s", titles[targ].longName);
                 console_print_pos(M_OFF, 5, "   Backup savedata");
                 console_print_pos(M_OFF, 6, "   Restore savedata");
                 console_print_pos(M_OFF, 7, "   Wipe savedata");
@@ -530,12 +485,9 @@ int main(void) {
                     if (titles[targ].isTitleDupe) {
                         console_print_pos(M_OFF, 10, "   Copy Savedata to Title in %s", titles[targ].isTitleOnUSB ? "NAND" : "USB");
                     }
-                    if (titles[targ].iconBuf) drawTGA(660, 80, 1, titles[targ].iconBuf);
-                } else if (mode == 1) {
-                    if (titles[targ].iconBuf) drawRGB5A3(650, 80, 1, titles[targ].iconBuf);
                 }
-                console_print_pos(M_OFF, 2 + 3 + cursor, "\u2192");
-                console_print_pos_aligned(17, 4, 2, "\ue000: Select Task  \ue001: Back");
+                console_print_pos(M_OFF, 2 + 3 + cursor, "->");
+                console_print_pos_aligned(17, 4, 2, "(A): Select Task  (B): Back");
             } break;
             case 3: { // Select Options
                 entrycount = 3;
@@ -627,43 +579,33 @@ int main(void) {
                         }
                     }
 
-                    console_print_pos(M_OFF, 5 + cursor * 3, "\u2192");
-                    if (titles[targ].iconBuf) drawTGA(660, 100, 1, titles[targ].iconBuf);
+                    console_print_pos(M_OFF, 5 + cursor * 3, "->");
                 } else if (mode == 1) {
                     entrycount = 1;
-                    if (titles[targ].iconBuf) drawRGB5A3(650, 100, 1, titles[targ].iconBuf);
                 }
 
                 switch(task) {
-                    case 0: console_print_pos_aligned(17, 4, 2, "\ue000: Backup  \ue001: Back"); break;
-                    case 1: console_print_pos_aligned(17, 4, 2, "\ue000: Restore  \ue001: Back"); break;
-                    case 2: console_print_pos_aligned(17, 4, 2, "\ue000: Wipe  \ue001: Back"); break;
-                    case 3: console_print_pos_aligned(17, 4, 2, "\ue000: Import  \ue001: Back"); break;
-                    case 4: console_print_pos_aligned(17, 4, 2, "\ue000: Export  \ue001: Back"); break;
-                    case 5: console_print_pos_aligned(17, 4, 2, "\ue000: Copy  \ue001: Back"); break;
+                    case 0: console_print_pos_aligned(17, 4, 2, "(A): Backup  (B): Back"); break;
+                    case 1: console_print_pos_aligned(17, 4, 2, "(A): Restore  (B): Back"); break;
+                    case 2: console_print_pos_aligned(17, 4, 2, "(A): Wipe  (B): Back"); break;
+                    case 3: console_print_pos_aligned(17, 4, 2, "(A): Import  (B): Back"); break;
+                    case 4: console_print_pos_aligned(17, 4, 2, "(A): Export  (B): Back"); break;
+                    case 5: console_print_pos_aligned(17, 4, 2, "(A): Copy  (B): Back"); break;
                 }
             } break;
         }
         console_print_pos(0,16, "----------------------------------------------------------------------------");
-        console_print_pos(0,17, "Press \ue044 to exit.");
-
-        /*u32 passedMs = (OSGetTime() - startTime) * 4000ULL / BUS_SPEED;
-        console_print_pos(-4, -1, "%d", passedMs);*/
+        console_print_pos(0,17, "Press HOME to exit.");
 
         flipBuffers();
-        while(1) {
-            updateButtons();
-            if (checkButton(PAD_BUTTON_ANY, PRESS) || checkButton(PAD_BUTTON_ANY, HOLD) || stickPos(4, 0.7)) break;
-        }
-        updateButtons();
 
-        if (checkButton(PAD_BUTTON_DOWN, PRESS) || checkButton(PAD_BUTTON_DOWN, HOLD) || stickPos(1, -0.7) || stickPos(3, -0.7)) {
+        if (status.trigger & (VPAD_BUTTON_DOWN | VPAD_STICK_L_EMULATION_DOWN)) {
             if (entrycount <= 14) cursor = (cursor + 1) % entrycount;
             else if (cursor < 6) cursor++;
             else if ((cursor + scroll + 1) % entrycount) scroll++;
             else cursor = scroll = 0;
             usleep(100000);
-        } else if (checkButton(PAD_BUTTON_UP, PRESS) || checkButton(PAD_BUTTON_UP, HOLD) || stickPos(1, 0.7) || stickPos(3, 0.7)) {
+        } else if (status.trigger & (VPAD_BUTTON_UP | VPAD_STICK_L_EMULATION_UP)) {
             if (scroll > 0) cursor -= (cursor>6) ? 1 : 0 * (scroll--);
             else if (cursor > 0) cursor--;
             else if (entrycount > 14) scroll = entrycount - (cursor = 6) - 1;
@@ -671,7 +613,7 @@ int main(void) {
             usleep(100000);
         }
 
-        if (checkButton(PAD_BUTTON_LEFT, PRESS) || checkButton(PAD_BUTTON_LEFT, HOLD) || stickPos(0, -0.7) || stickPos(2, -0.7)) {
+        if (status.trigger & (VPAD_BUTTON_LEFT | VPAD_STICK_L_EMULATION_LEFT)) {
             if (menu==3) {
                 if (task == 5) {
                     switch(cursor) {
@@ -719,7 +661,7 @@ int main(void) {
                 }
             }
             usleep(100000);
-        } else if (checkButton(PAD_BUTTON_RIGHT, PRESS) || checkButton(PAD_BUTTON_RIGHT, HOLD) || stickPos(0, 0.7) || stickPos(2, 0.7)) {
+        } else if (status.trigger & (VPAD_BUTTON_RIGHT | VPAD_STICK_L_EMULATION_RIGHT)) {
             if (menu == 3) {
                 if (task == 5) {
                     switch(cursor) {
@@ -769,7 +711,7 @@ int main(void) {
             usleep(100000);
         }
 
-        if (checkButton(PAD_BUTTON_R, PRESS)) {
+        if (status.trigger & VPAD_BUTTON_R) {
             if (menu == 1) {
                 tsort = (tsort + 1) % 4;
                 qsort(titles, count, sizeof(Title), titleSort);
@@ -778,7 +720,7 @@ int main(void) {
             }
         }
 
-        if (checkButton(PAD_BUTTON_L, PRESS)) {
+        if (status.trigger & VPAD_BUTTON_L) {
             if ((menu==1) && (tsort > 0)) {
                 sorta *= -1;
                 qsort(titles, count, sizeof(Title), titleSort);
@@ -788,7 +730,7 @@ int main(void) {
             }
         }
 
-        if (checkButton(PAD_BUTTON_A, PRESS)) {
+        if (status.trigger & VPAD_BUTTON_A) {
             clearBuffers();
             if (menu < 3) {
                 if (menu == 0) {
@@ -899,7 +841,7 @@ int main(void) {
                         } break;
                 }
             }
-        } else if (checkButton(PAD_BUTTON_B, PRESS) && menu > 0) {
+        } else if ((status.trigger & VPAD_BUTTON_B) && menu > 0) {
             clearBuffers();
             menu--;
             cursor = scroll = 0;
@@ -921,14 +863,15 @@ int main(void) {
     IOSUHAX_sdio_disc_interface.shutdown();
     IOSUHAX_usb_disc_interface.shutdown();
 
+    OSScreenShutdown();
+    drawFini();
+    WHBProcShutdown();
     unmount_fs("slccmpt01");
     unmount_fs("storage_mlc");
     unmount_fs("storage_usb");
     unmount_fs("storage_odd");
 
     IOSUHAX_FSA_Close(fsaFd);
-
-    WHBProcShutdown();
 
     return EXIT_SUCCESS;
 }

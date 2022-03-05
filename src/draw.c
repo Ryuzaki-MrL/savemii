@@ -1,9 +1,12 @@
 #include "draw.h"
 
 uint8_t *scrBuffer;
-int scr_buf0_size = 0;
-int scr_buf1_size = 0;
 bool cur_buf1;
+size_t tvBufferSize = 0;
+size_t drcBufferSize = 0;
+
+void* tvBuffer;
+void* drcBuffer;
 
 u8 *ttfFont;
 RGBAColor fcolor = {0xFFFFFFFF};
@@ -11,55 +14,52 @@ FT_Library  library;
 FT_Face     face;
 
 void drawInit() {
-	scr_buf0_size = OSScreenGetBufferSizeEx(0);
-	scr_buf1_size = OSScreenGetBufferSizeEx(1);
-	scrBuffer = memalign(0x100, scr_buf0_size + scr_buf1_size);
-	OSScreenSetBufferEx(0, scrBuffer);
-	OSScreenSetBufferEx(1, (scrBuffer + scr_buf0_size));
-	OSScreenEnableEx(0, 1);
-	OSScreenEnableEx(1, 1);
+	OSScreenInit();
+
+    size_t tvBufferSize = OSScreenGetBufferSizeEx(SCREEN_TV);
+    size_t drcBufferSize = OSScreenGetBufferSizeEx(SCREEN_DRC);
+
+    void* tvBuffer = memalign(0x100, tvBufferSize);
+    void* drcBuffer = memalign(0x100, drcBufferSize);
+
+    OSScreenSetBufferEx(SCREEN_TV, tvBuffer);
+    OSScreenSetBufferEx(SCREEN_DRC, drcBuffer);
+
+    OSScreenEnableEx(SCREEN_TV, true);
+    OSScreenEnableEx(SCREEN_DRC, true);
 	clearBuffers();
-
-	u32* screen2 = (u32*)scrBuffer + scr_buf0_size;
-	OSScreenPutPixelEx(1, 0, 0, 0xABCDEFFF);
-
-	cur_buf1 = screen2[0] != 0xABCDEFFF;
 }
 
 void drawFini() {
-	MEM1_free(scrBuffer);
-	scrBuffer = NULL;
+	if (tvBuffer) free(tvBuffer);
+    if (drcBuffer) free(drcBuffer);
 }
 
 void flipBuffers() {
-	//Flush the cache
-	DCFlushRange(scrBuffer + scr_buf0_size, scr_buf1_size);
-	DCFlushRange(scrBuffer, scr_buf0_size);
-	//Flip the buffer
-	OSScreenFlipBuffersEx(0);
-	OSScreenFlipBuffersEx(1);
-	cur_buf1 = !cur_buf1;
+	DCFlushRange(tvBuffer, tvBufferSize);
+    DCFlushRange(drcBuffer, drcBufferSize);
+
+    OSScreenFlipBuffersEx(SCREEN_TV);
+    OSScreenFlipBuffersEx(SCREEN_DRC);
 }
 
 void clearBuffers() {
-	for(int i = 0; i < 2; i++) {
-		OSScreenClearBufferEx(0, 0);
-		OSScreenClearBufferEx(1, 0);
-		flipBuffers();
-	}
+	OSScreenClearBufferEx(SCREEN_TV, 0x00000000);
+    OSScreenClearBufferEx(SCREEN_DRC, 0x00000000);
+	flipBuffers();
 }
 
 void drawString(int x, int line, char* string) {
-	OSScreenPutFontEx(0, x, line, string);
-	OSScreenPutFontEx(1, x, line, string);
+	OSScreenPutFontEx(SCREEN_TV, x, line, string);
+	OSScreenPutFontEx(SCREEN_DRC, x, line, string);
 }
 
 void fillScreen(u8 r, u8 g, u8 b, u8 a) {
 	RGBAColor color;
 	color.r = r; color.g = g; color.b = b; color.a = a;
 	//uint32_t num = (r << 24) | (g << 16) | (b << 8) | a;
-	OSScreenClearBufferEx(0, color.c);
-	OSScreenClearBufferEx(1, color.c);
+	OSScreenClearBufferEx(SCREEN_TV, color.c);
+	OSScreenClearBufferEx(SCREEN_DRC, color.c);
 }
 
 void drawPixel32(int x, int y, RGBAColor color) {
@@ -73,9 +73,10 @@ void drawPixel(int x, int y, u8 r, u8 g, u8 b, u8 a) {
 	if (x < 0 || y < 0 || x >= 896 || y >= 480) return;
 
 	int width = 1280; //height = 1024 720?
-	uint8_t *screen = scrBuffer;
-	int otherBuff0 = scr_buf0_size / 2;
-	int otherBuff1 = scr_buf1_size / 2;
+	uint8_t *screen = tvBuffer;
+	uint8_t *drc = drcBuffer;
+	int otherBuff0 = tvBufferSize / 2;
+	int otherBuff1 = drcBufferSize / 2;
 	float opacity = a / 255.0;
 
 	for (int yy = (y * 1.5); yy < ((y * 1.5) + 1); yy++) {
@@ -88,21 +89,14 @@ void drawPixel(int x, int y, u8 r, u8 g, u8 b, u8 a) {
 			screen[v + 3] = a;
 		}
 	}
-	/*u32 v = (x + y * width) * 4;
-	if (cur_buf1) v += otherBuff0;
-	screen[v    ] = r * opacity + (1 - opacity) * screen[v];
-	screen[v + 1] = g * opacity + (1 - opacity) * screen[v + 1];
-	screen[v + 2] = b * opacity + (1 - opacity) * screen[v + 2];
-	screen[v + 3] = a;*/
 
 	width = 896; //height = 480;
-	uint8_t *screen2 = scrBuffer + scr_buf0_size;
 	u32 v = (x + y * width) * 4;
 	if (cur_buf1) v += otherBuff1;
-	screen2[v    ] = r * opacity + (1 - opacity) * screen2[v];
-	screen2[v + 1] = g * opacity + (1 - opacity) * screen2[v + 1];
-	screen2[v + 2] = b * opacity + (1 - opacity) * screen2[v + 2];
-	screen2[v + 3] = a;
+	drc[v    ] = r * opacity + (1 - opacity) * drc[v];
+	drc[v + 1] = g * opacity + (1 - opacity) * drc[v + 1];
+	drc[v + 2] = b * opacity + (1 - opacity) * drc[v + 2];
+	drc[v + 3] = a;
 }
 
 void drawLine(int x1, int y1, int x2, int y2, u8 r, u8 g, u8 b, u8 a) {
@@ -273,16 +267,16 @@ void drawRGB5A3(int x, int y, float scale, u8* fileContent) {
 
 void drawBackgroundDRC(u32 w, u32 h, u8* out) {
 	uint32_t *screen2 = NULL;
-	int otherBuff1 = scr_buf1_size / 2;
+	int otherBuff1 = drcBufferSize / 2;
 
-	if (cur_buf1) screen2 = (uint32_t*)scrBuffer + scr_buf0_size + otherBuff1;
-	else screen2 = (uint32_t*)scrBuffer + scr_buf0_size;
+	if (cur_buf1) screen2 = (uint32_t*)scrBuffer + tvBufferSize + otherBuff1;
+	else screen2 = (uint32_t*)scrBuffer + tvBufferSize;
 	memcpy(screen2, out, w * h * 4);
 }
 
 void drawBackgroundTV(u32 w, u32 h, u8* out) {
 	uint32_t *screen1 = (uint32_t*)scrBuffer;
-	int otherBuff0 = scr_buf0_size / 2;
+	int otherBuff0 = tvBufferSize / 2;
 
 	if (cur_buf1) screen1 = (uint32_t*)scrBuffer + otherBuff0;
 	memcpy(screen1, out, w * h * 4);
