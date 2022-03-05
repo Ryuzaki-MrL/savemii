@@ -85,18 +85,18 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         savesl[j].found = false;
         j++;
     }
-    savesl = realloc(savesl, usable * sizeof(Saves));
+    savesl = realloc(savesl, usable*sizeof(Saves));
 
-    int dirUH, foundCount = 0, pos = 0, tNoSave = usable;
-    for (int i = 0; i <= 1; i++) {
+    int dirUH, dirNH, foundCount = 0, pos = 0, tNoSave = usable;
+    for(int i = 0; i <= 1; i++) {
         char path[255];
         sprintf(path, "/vol/storage_%s01/usr/save/00050000", (i == 0) ? "usb" : "mlc");
         if (IOSUHAX_FSA_OpenDir(fsaFd, path, &dirUH) >= 0) {
             while (1) {
                 directoryEntry_s data;
-                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
-                if (ret != 0)
-                    break;
+        		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
+        		if (ret != 0)
+        			break;
 
                 sprintf(path, "/vol/storage_%s01/usr/save/00050000/%s/user", (i == 0) ? "usb" : "mlc", data.name);
                 if (checkEntry(path) == 2) {
@@ -123,16 +123,15 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         promptError("Out of memory.");
         return NULL;
     }
-
-    for (int i = 0; i <= 1; i++) {
+    for(int i = 0; i <= 1; i++) {
         char path[255];
         sprintf(path, "/vol/storage_%s01/usr/save/00050000", (i == 0) ? "usb" : "mlc");
         if (IOSUHAX_FSA_OpenDir(fsaFd, path, &dirUH) >= 0) {
             while (1) {
                 directoryEntry_s data;
-                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
-                if (ret != 0)
-                    break;
+        		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
+        		if (ret != 0)
+        			break;
 
                 sprintf(path, "/vol/storage_%s01/usr/save/00050000/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", data.name);
                 if (checkEntry(path) == 1) {
@@ -163,61 +162,62 @@ Title* loadWiiUTitles(int run, int fsaFd) {
     }
 
     for (int i = 0; i < foundCount; i++) {
+        int srcFd = -1;
         u32 highID = saves[i].highID, lowID = saves[i].lowID;
         bool isTitleOnUSB = !saves[i].dev;
 
         char path[255];
         memset(path, 0, 255);
-        if (saves[i].found) {
+        if (saves[i].found)
             sprintf(path, "/vol/storage_%s01/usr/title/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", highID, lowID);
-        } else {
+        else
             sprintf(path, "/vol/storage_%s01/usr/save/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", highID, lowID);
-        }
         titles[titleswiiu].saveInit = !saves[i].found;
 
-        char* xmlBuf = NULL;
-        if (loadFile(path, (u8**)&xmlBuf) > 0) {
-            char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
-            memset(titles[titleswiiu].productCode, 0, sizeof(titles[titleswiiu].productCode));
-            strncpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<"));
+        int ret = IOSUHAX_FSA_OpenFile(fsaFd, path, "rb", &srcFd);
+        if (ret >= 0) {
+            fileStat_s fStat;
+        	IOSUHAX_FSA_StatFile(fsaFd, srcFd, &fStat);
+            size_t xmlSize = fStat.size;
 
-            cptr = strchr(strstr(xmlBuf, "shortname_en"), '>') + 1;
-            memset(titles[titleswiiu].shortName, 0, sizeof(titles[titleswiiu].shortName));
-            if (strcspn(cptr, "<") == 0)
-                cptr = strchr(strstr(xmlBuf, "shortname_ja"), '>') + 1;
-            strncpy(titles[titleswiiu].shortName, cptr, strcspn(cptr, "<"));
+            char* xmlBuf = malloc(xmlSize+1);
+            if (xmlBuf) {
+                memset(xmlBuf, 0, xmlSize+1);
+                IOSUHAX_FSA_ReadFile(fsaFd, xmlBuf, 0x01, xmlSize, srcFd, 0);
+                IOSUHAX_FSA_CloseFile(fsaFd, srcFd);
 
-            cptr = strchr(strstr(xmlBuf, "longname_en"), '>') + 1;
-            memset(titles[i].longName, 0, sizeof(titles[i].longName));
-            if (strcspn(cptr, "<") == 0)
-                cptr = strchr(strstr(xmlBuf, "longname_ja"), '>') + 1;
-            strncpy(titles[titleswiiu].longName, cptr, strcspn(cptr, "<"));
+                char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
+                strncpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<"));
 
-            free(xmlBuf);
-        }
+                cptr = strchr(strstr(xmlBuf, "shortname_en"), '>') + 1;
+                memset(titles[titleswiiu].shortName, 0, sizeof(titles[titleswiiu].shortName));
+                strncpy(titles[titleswiiu].shortName, cptr, strcspn(cptr, "<"));
 
-        titles[titleswiiu].isTitleDupe = false;
-        for (int i = 0; i < titleswiiu; i++) {
-            if ((titles[i].highID == highID) && (titles[i].lowID == lowID)) {
-                titles[titleswiiu].isTitleDupe = true;
-                titles[titleswiiu].dupeID = i;
-                titles[i].isTitleDupe = true;
-                titles[i].dupeID = titleswiiu;
+                free(xmlBuf);
             }
         }
+
+	    titles[titleswiiu].isTitleDupe = false;
+	    for (int i = 0; i < titleswiiu; i++) {
+		    if ((titles[i].highID == highID) && (titles[i].lowID == lowID)) {
+			    titles[titleswiiu].isTitleDupe = true;
+			    titles[titleswiiu].dupeID = i;
+			    titles[i].isTitleDupe = true;
+			    titles[i].dupeID = titleswiiu;
+		    }
+	    }
 
         titles[titleswiiu].highID = highID;
         titles[titleswiiu].lowID = lowID;
         titles[titleswiiu].isTitleOnUSB = isTitleOnUSB;
         titles[titleswiiu].listID = titleswiiu;
-        if (loadTitleIcon(&titles[titleswiiu]) < 0) titles[titleswiiu].iconBuf = NULL;
         titleswiiu++;
 
-        OSScreenClearBufferEx(SCREEN_TV, 0);
-        OSScreenClearBufferEx(SCREEN_DRC, 0);
-        //drawTGA(298, 144, 1, icon_tga);
-        console_print_pos_aligned(10, 0, 1, "Loaded %i Wii U titles.", titleswiiu);
-        flipBuffers();
+        OSScreenClearBufferEx(0, 0);
+        OSScreenClearBufferEx(1, 0);
+        console_print_pos(0, 0, "Loaded %i Wii U titles.", titleswiiu);
+        OSScreenFlipBuffersEx(0);
+        OSScreenFlipBuffersEx(1);
 
     }
 
@@ -449,13 +449,28 @@ int main(void) {
                 console_print_pos_aligned(17, 4, 2, "(A): Select Mode");
             } break;
             case 1: { // Select Title
-                console_print_pos(30, 0, "Sort: %s %s", sortn[tsort], (tsort > 0) ? ((sorta == 1) ? "v": "^"): "");
-                entrycount = count;
-                for (int i = 0; i < 14; i++) {
-                    if (i+scroll<0 || i+scroll>=count) break;
-                    if (strlen(titles[i+scroll].shortName)) console_print_pos(0, i+2, "   %s %s%s%s", titles[i+scroll].shortName, titles[i+scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i+scroll].isTitleDupe ? " [D]" : "", titles[i+scroll].saveInit ? "" : " [Not Init]");
-                    else console_print_pos(0, i+2, "   %08lx%08lx", titles[i+scroll].highID, titles[i+scroll].lowID);
-                } console_print_pos(0, 2 + cursor, "->");
+                if (mode == 2) {
+                    entrycount = 3;
+                    console_print_pos(M_OFF, 2, "   Backup All (%u Title%s)", titleswiiu + titlesvwii, ((titleswiiu + titlesvwii) > 1) ? "s": "");
+                    console_print_pos(M_OFF, 3, "   Backup Wii U (%u Title%s)", titleswiiu, (titleswiiu > 1) ? "s": "");
+                    console_print_pos(M_OFF, 4, "   Backup vWii (%u Title%s)", titlesvwii, (titlesvwii > 1) ? "s": "");
+                    console_print_pos(M_OFF, 2 + cursor, "->");
+                    console_print_pos_aligned(17, 4, 2, "(A): Backup  (B): Back");
+                } else {
+                    console_print_pos(40, 0, "(R) Sort: %s %s", sortn[tsort], (tsort > 0) ? ((sorta == 1) ? "Desc. (L)": "Asc. (L)"): "");
+                    entrycount = count;
+                    for (int i = 0; i < 14; i++) {
+                        if (i + scroll < 0 || i + scroll >= count) break;
+                        if (strlen(titles[i + scroll].shortName)) console_print_pos(M_OFF, i+2, "   %s %s%s%s", titles[i + scroll].shortName, titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i + scroll].isTitleDupe ? " [D]" : "", titles[i + scroll].saveInit ? "" : " [Not Init]");
+                        else console_print_pos(M_OFF, i+2, "   %08lx%08lx", titles[i + scroll].highID, titles[i + scroll].lowID);
+                    }
+                    if (mode == 0) {
+                        console_print_pos(0, 2 + cursor, "->");
+                    } else if (mode == 1) {
+                        console_print_pos(-1, 2 + cursor, "->");
+                    }
+                    console_print_pos_aligned(17, 4, 2, "(A): Select Game  (B): Back");
+                }
             } break;
             case 2: { // Select Task
                 entrycount = 3 + 2 * (mode == 0) + 1 * ((mode == 0) && (titles[targ].isTitleDupe));
