@@ -14,9 +14,9 @@
 
 #define PATH_SIZE 0x400
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+//#ifdef __cplusplus
+//extern "C" {
+//#endif
 
 typedef struct {
     u32 highID;
@@ -93,8 +93,8 @@ void show_file_operation(const char* file_name, const char* file_src, const char
 void console_print_pos_multiline(int x, int y, char cdiv,const char* format, ...);
 void console_print_pos_aligned(int y, u16 offset, u8 align, const char* format, ...);
 
-#ifdef __cplusplus
-}
-#endif
+//#ifdef __cplusplus
+//}
+//#endif
 
 #endif

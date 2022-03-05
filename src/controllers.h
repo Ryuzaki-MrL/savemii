@@ -1,8 +1,10 @@
 #ifndef CONTROLLERS_H
 #define CONTROLLERS_H
 
-#include <dynamic_libs/padscore_functions.h>
-#include <dynamic_libs/vpad_functions.h>
+#include <gctypes.h>
+#include <padscore/kpad.h>
+#include <padscore/wpad.h>
+#include <vpad/input.h>
 
 enum buttons {
     PAD_BUTTON_A,
@@ -40,9 +42,9 @@ enum buttonStates {
 void pingControllers();
 void updateButtons();
 bool stickPos(u8 stick, f32 value);
-bool isWiimote(KPADData *padData);
-bool isClassicController(KPADData *padData);
-bool isProController(KPADData *padData);
+bool isWiimote(KPADStatus *padData);
+bool isClassicController(KPADStatus *padData);
+bool isProController(KPADStatus *padData);
 int checkButton(int button, int state);
 // int isPressed(int button);
 // int isHeld(int button);

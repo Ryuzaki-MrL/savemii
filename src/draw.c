@@ -11,10 +11,9 @@ FT_Library  library;
 FT_Face     face;
 
 void drawInit() {
-	OSScreenInit();
 	scr_buf0_size = OSScreenGetBufferSizeEx(0);
 	scr_buf1_size = OSScreenGetBufferSizeEx(1);
-	scrBuffer = MEM1_alloc(scr_buf0_size + scr_buf1_size, 0x100);
+	scrBuffer = memalign(0x100, scr_buf0_size + scr_buf1_size);
 	OSScreenSetBufferEx(0, scrBuffer);
 	OSScreenSetBufferEx(1, (scrBuffer + scr_buf0_size));
 	OSScreenEnableEx(0, 1);
@@ -294,7 +293,7 @@ bool initFont(void* fontBuf, FT_Long fsize) {
 	if (fontBuf) {
 		ttfFont = fontBuf;
 	} else {
-		OSGetSharedData(2, 0, ttfFont, (u32*)&size);
+		OSGetSharedData(2, 0, (void **)ttfFont, (u32*)&size);
 	}
 
 	FT_Error error;
@@ -459,13 +458,13 @@ int ttfPrintString(int x, int y, const char *string, bool wWrap, bool ceroX) {
 	return pen_x;
 }
 
-int ttfStringWidth(const char *string, s8 part) {
+int ttfStringWidth(char *string, s8 part) {
 	FT_GlyphSlot slot = face->glyph;
 	FT_Error error;
 	int pen_x = 0, max_x = 0, spart = 1;
-	FT_UInt previous_glyph = 0;
+	FT_UInt previous_glyph;
 
-	while(*string) {
+    while(*string) {
 		uint32_t buf = *string++;
 		if ((buf >> 6) == 3) {
 			if ((buf & 0xF0) == 0xC0) {
@@ -489,7 +488,7 @@ int ttfStringWidth(const char *string, s8 part) {
 
 		//error = FT_Load_Char(face, buf, FT_LOAD_RENDER);
 
-		FT_UInt glyph_index;
+        FT_UInt glyph_index;
 		glyph_index = FT_Get_Char_Index(face, buf);
 
 		if (FT_HAS_KERNING(face)) {
@@ -508,7 +507,7 @@ int ttfStringWidth(const char *string, s8 part) {
 			continue;
 		}
 
-		error = FT_Load_Glyph(face, glyph_index, 1/*FT_LOAD_BITMAP_METRICS_ONLY*/);
+		error = FT_Load_Glyph(face, glyph_index, FT_LOAD_BITMAP_METRICS_ONLY);
 		if (error)
 			continue;
 

@@ -4,20 +4,6 @@
 
 int __entry_menu(int argc, char **argv)
 {
-    InitOSFunctionPointers();
-    InitSocketFunctionPointers();
-    InitACPFunctionPointers();
-    InitAocFunctionPointers();
-    InitAXFunctionPointers();
-    InitCurlFunctionPointers();
-    InitFSFunctionPointers();
-    InitGX2FunctionPointers();
-    InitPadScoreFunctionPointers();
-    InitSysFunctionPointers();
-    InitSysHIDFunctionPointers();
-    InitVPadFunctionPointers();
-
-    memoryInitialize();
     VPADInit();
     KPADInit();
     WPADInit();

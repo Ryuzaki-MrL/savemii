@@ -3,11 +3,11 @@
 #include "controllers.h"
 
 int vpadError = -1;
-VPADData vpad;
+VPADStatus vpad;
 
 s32 padErrors[4];
 u32 padTypes[4];
-KPADData pads[4];
+KPADStatus pads[4];
 
 uint32_t buttons_hold[5]; //Held buttons
 uint32_t buttons_pressed[5]; //Pressed buttons
@@ -21,28 +21,28 @@ void pingControllers() {
 
 void updateButtons() {
     VPADRead(0, &vpad, 1, &vpadError);
-    buttons_pressed[0] = vpad.btns_d;
-    buttons_hold[0] = vpad.btns_h;
-    buttons_released[0] = vpad.btns_r;
+    buttons_pressed[0] = vpad.trigger;
+    buttons_hold[0] = vpad.hold;
+    buttons_released[0] = vpad.release;
 
     pingControllers();
     for (int i = 0; i < 4; i++) {
         if (padErrors[i] == 0) {
             KPADRead(i, &pads[i], 1);
             if (isWiimote(&pads[i])) {
-                buttons_pressed[i + 1] = pads[i].btns_d;
-                buttons_hold[i + 1] = pads[i].btns_h;
-                buttons_released[i + 1] = pads[i].btns_r;
+                buttons_pressed[i + 1] = pads[i].trigger;
+                buttons_hold[i + 1] = pads[i].hold;
+                buttons_released[i + 1] = pads[i].release;
             }
             else if (isClassicController(&pads[i])) {
-                buttons_pressed[i + 1] = pads[i].classic.btns_d;
-                buttons_hold[i + 1] = pads[i].classic.btns_h;
-                buttons_released[i + 1] = pads[i].classic.btns_r;
+                buttons_pressed[i + 1] = pads[i].classic.trigger;
+                buttons_hold[i + 1] = pads[i].classic.hold;
+                buttons_released[i + 1] = pads[i].classic.release;
             }
             else if (isProController(&pads[i])) {
-                buttons_pressed[i + 1] = pads[i].pro.btns_d;
-                buttons_hold[i + 1] = pads[i].pro.btns_h;
-                buttons_released[i + 1] = pads[i].pro.btns_r;
+                buttons_pressed[i + 1] = pads[i].pro.trigger;
+                buttons_hold[i + 1] = pads[i].pro.hold;
+                buttons_released[i + 1] = pads[i].pro.release;
             }
         }
     }
@@ -51,34 +51,34 @@ void updateButtons() {
 bool stickPos(u8 stick, f32 value) {
     switch(stick) {
         case 0 :
-            return (value > 0) ? (vpad.lstick.x > value): (vpad.lstick.x < value);
+            return (value > 0) ? (vpad.leftStick.x > value): (vpad.leftStick.x < value);
         case 1 :
-            return (value > 0) ? (vpad.lstick.y > value): (vpad.lstick.y < value);
+            return (value > 0) ? (vpad.leftStick.y > value): (vpad.leftStick.y < value);
         case 2 :
-            return (value > 0) ? (vpad.rstick.x > value): (vpad.rstick.x < value);
+            return (value > 0) ? (vpad.rightStick.x > value): (vpad.rightStick.x < value);
         case 3 :
-            return (value > 0) ? (vpad.rstick.y > value): (vpad.rstick.y < value);
+            return (value > 0) ? (vpad.rightStick.y > value): (vpad.rightStick.y < value);
         case 4 :
-            return ((vpad.lstick.x > value) || (vpad.lstick.x < -value)) || \
-                   ((vpad.lstick.y > value) || (vpad.lstick.y < -value)) || \
-                   ((vpad.rstick.x > value) || (vpad.rstick.x < -value)) || \
-                   ((vpad.rstick.y > value) || (vpad.rstick.y < -value));
+            return ((vpad.leftStick.x > value) || (vpad.leftStick.x < -value)) || \
+                   ((vpad.leftStick.y > value) || (vpad.leftStick.y < -value)) || \
+                   ((vpad.rightStick.x > value) || (vpad.rightStick.x < -value)) || \
+                   ((vpad.rightStick.y > value) || (vpad.rightStick.y < -value));
 
         default :
             return 0;
     }
 }
 
-bool isWiimote(KPADData *padData){
-    return padData->device_type == 0 || padData->device_type == 1 || padData->device_type == 5 || padData->device_type == 6;
+bool isWiimote(KPADStatus *padData){
+    return padData->extensionType == 0 || padData->extensionType == 1 || padData->extensionType == 5 || padData->extensionType == 6;
 }
 
-bool isClassicController(KPADData *padData){
-    return padData->device_type == 2 || padData->device_type == 7;
+bool isClassicController(KPADStatus *padData){
+    return padData->extensionType == 2 || padData->extensionType == 7;
 }
 
-bool isProController(KPADData *padData){
-    return padData->device_type == 31;
+bool isProController(KPADStatus *padData){
+    return padData->extensionType == 31;
 }
 
 int checkButton(int button, int state) {

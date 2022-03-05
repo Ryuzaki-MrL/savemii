@@ -16,7 +16,12 @@
  ****************************************************************************/
 #include <malloc.h>
 #include <string.h>
-#include "dynamic_libs/os_functions.h"
+#include <coreinit/cache.h>
+#include <coreinit/debug.h>
+#include <coreinit/ios.h>
+#include <coreinit/thread.h>
+#include <coreinit/filesystem.h>
+#include <coreinit/mcp.h>
 #include "common/common.h"
 #include "memory.h"
 

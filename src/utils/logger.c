@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "common/common.h"
-#include "dynamic_libs/os_functions.h"
-#include "dynamic_libs/socket_functions.h"
 #include "logger.h"
 
 #ifdef DEBUG_LOGGER

@@ -2,7 +2,6 @@
 #define DRAW_H
 
 #include <gctypes.h>
-//#include <math.h>
 #include "wiiu.h"
 #include "tga_reader.h"
 #include <ft2build.h>
@@ -50,6 +49,6 @@ bool ttfFontSize(u8 w, u8 h);
 void ttfFontColor32(u32 color);
 void ttfFontColor(u8 r, u8 g, u8 b, u8 a);
 int ttfPrintString(int x, int y, const char *string, bool wWrap, bool ceroX);
-int ttfStringWidth(const char *string, s8 part);
+int ttfStringWidth(char *string, s8 part);
 
 #endif /* DRAW_H */

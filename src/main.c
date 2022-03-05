@@ -4,8 +4,15 @@
 #include <malloc.h>
 
 #include "main.h"
+#include "wiiu.h"
 #include "savemng.h"
 #include "icon.h"
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <libxml/xpath.h>
+
+#include "main.h"
+#include "savemng.h"
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 2
@@ -20,37 +27,6 @@ int cursor = 0, scroll = 0;
 int cursorb = 0, cursort = 0, scrollb = 0;
 int titleswiiu = 0, titlesvwii = 0;
 const char *sortn[4] = {"None", "Name", "Storage", "Storage+Name"};
-
-//just to be able to call async
-void someFunc(void *arg) {
-    (void)arg;
-}
-
-static int mcp_hook_fd = -1;
-int MCPHookOpen() {
-    //take over mcp thread
-    mcp_hook_fd = MCP_Open();
-    if (mcp_hook_fd < 0) return -1;
-    IOS_IoctlAsync(mcp_hook_fd, 0x62, (void*)0, 0, (void*)0, 0, someFunc, (void*)0);
-    //let wupserver start up
-    os_sleep(1);
-    if (IOSUHAX_Open("/dev/mcp") < 0) {
-        MCP_Close(mcp_hook_fd);
-        mcp_hook_fd = -1;
-        return -1;
-    }
-    return 0;
-}
-
-void MCPHookClose() {
-    if (mcp_hook_fd < 0) return;
-    //close down wupserver, return control to mcp
-    IOSUHAX_Close();
-    //wait for mcp to return
-    os_sleep(1);
-    MCP_Close(mcp_hook_fd);
-    mcp_hook_fd = -1;
-}
 
 int titleSort(const void *c1, const void *c2)
 {
@@ -173,7 +149,6 @@ Title* loadWiiUTitles(int run, int fsaFd) {
             IOSUHAX_FSA_CloseDir(fsaFd, dirUH);
         }
     }
-
     for (int i = 0; i < usable; i++) {
         if (!savesl[i].found) {
             saves[pos].highID = savesl[i].highID;
@@ -398,8 +373,11 @@ void unloadTitles(Title* titles, int count) {
 }
 
 void disclaimer() {
+    WHBLogPrint("in disclaimer");
     fillScreen(0, 0, 0, 0);
+    WHBLogPrint("in disclaimer: fillscreen");
     console_print_pos_aligned(3, 0, 1, "Savemii Mod");
+    WHBLogPrint("in disclaimer: printpos");
     //drawTGA(298, 36, 1, icon_tga);
     console_print_pos_aligned(6, 0, 1, "Created by: Ryuzaki-MrL");
     console_print_pos_aligned(7, 0, 1, "Modded by: GabyPCgeeK");
@@ -407,47 +385,33 @@ void disclaimer() {
     console_print_pos_aligned(12, 0, 1, "There is always the potential for a brick.");
     console_print_pos_aligned(13, 0, 1, "Everything you do with this software is your own responsibility");
     flipBuffers();
-    os_sleep(4);
+    sleep(4);
 }
 
 /* Entry point */
-int Menu_Main(void) {
-
-    //mount_sd_fat("sd");
+int main(void) {
+    OSScreenInit();
+    KPADInit();
+    WPADInit();
+    drawInit();
+    WHBProcInit();
+    VPADInit();
+    WHBMountSdCard();
+    WHBLogCafeInit();
+    WHBLogUdpInit();
+    WHBLogPrint("Hello World! Logging initialised.");
     loadWiiUTitles(0, -1);
-
-    int res = IOSUHAX_Open(NULL);
-    if (res < 0) {
-        res = MCPHookOpen();
-    }
-    if (res < 0) {
-        promptError("IOSUHAX_Open failed.");
-        //unmount_sd_fat("sd");
-        return EXIT_SUCCESS;
-    }
-
-    fatInitDefault();
-
+    WHBLogPrint("load titles");
     int fsaFd = IOSUHAX_FSA_Open();
-    if (fsaFd < 0) {
-        promptError("IOSUHAX_FSA_Open failed.");
-        //unmount_sd_fat("sd");
-        if (mcp_hook_fd >= 0) {
-            MCPHookClose();
-        } else {
-            IOSUHAX_Close();
-        }
-        return EXIT_SUCCESS;
-    }
+    
     setFSAFD(fsaFd);
 
-    IOSUHAX_FSA_Mount(fsaFd, "/dev/sdcard01", "/vol/storage_sdcard", 2, (void*)0, 0);
-    mount_fs("sd", fsaFd, NULL, "/vol/storage_sdcard");
+    //IOSUHAX_FSA_Mount(fsaFd, "/dev/sdcard01", "/vol/storage_sdcard", 2, (void*)0, 0);
     mount_fs("slccmpt01", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
     mount_fs("storage_mlc", fsaFd, NULL, "/vol/storage_mlc01");
     mount_fs("storage_usb", fsaFd, NULL, "/vol/storage_usb01");
     mount_fs("storage_odd", fsaFd, "/dev/odd03", "/vol/storage_odd_content");
-
+    WHBLogPrint("mount");
     u8* fontBuf = NULL;
     s32 fsize = loadFile("/vol/storage_sdcard/wiiu/apps/savemii/font.ttf", &fontBuf);
     if (fsize > 0) {
@@ -455,13 +419,15 @@ int Menu_Main(void) {
     } else {
         initFont(NULL, 0);
     }
-
+    WHBLogPrint("after font");
     disclaimer();
+    WHBLogPrint("after disclaimer");
     clearBuffers();
+    WHBLogPrint("after clearbuffers");
     Title* wiiutitles = loadWiiUTitles(1, fsaFd);
     Title* wiititles = loadWiiTitles(fsaFd);
     int* versionList = (int*)malloc(0x100 * sizeof(int));
-    os_sleep(1);
+    sleep(1);
     getAccountsWiiU();
 
     qsort(wiiutitles, titleswiiu, sizeof(Title), titleSort);
@@ -472,6 +438,7 @@ int Menu_Main(void) {
     u8* fileContent = NULL;
     u32 wDRC = 0, hDRC = 0, wTV = 0, hTV = 0;
 
+    /*
     if (loadFile("/vol/storage_sdcard/wiiu/apps/savemii/backgroundDRC.tga", &fileContent) > 0) {
         wDRC = tgaGetWidth(fileContent); hDRC = tgaGetHeight(fileContent);
         tgaBufDRC = (u8*)tgaRead(fileContent, TGA_READER_RGBA);
@@ -485,8 +452,8 @@ int Menu_Main(void) {
         free(fileContent);
         fileContent = NULL;
     }
-
-    while(1) {
+    */
+    while(WHBProcIsRunning()) {
         //u64 startTime = OSGetTime();
 
         if (tgaBufDRC) {
@@ -695,13 +662,13 @@ int Menu_Main(void) {
             else if (cursor < 6) cursor++;
             else if ((cursor + scroll + 1) % entrycount) scroll++;
             else cursor = scroll = 0;
-            os_usleep(100000);
+            usleep(100000);
         } else if (checkButton(PAD_BUTTON_UP, PRESS) || checkButton(PAD_BUTTON_UP, HOLD) || stickPos(1, 0.7) || stickPos(3, 0.7)) {
             if (scroll > 0) cursor -= (cursor>6) ? 1 : 0 * (scroll--);
             else if (cursor > 0) cursor--;
             else if (entrycount > 14) scroll = entrycount - (cursor = 6) - 1;
             else cursor = entrycount - 1;
-            os_usleep(100000);
+            usleep(100000);
         }
 
         if (checkButton(PAD_BUTTON_LEFT, PRESS) || checkButton(PAD_BUTTON_LEFT, HOLD) || stickPos(0, -0.7) || stickPos(2, -0.7)) {
@@ -751,7 +718,7 @@ int Menu_Main(void) {
                     }
                 }
             }
-            os_usleep(100000);
+            usleep(100000);
         } else if (checkButton(PAD_BUTTON_RIGHT, PRESS) || checkButton(PAD_BUTTON_RIGHT, HOLD) || stickPos(0, 0.7) || stickPos(2, 0.7)) {
             if (menu == 3) {
                 if (task == 5) {
@@ -799,7 +766,7 @@ int Menu_Main(void) {
                     }
                 }
             }
-            os_usleep(100000);
+            usleep(100000);
         }
 
         if (checkButton(PAD_BUTTON_R, PRESS)) {
@@ -830,7 +797,6 @@ int Menu_Main(void) {
                         promptError("No Wii U titles found.");
                         continue;
                     }
-
                     if (mode == 1 && (!wiititles || !titlesvwii)) {
                         promptError("No vWii saves found.");
                         continue;
@@ -845,7 +811,7 @@ int Menu_Main(void) {
                         OSCalendarTime dateTime;
                         switch(cursor) {
                             case 0:
-                                dateTime.year = 0;
+                                dateTime.tm_year = 0;
                                 backupAllSave(wiiutitles, titleswiiu, &dateTime);
                                 backupAllSave(wiititles, titlesvwii, &dateTime);
                                 break;
@@ -943,7 +909,6 @@ int Menu_Main(void) {
             }
             if (menu == 2) cursor = cursort;
         }
-        if (checkButton(PAD_BUTTON_HOME, PRESS)) break;
     }
 
     if (tgaBufDRC) free(tgaBufDRC);
@@ -952,24 +917,18 @@ int Menu_Main(void) {
     unloadTitles(wiiutitles, titleswiiu);
     unloadTitles(wiititles, titlesvwii);
     free(versionList);
-
-    fatUnmount("sd");
-    fatUnmount("usb");
+    
     IOSUHAX_sdio_disc_interface.shutdown();
     IOSUHAX_usb_disc_interface.shutdown();
 
     unmount_fs("slccmpt01");
-    //unmount_fs("sd");
     unmount_fs("storage_mlc");
     unmount_fs("storage_usb");
     unmount_fs("storage_odd");
 
-    //unmount_sd_fat("sd");
-
     IOSUHAX_FSA_Close(fsaFd);
 
-    if (mcp_hook_fd >= 0) MCPHookClose();
-    else IOSUHAX_Close();
+    WHBProcShutdown();
 
     return EXIT_SUCCESS;
 }
