@@ -12,7 +12,8 @@ char * p1;
 Account* wiiuacc;
 Account* sdacc;
 u8 wiiuaccn = 0, sdaccn = 5;
-
+VPADStatus status;
+VPADReadError error;
 
 void setFSAFD(int fd) {
 	fsaFd = fd;
@@ -274,17 +275,34 @@ void console_print_pos_va(int x, int y, const char* format, va_list va) { // Sou
 	if (tmp) free(tmp);
 }
 
-bool promptConfirm(const char* question) {
-    ucls();
-    const char* msg = "(A) Confirm - (B) Cancel";
-    int ret = 0;
-    while(1) {
-        OSScreenClearBufferEx(0, 0);
-        OSScreenClearBufferEx(1, 0);
-        console_print_pos(25 - (strlen(question)>>1), 8, question);
-        console_print_pos(25 - (strlen(msg)>>1), 10, msg);
-        OSScreenFlipBuffersEx(0);
-        OSScreenFlipBuffersEx(1);
+bool promptConfirm(Style st, const char* question) {
+    clearBuffers();
+    const char* msg1 = "(A) Yes - (B) No";
+	const char* msg2 = "(A) Confirm - (B) Cancel";
+	const char* msg;
+	switch(st & 0x0F) {
+		case ST_YES_NO: msg = msg1; break;
+		case ST_CONFIRM_CANCEL: msg = msg2; break;
+		default: msg = msg2;
+	}
+	if (st & ST_WARNING) {
+		OSScreenClearBufferEx(0, 0x7F7F0000);
+		OSScreenClearBufferEx(1, 0x7F7F0000);
+	} else if (st & ST_ERROR) {
+		OSScreenClearBufferEx(0, 0x7F000000);
+		OSScreenClearBufferEx(1, 0x7F000000);
+	} else {
+		OSScreenClearBufferEx(0, 0x007F0000);
+		OSScreenClearBufferEx(1, 0x007F0000);
+	}
+	OSScreenClearBufferEx(0, 0);
+    OSScreenClearBufferEx(1, 0);
+    console_print_pos(25 - (strlen(question)>>1), 8, question);
+    console_print_pos(25 - (strlen(msg)>>1), 10, msg);
+    OSScreenFlipBuffersEx(0);
+    OSScreenFlipBuffersEx(1);
+	int ret = 0;
+    while(1) {	
         VPADRead(VPAD_CHAN_0, &status, 1, &error);
         if (status.trigger & (VPAD_BUTTON_A | VPAD_BUTTON_B | VPAD_BUTTON_HOME)) {
             ret = VPAD_BUTTON_A;
@@ -295,7 +313,7 @@ bool promptConfirm(const char* question) {
 }
 
 void promptError(const char* message, ...) {
-    ucls();
+    clearBuffers();
 	va_list va;
 	va_start(va, message);
     OSScreenClearBufferEx(0, 0);

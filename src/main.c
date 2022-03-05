@@ -449,28 +449,13 @@ int main(void) {
                 console_print_pos_aligned(17, 4, 2, "(A): Select Mode");
             } break;
             case 1: { // Select Title
-                if (mode == 2) {
-                    entrycount = 3;
-                    console_print_pos(M_OFF, 2, "   Backup All (%u Title%s)", titleswiiu + titlesvwii, ((titleswiiu + titlesvwii) > 1) ? "s": "");
-                    console_print_pos(M_OFF, 3, "   Backup Wii U (%u Title%s)", titleswiiu, (titleswiiu > 1) ? "s": "");
-                    console_print_pos(M_OFF, 4, "   Backup vWii (%u Title%s)", titlesvwii, (titlesvwii > 1) ? "s": "");
-                    console_print_pos(M_OFF, 2 + cursor, "->");
-                    console_print_pos_aligned(17, 4, 2, "(A): Backup  (B): Back");
-                } else {
-                    console_print_pos(40, 0, "\ue084 Sort: %s %s", sortn[tsort], (tsort > 0) ? ((sorta == 1) ? "\u2193 \ue083": "\u2191 \ue083"): "");
-                    entrycount = count;
-                    for (int i = 0; i < 14; i++) {
-                        if (i + scroll < 0 || i + scroll >= count) break;
-                        if (strlen(titles[i + scroll].shortName)) console_print_pos(M_OFF, i+2, "   %s %s%s%s", titles[i + scroll].shortName, titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i + scroll].isTitleDupe ? " [D]" : "", titles[i + scroll].saveInit ? "" : " [Not Init]");
-                        else console_print_pos(M_OFF, i+2, "   %08lx%08lx", titles[i + scroll].highID, titles[i + scroll].lowID);
-                    }
-                    if (mode == 0) {
-                        console_print_pos(0, 2 + cursor, "->");
-                    } else if (mode == 1) {
-                        console_print_pos(-1, 2 + cursor, "->");
-                    }
-                    console_print_pos_aligned(17, 4, 2, "(A): Select Game  (B): Back");
-                }
+                console_print_pos(30, 0, "Sort: %s %s", sortn[tsort], (tsort > 0) ? ((sorta == 1) ? "v": "^"): "");
+                entrycount = count;
+                for (int i = 0; i < 14; i++) {
+                    if (i+scroll<0 || i+scroll>=count) break;
+                    if (strlen(titles[i+scroll].shortName)) console_print_pos(0, i+2, "   %s %s%s%s", titles[i+scroll].shortName, titles[i+scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i+scroll].isTitleDupe ? " [D]" : "", titles[i+scroll].saveInit ? "" : " [Not Init]");
+                    else console_print_pos(0, i+2, "   %08lx%08lx", titles[i+scroll].highID, titles[i+scroll].lowID);
+                } console_print_pos(0, 2 + cursor, "->");
             } break;
             case 2: { // Select Task
                 entrycount = 3 + 2 * (mode == 0) + 1 * ((mode == 0) && (titles[targ].isTitleDupe));

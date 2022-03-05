@@ -14,9 +14,8 @@
 
 #define PATH_SIZE 0x400
 
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
+extern VPADStatus status;
+extern VPADReadError error;
 
 typedef struct {
     u32 highID;
