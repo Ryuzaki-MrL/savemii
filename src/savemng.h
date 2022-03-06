@@ -21,7 +21,8 @@ typedef struct {
     u32 lowID;
     u16 listID;
     char shortName[256];
-    char productCode[32];
+    char longName[512];
+    char productCode[5];
     bool saveInit;
     bool isTitleOnUSB;
     bool isTitleDupe;
