@@ -3,7 +3,7 @@ name: CI-Release
 on:
   push:
     branches:
-      - main
+      - refactor
     
 jobs:
   build-binary:
@@ -17,7 +17,7 @@ jobs:
     - uses: actions/upload-artifact@master
       with:
        name: binary
-       path: "src/*.rpx"
+       path: "*.rpx"
   deploy-binary:
     needs: build-binary
     runs-on: ubuntu-18.04
