@@ -21,13 +21,11 @@ typedef struct {
     u32 lowID;
     u16 listID;
     char shortName[256];
-    char longName[512];
-    char productCode[5];
+    char productCode[32];
     bool saveInit;
     bool isTitleOnUSB;
     bool isTitleDupe;
     u16 dupeID;
-    u8* iconBuf;
 } Title;
 
 typedef struct {
