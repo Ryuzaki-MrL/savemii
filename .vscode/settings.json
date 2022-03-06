@@ -12,6 +12,7 @@
         "memory": "c",
         "malloc.h": "c",
         "cstdarg": "cpp",
-        "parser.h": "c"
+        "parser.h": "c",
+        "cstdlib": "c"
     }
 }

@@ -267,7 +267,6 @@ void console_print_pos_va(int x, int y, const char* format, va_list va) { // Sou
 	char* tmp = NULL;
 
 	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
-		//ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
 		OSScreenPutFontEx(SCREEN_TV, x, y, tmp);
 		OSScreenPutFontEx(SCREEN_DRC, x, y, tmp);
 	}
@@ -365,8 +364,6 @@ void getAccountsWiiU() {
 
 void getAccountsSD(Title* title, u8 slot) {
 	u32 highID = title->highID, lowID = title->lowID;
-	//bool isUSB = title->isTitleOnUSB;
-	//bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 	int dirH;
 	sdaccn = 0;
 	if (sdacc) free(sdacc);
@@ -500,16 +497,13 @@ int DumpDir(char* pPath, const char* tPath) { // Source: ft2sd
 			snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", tPath, data.name);
 
 			p1 = data.name;
-			//ttfFontSize(0, 20);
 			show_file_operation(data.name, pPath, targetPath);
 
 			if (DumpFile(pPath, targetPath) != 0) {
-				//ttfFontSize(0, 22);
 				IOSUHAX_FSA_CloseDir(fsaFd, dirH);
 				return -3;
 			}
 
-			//ttfFontSize(0, 22);
 			free(targetPath);
 		}
 

@@ -43,12 +43,11 @@ DEFS        :=
 #-------------------------------------------------------------------------------
 # options for code generation
 #-------------------------------------------------------------------------------
-CFLAGS	:=	-std=gnu11 -g -Wall -Ofast -ffunction-sections -fno-use-linker-plugin -fno-lto \
-			$(MACHDEP)
+CFLAGS	:=	-std=gnu2x -g -Wall -Ofast -ffunction-sections -fno-use-linker-plugin -fno-lto \
+			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__
 
-CFLAGS	+=	$(INCLUDE) -D__WIIU__ -D__WUT__
-
-CXXFLAGS	:= $(CFLAGS) -fpermissive
+CXXFLAGS	:= -std=gnu++20 -g -Wall -Ofast -ffunction-sections -fpermissive -fno-use-linker-plugin -fno-lto \
+			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)

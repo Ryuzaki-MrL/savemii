@@ -52,7 +52,6 @@ void clearBuffers() {
 void fillScreen(u8 r, u8 g, u8 b, u8 a) {
 	RGBAColor color;
 	color.r = r; color.g = g; color.b = b; color.a = a;
-	//uint32_t num = (r << 24) | (g << 16) | (b << 8) | a;
 	OSScreenClearBufferEx(SCREEN_TV, color.c);
 	OSScreenClearBufferEx(SCREEN_DRC, color.c);
 }
@@ -264,10 +263,6 @@ void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y) {
 					u8 col = bitmap->buffer[q * bitmap->pitch + p];
 					if (col == 0) continue;
 					float opacity = col / 255.0;
-					/*u8 cr = fcolor.r * opacity + (1 - opacity) * 0;
-					u8 cg = fcolor.g * opacity + (1 - opacity) * 0;
-					u8 cb = fcolor.b * opacity + (1 - opacity) * 0;
-					drawPixel(i, j, cr, cg, cb, fcolor.a);*/
 					drawPixel(i, j, fcolor.r, fcolor.g, fcolor.b, (u8)(fcolor.a * opacity));
 				}
 			}

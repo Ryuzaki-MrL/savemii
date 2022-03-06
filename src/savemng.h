@@ -8,7 +8,6 @@
 #include <iosuhax_disc_interface.h>
 
 #include "draw.h"
-#include "controllers.h"
 #include "wiiu.h"
 
 #define PATH_SIZE 0x400
@@ -90,9 +89,5 @@ s32 loadTitleIcon(Title* title);
 void show_file_operation(const char* file_name, const char* file_src, const char* file_dest);
 void console_print_pos_multiline(int x, int y, char cdiv,const char* format, ...);
 void console_print_pos_aligned(int y, u16 offset, u8 align, const char* format, ...);
-
-//#ifdef __cplusplus
-//}
-//#endif
 
 #endif

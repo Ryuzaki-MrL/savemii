@@ -7,9 +7,6 @@
 #include "wiiu.h"
 #include "savemng.h"
 #include "icon.h"
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <libxml/xpath.h>
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 3
@@ -483,7 +480,6 @@ int main(void) {
                 entrycount = 3 + 2 * (mode == 0) + 1 * ((mode == 0) && (titles[targ].isTitleDupe));
                 console_print_pos(M_OFF, 2, "   [%08X-%08X] [%s]", titles[targ].highID, titles[targ].lowID, titles[targ].productCode);
                 console_print_pos(M_OFF, 3, "   %s", titles[targ].shortName);
-                //console_print_pos(M_OFF, 4, "   %s", titles[targ].longName);
                 console_print_pos(M_OFF, 5, "   Backup savedata");
                 console_print_pos(M_OFF, 6, "   Restore savedata");
                 console_print_pos(M_OFF, 7, "   Wipe savedata");
