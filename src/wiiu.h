@@ -16,7 +16,6 @@
 #include <vpad/input.h>
 #include <coreinit/mcp.h>
 #include <coreinit/dynload.h>
-#include <vpad/input.h>
 #include <whb/log_cafe.h>
 #include <whb/log_udp.h>
 #include <whb/log.h>

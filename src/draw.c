@@ -67,9 +67,10 @@ void drawPixel32(int x, int y, RGBAColor color) {
 }
 
 void drawPixel(int x, int y, u8 r, u8 g, u8 b, u8 a) {
-	/*uint32_t num = (r << 24) | (g << 16) | (b << 8) | a;
+	uint32_t num = (r << 24) | (g << 16) | (b << 8) | a;
 	OSScreenPutPixelEx(0, x, y, num);
-	OSScreenPutPixelEx(1, x, y, num);*/
+	OSScreenPutPixelEx(1, x, y, num);
+	/*
 	if (x < 0 || y < 0 || x >= 896 || y >= 480) return;
 
 	int width = 1280; //height = 1024 720?
@@ -97,6 +98,7 @@ void drawPixel(int x, int y, u8 r, u8 g, u8 b, u8 a) {
 	drc[v + 1] = g * opacity + (1 - opacity) * drc[v + 1];
 	drc[v + 2] = b * opacity + (1 - opacity) * drc[v + 2];
 	drc[v + 3] = a;
+	*/
 }
 
 void drawLine(int x1, int y1, int x2, int y2, u8 r, u8 g, u8 b, u8 a) {

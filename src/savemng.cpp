@@ -276,7 +276,7 @@ void console_print_pos_va(int x, int y, const char* format, va_list va) { // Sou
 
 bool promptConfirm(Style st, const char* question) {
     clearBuffers();
-    const char* msg1 = "(A) Yes - (B) No";
+	const char* msg1 = "(A) Yes - (B) No";
 	const char* msg2 = "(A) Confirm - (B) Cancel";
 	const char* msg;
 	switch(st & 0x0F) {
@@ -285,25 +285,26 @@ bool promptConfirm(Style st, const char* question) {
 		default: msg = msg2;
 	}
 	if (st & ST_WARNING) {
-		OSScreenClearBufferEx(SCREEN_TV, 0x7F7F0000);
-		OSScreenClearBufferEx(SCREEN_DRC, 0x7F7F0000);
+		OSScreenClearBufferEx(0, 0x7F7F0000);
+	    OSScreenClearBufferEx(1, 0x7F7F0000);
 	} else if (st & ST_ERROR) {
-		OSScreenClearBufferEx(SCREEN_TV, 0x7F000000);
-		OSScreenClearBufferEx(SCREEN_DRC, 0x7F000000);
+		OSScreenClearBufferEx(0, 0x7F000000);
+	    OSScreenClearBufferEx(1, 0x7F000000);
 	} else {
-		OSScreenClearBufferEx(SCREEN_TV, 0x007F0000);
-		OSScreenClearBufferEx(SCREEN_DRC, 0x007F0000);
+		OSScreenClearBufferEx(0, 0x007F0000);
+	    OSScreenClearBufferEx(1, 0x007F0000);
 	}
-	OSScreenClearBufferEx(SCREEN_TV, 0);
-    OSScreenClearBufferEx(SCREEN_DRC, 0);
-    console_print_pos(25 - (strlen(question)>>1), 8, question);
-    console_print_pos(25 - (strlen(msg)>>1), 10, msg);
-    OSScreenFlipBuffersEx(SCREEN_TV);
-    OSScreenFlipBuffersEx(SCREEN_DRC);
+	if (st & ST_MULTILINE) {
+
+	} else {
+    	console_print_pos(31 - (strlen(question) / 24), 7, question);
+    	console_print_pos(31 - (strlen(msg) / 24), 9, msg);
+	}
+    flipBuffers();
 	int ret = 0;
     while(1) {	
         VPADRead(VPAD_CHAN_0, &status, 1, &error);
-        if (status.trigger & (VPAD_BUTTON_A | VPAD_BUTTON_B | VPAD_BUTTON_HOME)) {
+        if (status.release & (VPAD_BUTTON_A | VPAD_BUTTON_B | VPAD_BUTTON_HOME)) {
             ret = VPAD_BUTTON_A;
             break;
         }
@@ -315,16 +316,18 @@ void promptError(const char* message, ...) {
     clearBuffers();
 	va_list va;
 	va_start(va, message);
-    OSScreenClearBufferEx(SCREEN_TV, 0);
-    OSScreenClearBufferEx(SCREEN_DRC, 0);
+    OSScreenClearBufferEx(SCREEN_TV, 0x7F000000);
+    OSScreenClearBufferEx(SCREEN_DRC, 0x7F000000);
     console_print_pos_va(25 - (strlen(message)>>1), 9, message, va);
     OSScreenFlipBuffersEx(SCREEN_TV);
     OSScreenFlipBuffersEx(SCREEN_DRC);
 	va_end(va);
+	sleep(2);	
 }
 
 void getAccountsWiiU() {
 	/* get persistent ID - thanks to Maschell */
+	nn::act::Initialize();
 	int i = 0, accn = 0;
 	wiiuaccn = nn::act::GetNumOfAccounts();
 	wiiuacc = (Account*)malloc(wiiuaccn * sizeof(Account));
@@ -357,6 +360,7 @@ void getAccountsWiiU() {
 		}
 		i++;
 	}
+	nn::act::Finalize();
 }
 
 void getAccountsSD(Title* title, u8 slot) {
@@ -559,9 +563,11 @@ int DeleteDir(char* pPath) {
 
 void getUserID(char* out) { // Source: loadiine_gx2
 	/* get persistent ID - thanks to Maschell */
+	nn::act::Initialize();
 
 	unsigned char slotno = nn::act::GetSlotNo();
 	unsigned int persistentID = nn::act::GetPersistentIdEx(slotno);
+	nn::act::Finalize();
 
 	sprintf(out, "%08X", persistentID);
 

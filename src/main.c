@@ -213,12 +213,11 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         titles[titleswiiu].listID = titleswiiu;
         titleswiiu++;
 
-        OSScreenClearBufferEx(0, 0);
-        OSScreenClearBufferEx(1, 0);
-        drawTGA(298, 144, 1, icon_tga);
+        OSScreenClearBufferEx(SCREEN_TV, 0);
+        OSScreenClearBufferEx(SCREEN_DRC, 0);
         console_print_pos(0, 0, "Loaded %i Wii U titles.", titleswiiu);
-        OSScreenFlipBuffersEx(0);
-        OSScreenFlipBuffersEx(1);
+        OSScreenFlipBuffersEx(SCREEN_TV);
+        OSScreenFlipBuffersEx(SCREEN_DRC);
 
     }
 
@@ -349,9 +348,8 @@ Title* loadWiiTitles(int fsaFd) {
                 if (!titles[i].saveInit || (loadTitleIcon(&titles[i]) < 0)) titles[i].iconBuf = NULL;
                 i++;
 
-                OSScreenClearBufferEx(SCREEN_TV, 0);
-                OSScreenClearBufferEx(SCREEN_DRC, 0);
-                drawTGA(298, 144, 1, icon_tga);
+                OSScreenClearBufferEx(0, 0);
+                OSScreenClearBufferEx(1, 0);
                 console_print_pos_aligned(10, 0, 1, "Loaded %i Wii U titles.", titleswiiu);
                 console_print_pos_aligned(11, 0, 1, "Loaded %i Wii titles.", i);
                 flipBuffers();
@@ -387,14 +385,23 @@ int main(void) {
     drawInit();
     WHBProcInit();
     VPADInit();
-    WHBMountSdCard();
-
     loadWiiUTitles(0, -1);
-    WHBLogPrint("load titles");
+
+    int res = IOSUHAX_Open(NULL);
+    if (res < 0) {
+        promptError("IOSUHAX_Open failed.");
+        return EXIT_SUCCESS;
+    }
+
     int fsaFd = IOSUHAX_FSA_Open();
-    
+    if (fsaFd < 0) {
+        promptError("IOSUHAX_FSA_Open failed.");
+        return EXIT_SUCCESS;
+    }
     setFSAFD(fsaFd);
 
+    IOSUHAX_FSA_Mount(fsaFd, "/dev/sdcard01", "/vol/storage_sdcard", 2, (void*)0, 0);
+    WHBMountSdCard();
     mount_fs("slccmpt01", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
     mount_fs("storage_mlc", fsaFd, NULL, "/vol/storage_mlc01");
     mount_fs("storage_usb", fsaFd, NULL, "/vol/storage_usb01");
@@ -461,9 +468,9 @@ int main(void) {
                     console_print_pos(40, 0, "(R) Sort: %s %s", sortn[tsort], (tsort > 0) ? ((sorta == 1) ? "Desc. (L)": "Asc. (L)"): "");
                     entrycount = count;
                     for (int i = 0; i < 14; i++) {
-                        if (i + scroll < 0 || i + scroll >= count) break;
-                        if (strlen(titles[i + scroll].shortName)) console_print_pos(M_OFF, i+2, "   %s %s%s%s", titles[i + scroll].shortName, titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i + scroll].isTitleDupe ? " [D]" : "", titles[i + scroll].saveInit ? "" : " [Not Init]");
-                        else console_print_pos(M_OFF, i+2, "   %08lx%08lx", titles[i + scroll].highID, titles[i + scroll].lowID);
+                    if (i+scroll<0 || i+scroll>=count) break;
+                    if (strlen(titles[i+scroll].shortName)) console_print_pos(0, i+2, "   %s %s%s%s", titles[i+scroll].shortName, titles[i+scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i+scroll].isTitleDupe ? " [D]" : "", titles[i+scroll].saveInit ? "" : " [Not Init]");
+                    else console_print_pos(0, i+2, "   %08lx%08lx", titles[i+scroll].highID, titles[i+scroll].lowID);
                         if (mode == 0) {
                             if (titles[i + scroll].iconBuf) drawTGA((M_OFF + 4) * 12 - 2, (i + 3) * 24, 0.18, titles[i + scroll].iconBuf);
                         } else if (mode == 1) {
@@ -496,8 +503,8 @@ int main(void) {
                 } else if (mode == 1) {
                     if (titles[targ].iconBuf) drawRGB5A3(650, 80, 1, titles[targ].iconBuf);
                 }
-                console_print_pos(M_OFF, 2 + 3 + cursor, "\u2192");
-                console_print_pos_aligned(17, 4, 2, "\ue000: Select Task  \ue001: Back");
+                console_print_pos(M_OFF, 2 + 3 + cursor, "->");
+                console_print_pos_aligned(17, 4, 2, "(A): Select Task  (B): Back");
             } break;
             case 3: { // Select Options
                 entrycount = 3;

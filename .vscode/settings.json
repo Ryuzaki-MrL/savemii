@@ -10,6 +10,7 @@
         "savemng.h": "c",
         "memory.h": "c",
         "memory": "c",
-        "malloc.h": "c"
+        "malloc.h": "c",
+        "cstdarg": "cpp"
     }
 }
