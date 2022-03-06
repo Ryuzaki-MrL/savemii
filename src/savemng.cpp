@@ -79,7 +79,7 @@ s32 loadFile(const char * fPath, u8 **buf) {
 		IOSUHAX_FSA_StatFile(fsaFd, srcFd, &fStat);
 		size_t size = fStat.size;
 
-		*buf = malloc(size);
+		*buf = (u8*)malloc(size);
 		if (*buf) {
 			memset(*buf, 0, size);
 			ret = IOSUHAX_FSA_ReadFile(fsaFd, *buf, 0x01, size, srcFd, 0);
@@ -101,7 +101,7 @@ s32 loadFilePart(const char * fPath, u32 start, u32 size, u8 **buf) {
 		}
 		IOSUHAX_FSA_SetFilePos(fsaFd, srcFd, start);
 
-		*buf = malloc(size);
+		*buf = (u8*)malloc(size);
 		if (*buf) {
 			memset(*buf, 0, size);
 			ret = IOSUHAX_FSA_ReadFile(fsaFd, *buf, 0x01, size, srcFd, 0);
@@ -230,17 +230,16 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char* format, ..
 	va_list va;
 	va_start(va, format);
 	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
-
-		if ((strlen(tmp) / 12) > len) {
+		if ((strlen(tmp) / 12) > (unsigned)len) {
 			char* p = tmp;
 			if (strrchr(p, '\n') != NULL) p = strrchr(p, '\n') + 1;
-			while((strlen(p) / 12) > len) {
+			while((strlen(p) / 12) > (unsigned)len) {
 				char* q = p;
 				int l1 = strlen(q);
 				for(int i = l1; i > 0; i--) {
 					char o = q[l1];
 					q[l1] = '\0';
-					if ((strlen(p) / 12) <= len) {
+					if ((strlen(p) / 12) <= (unsigned)len) {
 						if (strrchr(p, cdiv) != NULL) p = strrchr(p, cdiv) + 1;
 						else p = q + l1;
 						q[l1] = o;
@@ -286,21 +285,21 @@ bool promptConfirm(Style st, const char* question) {
 		default: msg = msg2;
 	}
 	if (st & ST_WARNING) {
-		OSScreenClearBufferEx(0, 0x7F7F0000);
-		OSScreenClearBufferEx(1, 0x7F7F0000);
+		OSScreenClearBufferEx(SCREEN_TV, 0x7F7F0000);
+		OSScreenClearBufferEx(SCREEN_DRC, 0x7F7F0000);
 	} else if (st & ST_ERROR) {
-		OSScreenClearBufferEx(0, 0x7F000000);
-		OSScreenClearBufferEx(1, 0x7F000000);
+		OSScreenClearBufferEx(SCREEN_TV, 0x7F000000);
+		OSScreenClearBufferEx(SCREEN_DRC, 0x7F000000);
 	} else {
-		OSScreenClearBufferEx(0, 0x007F0000);
-		OSScreenClearBufferEx(1, 0x007F0000);
+		OSScreenClearBufferEx(SCREEN_TV, 0x007F0000);
+		OSScreenClearBufferEx(SCREEN_DRC, 0x007F0000);
 	}
-	OSScreenClearBufferEx(0, 0);
-    OSScreenClearBufferEx(1, 0);
+	OSScreenClearBufferEx(SCREEN_TV, 0);
+    OSScreenClearBufferEx(SCREEN_DRC, 0);
     console_print_pos(25 - (strlen(question)>>1), 8, question);
     console_print_pos(25 - (strlen(msg)>>1), 10, msg);
-    OSScreenFlipBuffersEx(0);
-    OSScreenFlipBuffersEx(1);
+    OSScreenFlipBuffersEx(SCREEN_TV);
+    OSScreenFlipBuffersEx(SCREEN_DRC);
 	int ret = 0;
     while(1) {	
         VPADRead(VPAD_CHAN_0, &status, 1, &error);
@@ -316,11 +315,11 @@ void promptError(const char* message, ...) {
     clearBuffers();
 	va_list va;
 	va_start(va, message);
-    OSScreenClearBufferEx(0, 0);
-    OSScreenClearBufferEx(1, 0);
+    OSScreenClearBufferEx(SCREEN_TV, 0);
+    OSScreenClearBufferEx(SCREEN_DRC, 0);
     console_print_pos_va(25 - (strlen(message)>>1), 9, message, va);
-    OSScreenFlipBuffersEx(0);
-    OSScreenFlipBuffersEx(1);
+    OSScreenFlipBuffersEx(SCREEN_TV);
+    OSScreenFlipBuffersEx(SCREEN_DRC);
 	va_end(va);
 }
 
@@ -328,14 +327,14 @@ void getAccountsWiiU() {
 	/* get persistent ID - thanks to Maschell */
 	int i = 0, accn = 0;
 	wiiuaccn = nn::act::GetNumOfAccounts();
-	wiiuacc = malloc(wiiuaccn * sizeof(Account));
+	wiiuacc = (Account*)malloc(wiiuaccn * sizeof(Account));
 	uint16_t out[11];
 	while ((accn < wiiuaccn) && (i <= 12)) {
 		if (nn::act::IsSlotOccupied(i)) {
 			unsigned int persistentID = nn::act::GetPersistentIdEx(i);
 			wiiuacc[accn].pID = persistentID;
 			sprintf(wiiuacc[accn].persistentID, "%08X", persistentID);
-			nn::act::GetMiiNameEx(out, i);
+			nn::act::GetMiiNameEx((int16_t*)out, i);
 			//convert_to_ascii(out, wiiuacc[accn].miiName);
 			memset(wiiuacc[accn].miiName, 0, sizeof(wiiuacc[accn].miiName));
 			for (int j = 0, k = 0; j < 10; j++) {
@@ -382,7 +381,7 @@ void getAccountsSD(Title* title, u8 slot) {
 		IOSUHAX_FSA_CloseDir(fsaFd, dirH);
 	}
 
-	sdacc = malloc(sdaccn * sizeof(Account));
+	sdacc = (Account*)malloc(sdaccn * sizeof(Account));
 	if (IOSUHAX_FSA_OpenDir(fsaFd, path, &dirH) >= 0) {
 		for(int i = 0; i < sdaccn; i++) {
 			directoryEntry_s data;
