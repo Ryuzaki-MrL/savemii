@@ -220,8 +220,8 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         if (loadTitleIcon(&titles[titleswiiu]) < 0) titles[titleswiiu].iconBuf = NULL;
         titleswiiu++;
 
-        OSScreenClearBufferEx(0, 0);
-        OSScreenClearBufferEx(1, 0);
+        OSScreenClearBufferEx(SCREEN_TV, 0);
+        OSScreenClearBufferEx(SCREEN_DRC, 0);
         drawTGA(298, 144, 1, icon_tga);
         disclaimer();
         console_print_pos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
@@ -356,8 +356,8 @@ Title* loadWiiTitles(int fsaFd) {
                 if (!titles[i].saveInit || (loadTitleIcon(&titles[i]) < 0)) titles[i].iconBuf = NULL;
                 i++;
 
-                OSScreenClearBufferEx(0, 0);
-                OSScreenClearBufferEx(1, 0);
+                OSScreenClearBufferEx(SCREEN_TV, 0);
+                OSScreenClearBufferEx(SCREEN_DRC, 0);
                 drawTGA(298, 144, 1, icon_tga);
                 disclaimer();
                 console_print_pos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
@@ -405,7 +405,6 @@ int main(void) {
     mount_fs("storage_usb", fsaFd, NULL, "/vol/storage_usb01");
     mount_fs("storage_odd", fsaFd, "/dev/odd03", "/vol/storage_odd_content");
     
-    u8* fontBuf = NULL;
     clearBuffers();
     Title* wiiutitles = loadWiiUTitles(1, fsaFd);
     Title* wiititles = loadWiiTitles(fsaFd);
@@ -418,7 +417,6 @@ int main(void) {
 
     u8* tgaBufDRC = NULL;
     u8* tgaBufTV = NULL;
-    u8* fileContent = NULL;
     u32 wDRC = 0, hDRC = 0, wTV = 0, hTV = 0;
     VPADStatus status;
     VPADReadError error;

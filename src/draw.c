@@ -49,11 +49,6 @@ void clearBuffers() {
 	flipBuffers();
 }
 
-void drawString(int x, int line, char* string) {
-	OSScreenPutFontEx(SCREEN_TV, x, line, string);
-	OSScreenPutFontEx(SCREEN_DRC, x, line, string);
-}
-
 void fillScreen(u8 r, u8 g, u8 b, u8 a) {
 	RGBAColor color;
 	color.r = r; color.g = g; color.b = b; color.a = a;
@@ -70,35 +65,6 @@ void drawPixel(int x, int y, u8 r, u8 g, u8 b, u8 a) {
 	uint32_t num = (r << 24) | (g << 16) | (b << 8) | a;
 	OSScreenPutPixelEx(0, x, y, num);
 	OSScreenPutPixelEx(1, x, y, num);
-	/*
-	if (x < 0 || y < 0 || x >= 896 || y >= 480) return;
-
-	int width = 1280; //height = 1024 720?
-	uint8_t *screen = tvBuffer;
-	uint8_t *drc = drcBuffer;
-	int otherBuff0 = tvBufferSize / 2;
-	int otherBuff1 = drcBufferSize / 2;
-	float opacity = a / 255.0;
-
-	for (int yy = (y * 1.5); yy < ((y * 1.5) + 1); yy++) {
-		for (int xx = (x * 1.5); xx < ((x * 1.5) + 1); xx++) {
-			u32 v = (xx + yy * width) * 4;
-			if (cur_buf1) v += otherBuff0;
-			screen[v    ] = r * opacity + (1 - opacity) * screen[v];
-			screen[v + 1] = g * opacity + (1 - opacity) * screen[v + 1];
-			screen[v + 2] = b * opacity + (1 - opacity) * screen[v + 2];
-			screen[v + 3] = a;
-		}
-	}
-
-	width = 896; //height = 480;
-	u32 v = (x + y * width) * 4;
-	if (cur_buf1) v += otherBuff1;
-	drc[v    ] = r * opacity + (1 - opacity) * drc[v];
-	drc[v + 1] = g * opacity + (1 - opacity) * drc[v + 1];
-	drc[v + 2] = b * opacity + (1 - opacity) * drc[v + 2];
-	drc[v + 3] = a;
-	*/
 }
 
 void drawLine(int x1, int y1, int x2, int y2, u8 r, u8 g, u8 b, u8 a) {
@@ -284,25 +250,6 @@ void drawBackgroundTV(u32 w, u32 h, u8* out) {
 	memcpy(screen1, out, w * h * 4);
 }
 
-bool initFont(void* fontBuf, FT_Long fsize) {
-	fontBuf = NULL;
-	fsize = 0;
-    OSGetSharedData(OS_SHAREDDATATYPE_FONT_STANDARD, 0, &fontBuf, &fsize);
-
-    if (fontBuf && fsize) {
-        FT_Init_FreeType(&library);
-        FT_New_Memory_Face(library, (FT_Byte *) fontBuf, fsize, 0, &face);
-    }
-
-	return true;
-}
-
-void freeFont(void* fontBuf) {
-	FT_Done_Face(face);
-	FT_Done_FreeType(library);
-	//if (fontBuf) free(fontBuf);
-}
-
 void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y) {
 	FT_Int i, j, p, q;
 	FT_Int x_max;
@@ -342,163 +289,4 @@ void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y) {
 			break;
 		}
 	}
-}
-
-bool ttfFontSize(u8 w, u8 h) {
-	FT_Error error;
-
-	/*error = FT_Set_Char_Size(face, 8*64, 10*64, 158, 158);
-	if (error) return false;*/
-
-	error = FT_Set_Pixel_Sizes(face, w, h);   //pixel width, height
-	if (error) return false;
-	return true;
-}
-
-void ttfFontColor32(u32 color) {
-	fcolor.c = color;
-}
-
-void ttfFontColor(u8 r, u8 g, u8 b, u8 a) {
-	RGBAColor color;
-	color.r = r;
-	color.g = g;
-	color.b = b;
-	color.a = a;
-	ttfFontColor32(color.c);
-}
-
-int ttfPrintString(int x, int y, const char *string, bool wWrap, bool ceroX) {
-	FT_GlyphSlot slot = face->glyph;
-	FT_Error error;
-	int pen_x = x, pen_y = y;
-	FT_UInt previous_glyph = 0;
-
-	while(*string) {
-		uint32_t buf = *string++;
-		//int dy = 0;
-
-		if ((buf >> 6) == 3) {
-			if ((buf & 0xF0) == 0xC0) {
-				uint8_t b1 = buf & 0xFF, b2 = *string++;
-				if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
-				buf = ((b1 & 0xF) << 6) | b2;
-			} else if ((buf & 0xF0) == 0xD0) {
-				uint8_t b1 = buf & 0xFF, b2 = *string++;
-				if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
-				buf = 0x400 | ((b1 & 0xF) << 6) | b2;
-			} else if ((buf & 0xF0) == 0xE0) {
-				uint8_t b1 = buf & 0xFF, b2 = *string++, b3 = *string++;
-				if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
-				if ((b3 & 0xC0) == 0x80) b3 &= 0x3F;
-				buf = ((b1 & 0xF) << 12) | (b2 << 6) | b3;
-			}
-		} else if (buf & 0x80) {
-			string++;
-			continue;
-		}
-
-		if (buf == '\n') {
-			pen_y += (face->size->metrics.height >> 6);
-			if (ceroX) pen_x = 0;
-			else pen_x = x;
-			continue;
-		}
-
-		//error = FT_Load_Char(face, buf, FT_LOAD_RENDER);
-
-		FT_UInt glyph_index;
-		glyph_index = FT_Get_Char_Index(face, buf);
-
-		if (FT_HAS_KERNING(face)) {
-			FT_Vector vector;
-			FT_Get_Kerning(face, previous_glyph, glyph_index, FT_KERNING_DEFAULT, &vector);
-			pen_x += (vector.x >> 6);
-			//dy = vector.y >> 6;
-		}
-
-		error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);//FT_LOAD_COLOR);//
-		if (error)
-			continue;
-
-		error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);//FT_RENDER_MODE_LCD);//
-		if (error)
-			continue;
-
-		if ((pen_x + (slot->advance.x >> 6)) > 853) {
-			if (wWrap) {
-				pen_y += (face->size->metrics.height >> 6);
-				if (ceroX) pen_x = 0;
-				else pen_x = x;
-			} else {
-				return pen_x;
-			}
-		}
-
-		draw_bitmap(&slot->bitmap, pen_x + slot->bitmap_left, (face->height >> 6) + pen_y - slot->bitmap_top);
-
-		pen_x += (slot->advance.x >> 6);
-		previous_glyph = glyph_index;
-	}
-	return pen_x;
-}
-
-int ttfStringWidth(char *string, s8 part) {
-	FT_GlyphSlot slot = face->glyph;
-	FT_Error error;
-	int pen_x = 0, max_x = 0, spart = 1;
-	FT_UInt previous_glyph;
-
-    while(*string) {
-		uint32_t buf = *string++;
-		if ((buf >> 6) == 3) {
-			if ((buf & 0xF0) == 0xC0) {
-				uint8_t b1 = buf & 0xFF, b2 = *string++;
-				if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
-				buf = ((b1 & 0xF) << 6) | b2;
-			} else if ((buf & 0xF0) == 0xD0) {
-				uint8_t b1 = buf & 0xFF, b2 = *string++;
-				if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
-				buf = 0x400 | ((b1 & 0xF) << 6) | b2;
-			} else if ((buf & 0xF0) == 0xE0) {
-				uint8_t b1 = buf & 0xFF, b2 = *string++, b3 = *string++;
-				if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
-				if ((b3 & 0xC0) == 0x80) b3 &= 0x3F;
-				buf = ((b1 & 0xF) << 12) | (b2 << 6) | b3;
-			}
-		} else if (buf & 0x80) {
-			string++;
-			continue;
-		}
-
-		//error = FT_Load_Char(face, buf, FT_LOAD_RENDER);
-
-        FT_UInt glyph_index;
-		glyph_index = FT_Get_Char_Index(face, buf);
-
-		if (FT_HAS_KERNING(face)) {
-			FT_Vector vector;
-			FT_Get_Kerning(face, previous_glyph, glyph_index, FT_KERNING_DEFAULT, &vector);
-			pen_x += (vector.x >> 6);
-		}
-
-		if (buf == '\n') {
-			if (part != 0) {
-				if ((part > 0) && (spart == part)) return pen_x;
-				if (part == -2) max_x = max(pen_x, max_x);
-				pen_x = 0;
-				spart++;
-			}
-			continue;
-		}
-
-		error = FT_Load_Glyph(face, glyph_index, FT_LOAD_BITMAP_METRICS_ONLY);
-		if (error)
-			continue;
-
-		pen_x += (slot->advance.x >> 6);
-		previous_glyph = glyph_index;
-	}
-	if (spart < part) pen_x = 0;
-	return max(pen_x, max_x);
 }

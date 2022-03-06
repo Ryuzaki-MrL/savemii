@@ -11,6 +11,7 @@
         "memory.h": "c",
         "memory": "c",
         "malloc.h": "c",
-        "cstdarg": "cpp"
+        "cstdarg": "cpp",
+        "parser.h": "c"
     }
 }

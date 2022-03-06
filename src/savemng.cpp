@@ -285,14 +285,14 @@ bool promptConfirm(Style st, const char* question) {
 		default: msg = msg2;
 	}
 	if (st & ST_WARNING) {
-		OSScreenClearBufferEx(0, 0x7F7F0000);
-	    OSScreenClearBufferEx(1, 0x7F7F0000);
+		OSScreenClearBufferEx(SCREEN_TV, 0x7F7F0000);
+	    OSScreenClearBufferEx(SCREEN_DRC, 0x7F7F0000);
 	} else if (st & ST_ERROR) {
-		OSScreenClearBufferEx(0, 0x7F000000);
-	    OSScreenClearBufferEx(1, 0x7F000000);
+		OSScreenClearBufferEx(SCREEN_TV, 0x7F000000);
+	    OSScreenClearBufferEx(SCREEN_DRC, 0x7F000000);
 	} else {
-		OSScreenClearBufferEx(0, 0x007F0000);
-	    OSScreenClearBufferEx(1, 0x007F0000);
+		OSScreenClearBufferEx(SCREEN_TV, 0x007F0000);
+	    OSScreenClearBufferEx(SCREEN_DRC, 0x007F0000);
 	}
 	if (st & ST_MULTILINE) {
 
