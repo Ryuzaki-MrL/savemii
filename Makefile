@@ -38,7 +38,7 @@ SOURCES		:=	src \
 				src/system \
 				src/utils
 DATA		:=  
-INCLUDES	:=  src
+INCLUDES	:=  src include
 DEFS        :=  
 #-------------------------------------------------------------------------------
 # options for code generation
