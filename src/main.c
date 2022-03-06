@@ -85,10 +85,10 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         savesl[j].found = false;
         j++;
     }
-    savesl = realloc(savesl, usable*sizeof(Saves));
+    savesl = realloc(savesl, usable * sizeof(Saves));
 
     int dirUH, dirNH, foundCount = 0, pos = 0, tNoSave = usable;
-    for(int i = 0; i <= 1; i++) {
+    for (int i = 0; i <= 1; i++) {
         char path[255];
         sprintf(path, "/vol/storage_%s01/usr/save/00050000", (i == 0) ? "usb" : "mlc");
         if (IOSUHAX_FSA_OpenDir(fsaFd, path, &dirUH) >= 0) {
@@ -123,7 +123,8 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         promptError("Out of memory.");
         return NULL;
     }
-    for(int i = 0; i <= 1; i++) {
+
+    for (int i = 0; i <= 1; i++) {
         char path[255];
         sprintf(path, "/vol/storage_%s01/usr/save/00050000", (i == 0) ? "usb" : "mlc");
         if (IOSUHAX_FSA_OpenDir(fsaFd, path, &dirUH) >= 0) {
@@ -145,6 +146,7 @@ Title* loadWiiUTitles(int run, int fsaFd) {
             IOSUHAX_FSA_CloseDir(fsaFd, dirUH);
         }
     }
+
     for (int i = 0; i < usable; i++) {
         if (!savesl[i].found) {
             saves[pos].highID = savesl[i].highID;
@@ -174,27 +176,25 @@ Title* loadWiiUTitles(int run, int fsaFd) {
             sprintf(path, "/vol/storage_%s01/usr/save/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", highID, lowID);
         titles[titleswiiu].saveInit = !saves[i].found;
 
-        int ret = IOSUHAX_FSA_OpenFile(fsaFd, path, "rb", &srcFd);
-        if (ret >= 0) {
-            fileStat_s fStat;
-        	IOSUHAX_FSA_StatFile(fsaFd, srcFd, &fStat);
-            size_t xmlSize = fStat.size;
+        char* xmlBuf = NULL;
+        if (loadFile(path, &xmlBuf) > 0) {
+            char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
+            memset(titles[titleswiiu].productCode, 0, sizeof(titles[titleswiiu].productCode));
+            strncpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<"));
 
-            char* xmlBuf = malloc(xmlSize+1);
-            if (xmlBuf) {
-                memset(xmlBuf, 0, xmlSize+1);
-                IOSUHAX_FSA_ReadFile(fsaFd, xmlBuf, 0x01, xmlSize, srcFd, 0);
-                IOSUHAX_FSA_CloseFile(fsaFd, srcFd);
+            cptr = strchr(strstr(xmlBuf, "shortname_en"), '>') + 1;
+            memset(titles[titleswiiu].shortName, 0, sizeof(titles[titleswiiu].shortName));
+            if (strcspn(cptr, "<") == 0)
+                cptr = strchr(strstr(xmlBuf, "shortname_ja"), '>') + 1;
+            strncpy(titles[titleswiiu].shortName, cptr, strcspn(cptr, "<"));
 
-                char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
-                strncpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<"));
+            cptr = strchr(strstr(xmlBuf, "longname_en"), '>') + 1;
+            memset(titles[i].longName, 0, sizeof(titles[i].longName));
+            if (strcspn(cptr, "<") == 0)
+                cptr = strchr(strstr(xmlBuf, "longname_ja"), '>') + 1;
+            strncpy(titles[titleswiiu].longName, cptr, strcspn(cptr, "<"));
 
-                cptr = strchr(strstr(xmlBuf, "shortname_en"), '>') + 1;
-                memset(titles[titleswiiu].shortName, 0, sizeof(titles[titleswiiu].shortName));
-                strncpy(titles[titleswiiu].shortName, cptr, strcspn(cptr, "<"));
-
-                free(xmlBuf);
-            }
+            free(xmlBuf);
         }
 
 	    titles[titleswiiu].isTitleDupe = false;
@@ -211,13 +211,14 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         titles[titleswiiu].lowID = lowID;
         titles[titleswiiu].isTitleOnUSB = isTitleOnUSB;
         titles[titleswiiu].listID = titleswiiu;
+        if (loadTitleIcon(&titles[titleswiiu]) < 0) titles[titleswiiu].iconBuf = NULL;
         titleswiiu++;
 
         OSScreenClearBufferEx(0, 0);
         OSScreenClearBufferEx(1, 0);
-        console_print_pos(0, 0, "Loaded %i Wii U titles.", titleswiiu);
-        OSScreenFlipBuffersEx(0);
-        OSScreenFlipBuffersEx(1);
+        drawTGA(298, 144, 1, icon_tga);
+        console_print_pos_aligned(10, 0, 1, "Loaded %i Wii U titles.", titleswiiu);
+        flipBuffers();
 
     }
 
@@ -230,14 +231,12 @@ Title* loadWiiUTitles(int run, int fsaFd) {
 
 Title* loadWiiTitles(int fsaFd) {
     int dirH;
-    const char* highIDs[3] = {"00010000", "00010001", "00010004"};
+    char* highIDs[3] = {"00010000", "00010001", "00010004"};
     bool found = false;
-    static const u32 blacklist[7][2] = {
-        {0x00010000, 0x00555044}, {0x00010000, 0x00555045},
-        {0x00010000, 0x0055504A}, {0x00010000, 0x524F4E45},
-        {0x00010000, 0x52543445}, {0x00010001, 0x48424344},
-        {0x00010001, 0x554E454F}
-    };
+    u32* blacklist[7][2] = {{0x00010000, 0x00555044}, {0x00010000, 0x00555045}, \
+                            {0x00010000, 0x0055504A}, {0x00010000, 0x524F4E45}, \
+                            {0x00010000, 0x52543445}, {0x00010001, 0x48424344},
+                            {0x00010001, 0x554E454F}};
 
     char pathW[256];
     for (int k = 0; k < 3; k++) {
@@ -245,8 +244,8 @@ Title* loadWiiTitles(int fsaFd) {
         if (IOSUHAX_FSA_OpenDir(fsaFd, pathW, &dirH) >= 0) {
             while (1) {
                 directoryEntry_s data;
-                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-                if (ret != 0) break;
+        		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
+        		if (ret != 0) break;
                 for (int ii = 0; ii < 7; ii++) {
                     if (blacklist[ii][0] == strtoul(highIDs[k], NULL, 16)) {
                         if (blacklist[ii][1] == strtoul(data.name, NULL, 16)) {found = true; break;}
@@ -271,8 +270,8 @@ Title* loadWiiTitles(int fsaFd) {
         if (IOSUHAX_FSA_OpenDir(fsaFd, pathW, &dirH) >= 0) {
             while (1) {
                 directoryEntry_s data;
-                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-                if (ret != 0) break;
+        		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
+        		if (ret != 0) break;
                 for (int ii = 0; ii < 7; ii++) {
                     if (blacklist[ii][0] == strtoul(highIDs[k], NULL, 16)) {
                         if (blacklist[ii][1] == strtoul(data.name, NULL, 16)) {found = true; break;}
@@ -348,9 +347,9 @@ Title* loadWiiTitles(int fsaFd) {
                 if (!titles[i].saveInit || (loadTitleIcon(&titles[i]) < 0)) titles[i].iconBuf = NULL;
                 i++;
 
-                OSScreenClearBufferEx(SCREEN_TV, 0);
-                OSScreenClearBufferEx(SCREEN_DRC, 0);
-                //drawTGA(298, 144, 1, icon_tga);
+                OSScreenClearBufferEx(0, 0);
+                OSScreenClearBufferEx(1, 0);
+                drawTGA(298, 144, 1, icon_tga);
                 console_print_pos_aligned(10, 0, 1, "Loaded %i Wii U titles.", titleswiiu);
                 console_print_pos_aligned(11, 0, 1, "Loaded %i Wii titles.", i);
                 flipBuffers();
