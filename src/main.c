@@ -85,18 +85,18 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         savesl[j].found = false;
         j++;
     }
-    savesl = realloc(savesl, usable*sizeof(Saves));
+    savesl = realloc(savesl, usable * sizeof(Saves));
 
-    int dirUH, dirNH, foundCount = 0, pos = 0, tNoSave = usable;
-    for(int i = 0; i <= 1; i++) {
+    int dirUH, foundCount = 0, pos = 0, tNoSave = usable;
+    for (int i = 0; i <= 1; i++) {
         char path[255];
         sprintf(path, "/vol/storage_%s01/usr/save/00050000", (i == 0) ? "usb" : "mlc");
         if (IOSUHAX_FSA_OpenDir(fsaFd, path, &dirUH) >= 0) {
             while (1) {
                 directoryEntry_s data;
-        		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
-        		if (ret != 0)
-        			break;
+                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
+                if (ret != 0)
+                    break;
 
                 sprintf(path, "/vol/storage_%s01/usr/save/00050000/%s/user", (i == 0) ? "usb" : "mlc", data.name);
                 if (checkEntry(path) == 2) {
@@ -123,15 +123,16 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         promptError("Out of memory.");
         return NULL;
     }
-    for(int i = 0; i <= 1; i++) {
+
+    for (int i = 0; i <= 1; i++) {
         char path[255];
         sprintf(path, "/vol/storage_%s01/usr/save/00050000", (i == 0) ? "usb" : "mlc");
         if (IOSUHAX_FSA_OpenDir(fsaFd, path, &dirUH) >= 0) {
             while (1) {
                 directoryEntry_s data;
-        		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
-        		if (ret != 0)
-        			break;
+                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirUH, &data);
+                if (ret != 0)
+                    break;
 
                 sprintf(path, "/vol/storage_%s01/usr/save/00050000/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", data.name);
                 if (checkEntry(path) == 1) {
@@ -145,6 +146,7 @@ Title* loadWiiUTitles(int run, int fsaFd) {
             IOSUHAX_FSA_CloseDir(fsaFd, dirUH);
         }
     }
+
     for (int i = 0; i < usable; i++) {
         if (!savesl[i].found) {
             saves[pos].highID = savesl[i].highID;
@@ -162,62 +164,62 @@ Title* loadWiiUTitles(int run, int fsaFd) {
     }
 
     for (int i = 0; i < foundCount; i++) {
-        int srcFd = -1;
         u32 highID = saves[i].highID, lowID = saves[i].lowID;
         bool isTitleOnUSB = !saves[i].dev;
 
         char path[255];
         memset(path, 0, 255);
-        if (saves[i].found)
+        if (saves[i].found) {
             sprintf(path, "/vol/storage_%s01/usr/title/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", highID, lowID);
-        else
+        } else {
             sprintf(path, "/vol/storage_%s01/usr/save/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", highID, lowID);
+        }
         titles[titleswiiu].saveInit = !saves[i].found;
 
-        int ret = IOSUHAX_FSA_OpenFile(fsaFd, path, "rb", &srcFd);
-        if (ret >= 0) {
-            fileStat_s fStat;
-        	IOSUHAX_FSA_StatFile(fsaFd, srcFd, &fStat);
-            size_t xmlSize = fStat.size;
+        char* xmlBuf = NULL;
+        if (loadFile(path, (u8**)&xmlBuf) > 0) {
+            char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
+            memset(titles[titleswiiu].productCode, 0, sizeof(titles[titleswiiu].productCode));
+            strncpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<"));
 
-            char* xmlBuf = malloc(xmlSize+1);
-            if (xmlBuf) {
-                memset(xmlBuf, 0, xmlSize+1);
-                IOSUHAX_FSA_ReadFile(fsaFd, xmlBuf, 0x01, xmlSize, srcFd, 0);
-                IOSUHAX_FSA_CloseFile(fsaFd, srcFd);
+            cptr = strchr(strstr(xmlBuf, "shortname_en"), '>') + 1;
+            memset(titles[titleswiiu].shortName, 0, sizeof(titles[titleswiiu].shortName));
+            if (strcspn(cptr, "<") == 0)
+                cptr = strchr(strstr(xmlBuf, "shortname_ja"), '>') + 1;
+            strncpy(titles[titleswiiu].shortName, cptr, strcspn(cptr, "<"));
 
-                char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
-                strncpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<"));
+            cptr = strchr(strstr(xmlBuf, "longname_en"), '>') + 1;
+            memset(titles[i].longName, 0, sizeof(titles[i].longName));
+            if (strcspn(cptr, "<") == 0)
+                cptr = strchr(strstr(xmlBuf, "longname_ja"), '>') + 1;
+            strncpy(titles[titleswiiu].longName, cptr, strcspn(cptr, "<"));
 
-                cptr = strchr(strstr(xmlBuf, "shortname_en"), '>') + 1;
-                memset(titles[titleswiiu].shortName, 0, sizeof(titles[titleswiiu].shortName));
-                strncpy(titles[titleswiiu].shortName, cptr, strcspn(cptr, "<"));
-
-                free(xmlBuf);
-            }
+            free(xmlBuf);
         }
 
-	    titles[titleswiiu].isTitleDupe = false;
-	    for (int i = 0; i < titleswiiu; i++) {
-		    if ((titles[i].highID == highID) && (titles[i].lowID == lowID)) {
-			    titles[titleswiiu].isTitleDupe = true;
-			    titles[titleswiiu].dupeID = i;
-			    titles[i].isTitleDupe = true;
-			    titles[i].dupeID = titleswiiu;
-		    }
-	    }
+        titles[titleswiiu].isTitleDupe = false;
+        for (int i = 0; i < titleswiiu; i++) {
+            if ((titles[i].highID == highID) && (titles[i].lowID == lowID)) {
+                titles[titleswiiu].isTitleDupe = true;
+                titles[titleswiiu].dupeID = i;
+                titles[i].isTitleDupe = true;
+                titles[i].dupeID = titleswiiu;
+            }
+        }
 
         titles[titleswiiu].highID = highID;
         titles[titleswiiu].lowID = lowID;
         titles[titleswiiu].isTitleOnUSB = isTitleOnUSB;
         titles[titleswiiu].listID = titleswiiu;
+        if (loadTitleIcon(&titles[titleswiiu]) < 0) titles[titleswiiu].iconBuf = NULL;
         titleswiiu++;
 
         OSScreenClearBufferEx(SCREEN_TV, 0);
         OSScreenClearBufferEx(SCREEN_DRC, 0);
-        console_print_pos(0, 0, "Loaded %i Wii U titles.", titleswiiu);
-        OSScreenFlipBuffersEx(SCREEN_TV);
-        OSScreenFlipBuffersEx(SCREEN_DRC);
+        drawTGA(298, 144, 1, icon_tga);
+        disclaimer();
+        console_print_pos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
+        flipBuffers();
 
     }
 
@@ -348,10 +350,12 @@ Title* loadWiiTitles(int fsaFd) {
                 if (!titles[i].saveInit || (loadTitleIcon(&titles[i]) < 0)) titles[i].iconBuf = NULL;
                 i++;
 
-                OSScreenClearBufferEx(0, 0);
-                OSScreenClearBufferEx(1, 0);
-                console_print_pos_aligned(10, 0, 1, "Loaded %i Wii U titles.", titleswiiu);
-                console_print_pos_aligned(11, 0, 1, "Loaded %i Wii titles.", i);
+                OSScreenClearBufferEx(SCREEN_TV, 0);
+                OSScreenClearBufferEx(SCREEN_DRC, 0);
+                drawTGA(298, 144, 1, icon_tga);
+                disclaimer();
+                console_print_pos(20, 10,"Loaded %i Wii U titles.", titleswiiu);
+                console_print_pos(20, 11, "Loaded %i Wii titles.", i);
                 flipBuffers();
             }
             IOSUHAX_FSA_CloseDir(fsaFd, dirH);
@@ -369,15 +373,9 @@ void unloadTitles(Title* titles, int count) {
 }
 
 void disclaimer() {
-    fillScreen(0, 0, 0, 0);
-    console_print_pos(20, 3, "Savemii Mod");
-    console_print_pos(20, 6, "Created by: Ryuzaki-MrL");
-    console_print_pos(20, 7, "Modded by: GabyPCgeeK");
-    console_print_pos(24, 11, "Disclaimer:");
-    console_print_pos(15, 12, "There is always the potential for a brick.");
-    console_print_pos(3, 13, "Everything you do with this software is your own responsibility");
-    flipBuffers();
-    sleep(4);
+    console_print_pos(25, 13, "Disclaimer:");
+    console_print_pos(15, 14, "There is always the potential for a brick.");
+    console_print_pos(3, 15, "Everything you do with this software is your own responsibility");
 }
 
 /* Entry point */
@@ -406,10 +404,8 @@ int main(void) {
     mount_fs("storage_mlc", fsaFd, NULL, "/vol/storage_mlc01");
     mount_fs("storage_usb", fsaFd, NULL, "/vol/storage_usb01");
     mount_fs("storage_odd", fsaFd, "/dev/odd03", "/vol/storage_odd_content");
-    WHBLogPrint("mount");
     
     u8* fontBuf = NULL;
-    disclaimer();
     clearBuffers();
     Title* wiiutitles = loadWiiUTitles(1, fsaFd);
     Title* wiititles = loadWiiTitles(fsaFd);
