@@ -26,6 +26,7 @@ typedef struct {
     bool isTitleOnUSB;
     bool isTitleDupe;
     u16 dupeID;
+    u8* iconBuf;
 } Title;
 
 typedef struct {
