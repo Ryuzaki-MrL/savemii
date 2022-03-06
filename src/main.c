@@ -215,7 +215,6 @@ Title* loadWiiUTitles(int run, int fsaFd) {
 
         OSScreenClearBufferEx(0, 0);
         OSScreenClearBufferEx(1, 0);
-        drawTGA(298, 144, 1, icon_tga);
         console_print_pos(0, 0, "Loaded %i Wii U titles.", titleswiiu);
         OSScreenFlipBuffersEx(0);
         OSScreenFlipBuffersEx(1);
@@ -351,7 +350,7 @@ Title* loadWiiTitles(int fsaFd) {
 
                 OSScreenClearBufferEx(SCREEN_TV, 0);
                 OSScreenClearBufferEx(SCREEN_DRC, 0);
-                drawTGA(298, 144, 1, icon_tga);
+                //drawTGA(298, 144, 1, icon_tga);
                 console_print_pos_aligned(10, 0, 1, "Loaded %i Wii U titles.", titleswiiu);
                 console_print_pos_aligned(11, 0, 1, "Loaded %i Wii titles.", i);
                 flipBuffers();
@@ -464,11 +463,6 @@ int main(void) {
                         if (i + scroll < 0 || i + scroll >= count) break;
                         if (strlen(titles[i + scroll].shortName)) console_print_pos(M_OFF, i+2, "   %s %s%s%s", titles[i + scroll].shortName, titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i + scroll].isTitleDupe ? " [D]" : "", titles[i + scroll].saveInit ? "" : " [Not Init]");
                         else console_print_pos(M_OFF, i+2, "   %08lx%08lx", titles[i + scroll].highID, titles[i + scroll].lowID);
-                        if (mode == 0) {
-                            if (titles[i + scroll].iconBuf) drawTGA((M_OFF + 4) * 12 - 2, (i + 3) * 24, 0.18, titles[i + scroll].iconBuf);
-                        } else if (mode == 1) {
-                            if (titles[i + scroll].iconBuf) drawRGB5A3((M_OFF + 2) * 12 - 2, (i + 3) * 24 + 3, 0.25, titles[i + scroll].iconBuf);
-                        }
                     }
                     if (mode == 0) {
                         console_print_pos(0, 2 + cursor, "->");
@@ -482,7 +476,6 @@ int main(void) {
                 entrycount = 3 + 2 * (mode == 0) + 1 * ((mode == 0) && (titles[targ].isTitleDupe));
                 console_print_pos(M_OFF, 2, "   [%08X-%08X] [%s]", titles[targ].highID, titles[targ].lowID, titles[targ].productCode);
                 console_print_pos(M_OFF, 3, "   %s", titles[targ].shortName);
-                //console_print_pos(M_OFF, 4, "   %s", titles[targ].longName);
                 console_print_pos(M_OFF, 5, "   Backup savedata");
                 console_print_pos(M_OFF, 6, "   Restore savedata");
                 console_print_pos(M_OFF, 7, "   Wipe savedata");
@@ -492,12 +485,9 @@ int main(void) {
                     if (titles[targ].isTitleDupe) {
                         console_print_pos(M_OFF, 10, "   Copy Savedata to Title in %s", titles[targ].isTitleOnUSB ? "NAND" : "USB");
                     }
-                    if (titles[targ].iconBuf) drawTGA(660, 80, 1, titles[targ].iconBuf);
-                } else if (mode == 1) {
-                    if (titles[targ].iconBuf) drawRGB5A3(650, 80, 1, titles[targ].iconBuf);
                 }
-                console_print_pos(M_OFF, 2 + 3 + cursor, "\u2192");
-                console_print_pos_aligned(17, 4, 2, "\ue000: Select Task  \ue001: Back");
+                console_print_pos(M_OFF, 2 + 3 + cursor, "->");
+                console_print_pos_aligned(17, 4, 2, "(A): Select Task  (B): Back");
             } break;
             case 3: { // Select Options
                 entrycount = 3;
@@ -590,10 +580,8 @@ int main(void) {
                     }
 
                     console_print_pos(M_OFF, 5 + cursor * 3, "->");
-                if (titles[targ].iconBuf) drawTGA(660, 100, 1, titles[targ].iconBuf);
                 } else if (mode == 1) {
                     entrycount = 1;
-                    if (titles[targ].iconBuf) drawRGB5A3(650, 100, 1, titles[targ].iconBuf);
                 }
 
                 switch(task) {
@@ -867,6 +855,7 @@ int main(void) {
 
     if (tgaBufDRC) free(tgaBufDRC);
     if (tgaBufTV) free(tgaBufTV);
+    freeFont(fontBuf);
     unloadTitles(wiiutitles, titleswiiu);
     unloadTitles(wiititles, titlesvwii);
     free(versionList);

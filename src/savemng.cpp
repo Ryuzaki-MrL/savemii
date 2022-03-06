@@ -496,12 +496,16 @@ int DumpDir(char* pPath, const char* tPath) { // Source: ft2sd
 			snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", tPath, data.name);
 
 			p1 = data.name;
+			//ttfFontSize(0, 20);
 			show_file_operation(data.name, pPath, targetPath);
 
 			if (DumpFile(pPath, targetPath) != 0) {
+				//ttfFontSize(0, 22);
 				IOSUHAX_FSA_CloseDir(fsaFd, dirH);
 				return -3;
 			}
+
+			//ttfFontSize(0, 22);
 			free(targetPath);
 		}
 
