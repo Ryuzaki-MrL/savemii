@@ -3,7 +3,6 @@
 
 #include <sys/dirent.h>
 #include <gctypes.h>
-#include <fat.h>
 #include <iosuhax.h>
 #include <iosuhax_devoptab.h>
 #include <iosuhax_disc_interface.h>
@@ -22,8 +21,7 @@ typedef struct {
     u32 lowID;
     u16 listID;
     char shortName[256];
-    char longName[512];
-    char productCode[5];
+    char productCode[32];
     bool saveInit;
     bool isTitleOnUSB;
     bool isTitleDupe;
