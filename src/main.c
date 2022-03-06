@@ -11,7 +11,7 @@
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 3
 #define VERSION_MICRO 0
-#define M_OFF 3
+#define M_OFF 1
 
 u8 slot = 0;
 s8 allusers = -1, allusers_d = -1, sdusers = -1;
@@ -463,13 +463,13 @@ int main(void) {
                     if (strlen(titles[i+scroll].shortName)) console_print_pos(0, i+2, "   %s %s%s%s", titles[i+scroll].shortName, titles[i+scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i+scroll].isTitleDupe ? " [D]" : "", titles[i+scroll].saveInit ? "" : " [Not Init]");
                     else console_print_pos(0, i+2, "   %08lx%08lx", titles[i+scroll].highID, titles[i+scroll].lowID);
                         if (mode == 0) {
-                            if (titles[i + scroll].iconBuf) drawTGA((M_OFF + 4) * 12 - 2, (i + 3) * 24, 0.18, titles[i + scroll].iconBuf);
+                            if (titles[i + scroll].iconBuf) drawTGA((M_OFF + 4) * 12 - 2, (i + 3.2) * 24, 0.18, titles[i + scroll].iconBuf);
                         } else if (mode == 1) {
                             if (titles[i + scroll].iconBuf) drawRGB5A3((M_OFF + 2) * 12 - 2, (i + 3) * 24 + 3, 0.25, titles[i + scroll].iconBuf);
                         }
                     }
                     if (mode == 0) {
-                        console_print_pos(0, 2 + cursor, "->");
+                        console_print_pos(-1, 2 + cursor, "->");
                     } else if (mode == 1) {
                         console_print_pos(-1, 2 + cursor, "->");
                     }
