@@ -216,7 +216,6 @@ Title* loadWiiUTitles(int run, int fsaFd) {
 
         OSScreenClearBufferEx(0, 0);
         OSScreenClearBufferEx(1, 0);
-        drawTGA(298, 144, 1, icon_tga);
         console_print_pos_aligned(10, 0, 1, "Loaded %i Wii U titles.", titleswiiu);
         flipBuffers();
 
@@ -349,7 +348,6 @@ Title* loadWiiTitles(int fsaFd) {
 
                 OSScreenClearBufferEx(0, 0);
                 OSScreenClearBufferEx(1, 0);
-                drawTGA(298, 144, 1, icon_tga);
                 console_print_pos_aligned(10, 0, 1, "Loaded %i Wii U titles.", titleswiiu);
                 console_print_pos_aligned(11, 0, 1, "Loaded %i Wii titles.", i);
                 flipBuffers();
