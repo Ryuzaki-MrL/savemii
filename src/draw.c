@@ -283,25 +283,14 @@ void drawBackgroundTV(u32 w, u32 h, u8* out) {
 }
 
 bool initFont(void* fontBuf, FT_Long fsize) {
-	FT_Long size = fsize;
-	if (fontBuf) {
-		ttfFont = fontBuf;
-	} else {
-		OSGetSharedData(2, 0, (void **)ttfFont, (u32*)&size);
-	}
+	fontBuf = NULL;
+	fsize = 0;
+    OSGetSharedData(OS_SHAREDDATATYPE_FONT_STANDARD, 0, &fontBuf, &fsize);
 
-	FT_Error error;
-	error = FT_Init_FreeType(&library);
-	if (error) return false;
-
-	error = FT_New_Memory_Face(library, ttfFont, size, 0, &face);
-	if (error) return false;
-
-	/*error = FT_Set_Char_Size(face, 8*64, 10*64, 158, 158);
-	if (error) return false;*/
-
-	error = FT_Set_Pixel_Sizes(face, 0, 22);   //pixel width, height
-	if (error) return false;
+    if (fontBuf && fsize) {
+        FT_Init_FreeType(&library);
+        FT_New_Memory_Face(library, (FT_Byte *) fontBuf, fsize, 0, &face);
+    }
 
 	return true;
 }
