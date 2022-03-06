@@ -43,9 +43,6 @@ void drawRGB5A3(int x, int y, float scale, u8* pixels);
 void drawBackgroundDRC(u32 w, u32 h, u8* out);
 void drawBackgroundTV(u32 w, u32 h, u8* out);
 
-bool initFont();
-void freeFont();
-bool ttfFontSize(u8 w, u8 h);
 void ttfFontColor32(u32 color);
 void ttfFontColor(u8 r, u8 g, u8 b, u8 a);
 int ttfPrintString(int x, int y, const char *string, bool wWrap, bool ceroX);
