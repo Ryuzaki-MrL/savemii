@@ -49,14 +49,14 @@ int titleSort(const void *c1, const void *c2)
 }
 
 void disclaimer() {
-    console_print_pos(25, 13, "Disclaimer:");
-    console_print_pos(15, 14, "There is always the potential for a brick.");
-    console_print_pos(3, 15, "Everything you do with this software is your own responsibility");
+    console_print_pos(23, 13, "Disclaimer:");
+    console_print_pos(13, 14, "There is always the potential for a brick.");
+    console_print_pos(1, 15, "Everything you do with this software is your own responsibility");
 }
 
 Title* loadWiiUTitles(int run, int fsaFd) {
     static char *tList;
-    static int receivedCount;
+    static uint32_t receivedCount;
     // Source: haxchi installer
     if (run == 0) {
         int mcp_handle = MCP_Open();
@@ -65,7 +65,7 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         tList = memalign(32, listSize);
         memset(tList, 0, listSize);
         receivedCount = count;
-        MCP_TitleList(mcp_handle, &receivedCount, tList, listSize);
+        MCP_TitleList(mcp_handle, &receivedCount, (MCPTitleListType *)tList, listSize);
         MCP_Close(mcp_handle);
         return NULL;
     }
@@ -358,7 +358,7 @@ Title* loadWiiTitles(int fsaFd) {
                 drawTGA(298, 144, 1, icon_tga);
                 disclaimer();
                 console_print_pos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
-                console_print_pos(20, 11, "Loaded %i Wii titles.", i);
+                console_print_pos(21, 11, "Loaded %i Wii titles.", i);
                 flipBuffers();
             }
             IOSUHAX_FSA_CloseDir(fsaFd, dirH);
@@ -396,10 +396,11 @@ int main(void) {
     setFSAFD(fsaFd);
 
     IOSUHAX_FSA_Mount(fsaFd, "/dev/sdcard01", "/vol/storage_sdcard", 2, (void*)0, 0);
-    WHBMountSdCard();
+    //WHBMountSdCard();
     mount_fs("slccmpt01", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
     mount_fs("storage_mlc", fsaFd, NULL, "/vol/storage_mlc01");
-    mount_fs("storage_usb", fsaFd, NULL, "/vol/storage_usb01");
+    mount_fs("storage_usb01", fsaFd, NULL, "/vol/storage_usb01");
+
     mount_fs("storage_odd", fsaFd, "/dev/odd03", "/vol/storage_odd_content");
     
     clearBuffers();

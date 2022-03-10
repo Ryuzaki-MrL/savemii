@@ -13,6 +13,14 @@
         "malloc.h": "c",
         "cstdarg": "cpp",
         "parser.h": "c",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "array": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp",
+        "*.tcc": "cpp",
+        "string": "cpp",
+        "cerrno": "cpp",
+        "random": "cpp"
     }
 }

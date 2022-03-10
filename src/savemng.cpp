@@ -18,36 +18,36 @@ u8 wiiuaccn = 0, sdaccn = 5;
 VPADStatus status;
 VPADReadError error;
 
+char *replace_str(char *str, char *orig, char *rep)
+{
+  static char buffer[4096];
+  char *p;
+
+  if(!(p = strstr(str, orig)))  // Is 'orig' even in 'str'?
+    return str;
+
+  strncpy(buffer, str, p-str); // Copy characters from 'str' start to 'orig' st$
+  buffer[p-str] = '\0';
+
+  sprintf(buffer+(p-str), "%s%s", rep, p+strlen(orig));
+
+  return buffer;
+}
+
+bool StartsWith(const char *a, const char *b)
+{
+   if(strncmp(a, b, strlen(b)) == 0) return 1;
+   return 0;
+}
+
 void setFSAFD(int fd) {
 	fsaFd = fd;
 }
 
 void show_file_operation(const char* file_name, const char* file_src, const char* file_dest) {
-	char dev_s[100], dev_d[100];
-
-	if (strncmp(strchr(file_src, '_'), "_usb", 4) == 0) {
-		strcpy(dev_s, " (USB)");
-	} else if (strncmp(strchr(file_src, '_'), "_mlc", 4) == 0) {
-		strcpy(dev_s, " (NAND WiiU)");
-	} else if (strncmp(strchr(file_src, '_'), "_slccmpt", 8) == 0) {
-		strcpy(dev_s, " (NAND vWii)");
-	} else if (strncmp(strchr(file_src, '_'), "_sdcard", 7) == 0) {
-		strcpy(dev_s, " (SD)");
-	}
-
-	if (strncmp(strchr(file_dest, '_'), "_usb", 4) == 0) {
-		strcpy(dev_d, " (USB)");
-	} else if (strncmp(strchr(file_dest, '_'), "_mlc", 4) == 0) {
-		strcpy(dev_d, " (NAND WiiU)");
-	} else if (strncmp(strchr(file_dest, '_'), "_slccmpt", 8) == 0) {
-		strcpy(dev_d, " (NAND vWii)");
-	} else if (strncmp(strchr(file_dest, '_'), "_sdcard", 7) == 0) {
-		strcpy(dev_d, " (SD)");
-	}
-
 	console_print_pos(-2, 0, "Copying file: %s", file_name);
-	console_print_pos_multiline(-2, 2, '/', "From%s: \n%s", dev_s, strstr(strstr(strstr(file_src, "/") + 1,"/") + 1,"/"));
-	console_print_pos_multiline(-2, 8, '/', "To%s: \n%s", dev_d, strstr(strstr(strstr(file_dest, "/") + 1,"/") + 1,"/"));
+    console_print_pos_multiline(-2, 2, '/', "From: %s", file_src);
+    console_print_pos_multiline(-2, 8, '/', "To: %s", file_dest);
 }
 
 int FSAR(int result) {
@@ -58,19 +58,19 @@ int FSAR(int result) {
 }
 
 s32 loadFile(const char * fPath, u8 **buf) {
-	int srcFd = -1;
-	int ret = IOSUHAX_FSA_OpenFile(fsaFd, fPath, "rb", &srcFd);
-	if (ret >= 0) {
-		fileStat_s fStat;
-		IOSUHAX_FSA_StatFile(fsaFd, srcFd, &fStat);
-		size_t size = fStat.size;
+	int ret = 0;
+	FILE* file = fopen(fPath, "rb");
+	if (file != NULL) {
+		struct stat st;
+		stat(fPath, &st);
+		int size = st.st_size;
 
 		*buf = (u8*)malloc(size);
 		if (*buf) {
 			memset(*buf, 0, size);
-			ret = IOSUHAX_FSA_ReadFile(fsaFd, *buf, 0x01, size, srcFd, 0);
+			ret = fread(*buf, 1, size, file);
 		}
-		IOSUHAX_FSA_CloseFile(fsaFd, srcFd);
+		fclose(file);
 	}
 	return ret;
 }
@@ -160,7 +160,7 @@ int createFolder(const char * fPath) { //Adapted from mkdir_p made by JonathonRe
 			if (found > 2) {
 				*p = '\0';
 				if (checkEntry(_path) == 0) {
-					if ((ret = FSAR(IOSUHAX_FSA_MakeDir(fsaFd, _path, 0x666))) < 0) return -1;
+					if ((ret = mkdir(_path, 0666)) < 0) return -1;
 				}
 				*p = '/';
 			}
@@ -168,7 +168,7 @@ int createFolder(const char * fPath) { //Adapted from mkdir_p made by JonathonRe
 	}
 
 	if (checkEntry(_path) == 0) {
-		if ((ret = FSAR(IOSUHAX_FSA_MakeDir(fsaFd, _path, 0x666))) < 0) return -1;
+		if ((ret = mkdir(_path, 0666)) < 0) return -1;
 	}
 
 	return 0;
@@ -323,7 +323,6 @@ void getAccountsWiiU() {
 			wiiuacc[accn].pID = persistentID;
 			sprintf(wiiuacc[accn].persistentID, "%08X", persistentID);
 			nn::act::GetMiiNameEx((int16_t*)out, i);
-			//convert_to_ascii(out, wiiuacc[accn].miiName);
 			memset(wiiuacc[accn].miiName, 0, sizeof(wiiuacc[accn].miiName));
 			for (int j = 0, k = 0; j < 10; j++) {
 				if (out[j] < 0x80)
@@ -386,39 +385,48 @@ void getAccountsSD(Title* title, u8 slot) {
 
 int DumpFile(char *pPath, const char * oPath)
 {
+	char* oldpPath;
+	if(StartsWith(pPath, "/vol/storage_slccmpt01")) {
+		oldpPath = pPath;
+		pPath = replace_str(pPath, (char*)"/vol/storage_slccmpt01", (char*)"slccmpt01:");
+	}
+	if(StartsWith(pPath, "/vol/storage_usb01")) {
+		oldpPath = pPath;
+		pPath = replace_str(pPath, (char*)"/vol/storage_usb01", (char*)"storage_usb01:");
+	}
 	FILE* source = fopen(pPath, "rb");
-    if (source == NULL) {
+    if (source == NULL)
         return -1;
-    }
+
     FILE* dest = fopen(oPath, "wb");
-     if (dest == NULL) {
+    if (dest == NULL) {
         fclose(source);
         return -1;
     }
-     int buf_size = IO_MAX_FILE_BUFFER;
-     uint8_t * pBuffer = MEMAllocFromDefaultHeapEx(IO_MAX_FILE_BUFFER, 0x40);
-     if (pBuffer == NULL) {
-        fclose(source);
+    size_t buf_size = IO_MAX_FILE_BUFFER;
+    char* pBuffer = (char*)MEMAllocFromDefaultHeapEx(IO_MAX_FILE_BUFFER, 0x40);
+    if (pBuffer == NULL) {
+    	fclose(source);
         fclose(dest);
         return -1;
     }
-    setvbuf(dest, pBuffer, _IOFBF, IO_MAX_FILE_BUFFER);
+	setvbuf(dest, pBuffer, _IOFBF, IO_MAX_FILE_BUFFER);
 	struct stat st;
 	stat(pPath, &st);
 	int sizef = st.st_size;
 	int sizew = 0, size;
 	u32 passedMs = 1;
 	u64 startTime = OSGetTime();
-
+	
 	while ((size = fread(pBuffer, 1, buf_size, source)) > 0) {
-		fwrite(pBuffer, 1, size, dest);
+		fwrite(pBuffer, 1, buf_size, dest);
 		passedMs = (uint32_t)OSTicksToMilliseconds(OSGetTime() - startTime);
         if(passedMs == 0)
             passedMs = 1; // avoid 0 div
 		OSScreenClearBufferEx(SCREEN_TV, 0);
 		OSScreenClearBufferEx(SCREEN_DRC, 0);
 		sizew += size;
-		show_file_operation("file", pPath, oPath);
+		show_file_operation(basename(pPath), pPath, oPath);
 		console_print_pos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", sizew, sizef,  (u32)(((u64)sizew * 1000) / ((u64)1024 * passedMs)));    
 		flipBuffers();
 	}
