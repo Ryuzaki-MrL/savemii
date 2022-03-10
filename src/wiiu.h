@@ -6,6 +6,7 @@
 
 #include <coreinit/screen.h>
 #include <coreinit/cache.h>
+#include <coreinit/memdefaultheap.h>
 #include <coreinit/memory.h>
 #include <coreinit/mcp.h>
 #include <coreinit/debug.h>

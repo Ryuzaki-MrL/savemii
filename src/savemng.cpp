@@ -8,6 +8,7 @@ using namespace std;
 
 #define BUFFER_SIZE 				0x8020
 #define BUFFER_SIZE_STEPS           0x20
+#define IO_MAX_FILE_BUFFER	(1024 * 1024) // 1 MB
 
 int fsaFd = -1;
 char * p1;
@@ -385,24 +386,23 @@ void getAccountsSD(Title* title, u8 slot) {
 
 int DumpFile(char *pPath, const char * oPath)
 {
-	int buf_size = BUFFER_SIZE;
- 	uint8_t * pBuffer;
-
-	do{
-		buf_size -= BUFFER_SIZE_STEPS;
-		if (buf_size < 0) {
-			promptError("Error allocating Buffer.");
-			return;
-		}
-		pBuffer = (uint8_t *)memalign(0x40, buf_size);
-		if (pBuffer) memset(pBuffer, 0x00, buf_size);
-	}while(!pBuffer);
-
 	FILE* source = fopen(pPath, "rb");
-    FILE* dest = fopen(oPath, "wb");
-	if ((dest && source) == NULL) {
+    if (source == NULL) {
         return -1;
     }
+    FILE* dest = fopen(oPath, "wb");
+     if (dest == NULL) {
+        fclose(source);
+        return -1;
+    }
+     int buf_size = IO_MAX_FILE_BUFFER;
+     uint8_t * pBuffer = MEMAllocFromDefaultHeapEx(IO_MAX_FILE_BUFFER, 0x40);
+     if (pBuffer == NULL) {
+        fclose(source);
+        fclose(dest);
+        return -1;
+    }
+    setvbuf(dest, pBuffer, _IOFBF, IO_MAX_FILE_BUFFER);
 	struct stat st;
 	stat(pPath, &st);
 	int sizef = st.st_size;
