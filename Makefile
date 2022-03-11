@@ -30,13 +30,8 @@ include $(DEVKITPRO)/wut/share/wut_rules
 #-------------------------------------------------------------------------------
 TARGET		:=	savemii
 BUILD		:=	build
-BUILD_DBG	:=	$(TARGET)_dbg
 SOURCES		:=	src \
                 src/common \
-				src/dynamic_libs \
-				src/fs \
-				src/system \
-				src/utils
 DATA		:=  
 INCLUDES	:=  src
 DEFS        :=  
@@ -46,13 +41,13 @@ DEFS        :=
 CFLAGS	:=	-std=gnu2x -g -Wall -Ofast -ffunction-sections -fno-use-linker-plugin -fno-lto \
 			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__
 
-CXXFLAGS	:= -std=gnu++20 -g -Wall -Ofast -ffunction-sections -fpermissive -fno-use-linker-plugin -fno-lto \
+CXXFLAGS	:= -std=gnu++20 -g -Wall -Wno-int-in-bool-context -Ofast -ffunction-sections -fpermissive -fno-use-linker-plugin -fno-lto \
 			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lfreetype -liosuhax -lz -lpng -lm -lwut -lbz2
+LIBS	:= -liosuhax -lwut
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level

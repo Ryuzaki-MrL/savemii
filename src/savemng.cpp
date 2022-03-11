@@ -1,13 +1,12 @@
 #include <nn/act/client_cpp.h>
 #include <sys/stat.h>
+#include "string.hpp"
 extern "C" {
 	#include "common/fs_defs.h"
 	#include "savemng.h"
 }
 using namespace std;
 
-#define BUFFER_SIZE 				0x8020
-#define BUFFER_SIZE_STEPS           0x20
 #define IO_MAX_FILE_BUFFER	(1024 * 1024) // 1 MB
 
 int fsaFd = -1;
@@ -15,30 +14,11 @@ char * p1;
 Account* wiiuacc;
 Account* sdacc;
 u8 wiiuaccn = 0, sdaccn = 5;
-VPADStatus status;
-VPADReadError error;
 
-char *replace_str(char *str, char *orig, char *rep)
-{
-  static char buffer[4096];
-  char *p;
+VPADStatus vpad_status;
+VPADReadError vpad_error;
 
-  if(!(p = strstr(str, orig)))  // Is 'orig' even in 'str'?
-    return str;
-
-  strncpy(buffer, str, p-str); // Copy characters from 'str' start to 'orig' st$
-  buffer[p-str] = '\0';
-
-  sprintf(buffer+(p-str), "%s%s", rep, p+strlen(orig));
-
-  return buffer;
-}
-
-bool StartsWith(const char *a, const char *b)
-{
-   if(strncmp(a, b, strlen(b)) == 0) return 1;
-   return 0;
-}
+KPADStatus kpad[4], kpad_status;
 
 void setFSAFD(int fd) {
 	fsaFd = fd;
@@ -288,11 +268,24 @@ bool promptConfirm(Style st, const char* question) {
     flipBuffers();
 	int ret = 0;
     while(1) {	
-        VPADRead(VPAD_CHAN_0, &status, 1, &error);
-        if (status.release & (VPAD_BUTTON_A | VPAD_BUTTON_B | VPAD_BUTTON_HOME)) {
-            ret = VPAD_BUTTON_A;
-            break;
+        VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
+		for (int i = 0; i < 4; i++)
+        {
+            WPADExtensionType controllerType;
+            // check if the controller is connected
+            if (WPADProbe(i, &controllerType) != 0)
+                continue;
+
+            KPADRead(i, &(kpad[i]), 1);
+            kpad_status = kpad[i];
         }
+        if ((vpad_status.trigger & (VPAD_BUTTON_A)) | (kpad_status.trigger & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_PRO_BUTTON_A))) {
+            ret = true;
+            break;
+        } else if((vpad_status.trigger & (VPAD_BUTTON_B)) | (kpad_status.trigger & (WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B | WPAD_PRO_BUTTON_B))) {
+			ret = false;
+			break;
+		}
     }
     return ret;
 }
@@ -385,15 +378,12 @@ void getAccountsSD(Title* title, u8 slot) {
 
 int DumpFile(char *pPath, const char * oPath)
 {
-	char* oldpPath;
-	if(StartsWith(pPath, "/vol/storage_slccmpt01")) {
-		oldpPath = pPath;
+	if(StartsWith(pPath, "/vol/storage_slccmpt01"))
 		pPath = replace_str(pPath, (char*)"/vol/storage_slccmpt01", (char*)"slccmpt01:");
-	}
-	if(StartsWith(pPath, "/vol/storage_usb01")) {
-		oldpPath = pPath;
+	
+	if(StartsWith(pPath, "/vol/storage_usb01")) 
 		pPath = replace_str(pPath, (char*)"/vol/storage_usb01", (char*)"storage_usb01:");
-	}
+	
 	FILE* source = fopen(pPath, "rb");
     if (source == NULL)
         return -1;
@@ -438,58 +428,138 @@ int DumpFile(char *pPath, const char * oPath)
     return 0;
 }
 
-int DumpDir(char* pPath, const char* tPath) { // Source: ft2sd
-	int dirH;
+int CheckFile(const char * filepath)
+{
+	if(!filepath)
+		return 0;
 
-	if (IOSUHAX_FSA_OpenDir(fsaFd, pPath, &dirH) < 0) return -1;
-	IOSUHAX_FSA_MakeDir(fsaFd, tPath, 0x666);
+	struct stat filestat;
 
-	while (1) {
-		directoryEntry_s data;
-		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-		if (ret != 0)
-			break;
+	char dirnoslash[strlen(filepath)+2];
+	snprintf(dirnoslash, sizeof(dirnoslash), "%s", filepath);
 
-		OSScreenClearBufferEx(SCREEN_TV, 0);
-		OSScreenClearBufferEx(SCREEN_DRC, 0);
+	while(dirnoslash[strlen(dirnoslash)-1] == '/')
+		dirnoslash[strlen(dirnoslash)-1] = '\0';
 
-		if (strcmp(data.name, "..") == 0 || strcmp(data.name, ".") == 0) continue;
-
-		int len = strlen(pPath);
-		snprintf(pPath + len, FS_MAX_FULLPATH_SIZE - len, "/%s", data.name);
-
-		if (data.stat.flag & DIR_ENTRY_IS_DIRECTORY) {
-			char* targetPath = (char*)malloc(FS_MAX_FULLPATH_SIZE);
-			snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", tPath, data.name);
-
-			IOSUHAX_FSA_MakeDir(fsaFd, targetPath, 0x666);
-			if (DumpDir(pPath, targetPath) != 0) {
-				IOSUHAX_FSA_CloseDir(fsaFd, dirH);
-				return -2;
-			}
-
-			free(targetPath);
-		} else {
-			char* targetPath = (char*)malloc(FS_MAX_FULLPATH_SIZE);
-			snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", tPath, data.name);
-
-			p1 = data.name;
-			show_file_operation(data.name, pPath, targetPath);
-
-			if (DumpFile(pPath, targetPath) != 0) {
-				IOSUHAX_FSA_CloseDir(fsaFd, dirH);
-				return -3;
-			}
-
-			free(targetPath);
-		}
-
-		pPath[len] = 0;
+	char * notRoot = strrchr(dirnoslash, '/');
+	if(!notRoot)
+	{
+		strcat(dirnoslash, "/");
 	}
 
-	IOSUHAX_FSA_CloseDir(fsaFd, dirH);
+	if (stat(dirnoslash, &filestat) == 0)
+		return 1;
 
 	return 0;
+}
+
+int CreateSubfolder(const char * fullpath)
+{
+	if(!fullpath)
+		return 0;
+
+	int result = 0;
+
+	char dirnoslash[strlen(fullpath)+1];
+	strcpy(dirnoslash, fullpath);
+
+	int pos = strlen(dirnoslash)-1;
+	while(dirnoslash[pos] == '/')
+	{
+		dirnoslash[pos] = '\0';
+		pos--;
+	}
+
+	if(CheckFile(dirnoslash))
+	{
+		return 1;
+	}
+	else
+	{
+		char parentpath[strlen(dirnoslash)+2];
+		strcpy(parentpath, dirnoslash);
+		char * ptr = strrchr(parentpath, '/');
+
+		if(!ptr)
+		{
+			//!Device root directory (must be with '/')
+			strcat(parentpath, "/");
+			struct stat filestat;
+			if (stat(parentpath, &filestat) == 0)
+				return 1;
+
+			return 0;
+		}
+
+		ptr++;
+		ptr[0] = '\0';
+
+		result = CreateSubfolder(parentpath);
+	}
+
+	if(!result)
+		return 0;
+
+	if (mkdir(dirnoslash, 0777) == -1)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+int DumpDir(char* pPath, const char* target_path) { // Source: ft2sd
+
+    struct dirent* dirent = NULL;
+    DIR* dir = NULL;
+
+    dir = opendir(pPath);
+    if (dir == NULL) return -1;
+
+    CreateSubfolder(target_path);
+
+    while ((dirent = readdir(dir)) != 0) {
+
+        if (strcmp(dirent->d_name, "..") == 0 || strcmp(dirent->d_name, ".") == 0) continue;
+
+        int len = strlen(pPath);
+        snprintf(pPath + len, FS_MAX_FULLPATH_SIZE - len, "/%s", dirent->d_name);
+
+        if (dirent->d_type & DT_DIR) {
+
+            char* targetPath = (char*)malloc(FS_MAX_FULLPATH_SIZE);
+            snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", target_path, dirent->d_name);
+
+            CreateSubfolder(targetPath);
+            if (DumpDir(pPath, targetPath)!=0) {
+                closedir(dir);
+                return -2;
+            }
+
+            free(targetPath);
+
+        } else {
+
+            char* targetPath = (char*)malloc(FS_MAX_FULLPATH_SIZE);
+            snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", target_path, dirent->d_name);
+
+            if (DumpFile(pPath, targetPath)!=0) {
+                closedir(dir);
+                return -3;
+            }
+
+            free(targetPath);
+
+        }
+
+        pPath[len] = 0;
+
+    }
+
+    closedir(dir);
+
+    return 0;
+
 }
 
 int DeleteDir(char* pPath) {

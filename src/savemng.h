@@ -12,8 +12,9 @@
 
 #define PATH_SIZE 0x400
 
-extern VPADStatus status;
-extern VPADReadError error;
+extern VPADStatus vpad_status;
+extern VPADReadError vpad_error;
+extern KPADStatus kpad_status;
 
 typedef struct {
     u32 highID;

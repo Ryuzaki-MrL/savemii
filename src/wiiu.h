@@ -13,6 +13,8 @@
 #include <coreinit/ios.h>
 #include <coreinit/thread.h>
 #include <coreinit/filesystem.h>
+#include <padscore/kpad.h>
+#include <padscore/wpad.h>
 #include <vpad/input.h>
 #include <whb/proc.h>
 #include <whb/sdcard.h>

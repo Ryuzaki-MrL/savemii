@@ -3,10 +3,16 @@
 #include <stdlib.h>
 #include <malloc.h>
 
+#include "string.hpp"
+
+extern "C" {
 #include "main.h"
 #include "wiiu.h"
 #include "savemng.h"
 #include "icon.h"
+}
+
+using namespace std;
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 3
@@ -379,6 +385,7 @@ void unloadTitles(Title* titles, int count) {
 int main(void) {
     drawInit();
     WHBProcInit();
+    KPADInit();
     VPADInit();
     loadWiiUTitles(0, -1);
 
@@ -396,7 +403,6 @@ int main(void) {
     setFSAFD(fsaFd);
 
     IOSUHAX_FSA_Mount(fsaFd, "/dev/sdcard01", "/vol/storage_sdcard", 2, (void*)0, 0);
-    //WHBMountSdCard();
     mount_fs("slccmpt01", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
     mount_fs("storage_mlc", fsaFd, NULL, "/vol/storage_mlc01");
     mount_fs("storage_usb01", fsaFd, NULL, "/vol/storage_usb01");
@@ -416,10 +422,21 @@ int main(void) {
     u8* tgaBufDRC = NULL;
     u8* tgaBufTV = NULL;
     u32 wDRC = 0, hDRC = 0, wTV = 0, hTV = 0;
-    VPADStatus status;
-    VPADReadError error;
+    KPADStatus kpad[4], kpad_status;
+    VPADStatus vpad_status;
+    VPADReadError vpad_error;
     while(WHBProcIsRunning()) {
-        VPADRead(VPAD_CHAN_0, &status, 1, &error);
+        VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
+        for (int i = 0; i < 4; i++)
+        {
+            WPADExtensionType controllerType;
+            // check if the controller is connected
+            if (WPADProbe(i, &controllerType) != 0)
+                continue;
+
+            KPADRead(i, &(kpad[i]), 1);
+            kpad_status = kpad[i];
+        }
 
         if (tgaBufDRC) {
             drawBackgroundDRC(wDRC, hDRC, tgaBufDRC);
@@ -609,13 +626,13 @@ int main(void) {
 
         flipBuffers();
 
-        if (status.trigger & (VPAD_BUTTON_DOWN | VPAD_STICK_L_EMULATION_DOWN)) {
+        if ((vpad_status.trigger & (VPAD_BUTTON_DOWN | VPAD_STICK_L_EMULATION_DOWN)) | (kpad_status.trigger & (WPAD_BUTTON_DOWN | WPAD_CLASSIC_BUTTON_DOWN | WPAD_CLASSIC_STICK_L_EMULATION_DOWN | WPAD_PRO_BUTTON_DOWN | WPAD_PRO_STICK_L_EMULATION_DOWN))) {
             if (entrycount <= 14) cursor = (cursor + 1) % entrycount;
             else if (cursor < 6) cursor++;
             else if ((cursor + scroll + 1) % entrycount) scroll++;
             else cursor = scroll = 0;
             usleep(100000);
-        } else if (status.trigger & (VPAD_BUTTON_UP | VPAD_STICK_L_EMULATION_UP)) {
+        } else if ((vpad_status.trigger & (VPAD_BUTTON_UP | VPAD_STICK_L_EMULATION_UP)) | (kpad_status.trigger & (WPAD_BUTTON_UP | WPAD_CLASSIC_BUTTON_UP | WPAD_CLASSIC_STICK_L_EMULATION_UP | WPAD_PRO_BUTTON_UP | WPAD_PRO_STICK_L_EMULATION_UP))) {
             if (scroll > 0) cursor -= (cursor>6) ? 1 : 0 * (scroll--);
             else if (cursor > 0) cursor--;
             else if (entrycount > 14) scroll = entrycount - (cursor = 6) - 1;
@@ -623,7 +640,7 @@ int main(void) {
             usleep(100000);
         }
 
-        if (status.trigger & (VPAD_BUTTON_LEFT | VPAD_STICK_L_EMULATION_LEFT)) {
+        if ((vpad_status.trigger & (VPAD_BUTTON_LEFT | VPAD_STICK_L_EMULATION_LEFT)) | (kpad_status.trigger & (WPAD_BUTTON_LEFT | WPAD_CLASSIC_BUTTON_LEFT | WPAD_CLASSIC_STICK_L_EMULATION_LEFT | WPAD_PRO_BUTTON_LEFT | WPAD_PRO_STICK_L_EMULATION_LEFT))) {
             if (menu==3) {
                 if (task == 5) {
                     switch(cursor) {
@@ -671,7 +688,7 @@ int main(void) {
                 }
             }
             usleep(100000);
-        } else if (status.trigger & (VPAD_BUTTON_RIGHT | VPAD_STICK_L_EMULATION_RIGHT)) {
+        } else if ((vpad_status.trigger & (VPAD_BUTTON_RIGHT | VPAD_STICK_L_EMULATION_RIGHT)) | (kpad_status.trigger & (WPAD_BUTTON_RIGHT | WPAD_CLASSIC_BUTTON_RIGHT | WPAD_CLASSIC_STICK_L_EMULATION_RIGHT | WPAD_PRO_BUTTON_RIGHT | WPAD_PRO_STICK_L_EMULATION_RIGHT))) {
             if (menu == 3) {
                 if (task == 5) {
                     switch(cursor) {
@@ -721,7 +738,7 @@ int main(void) {
             usleep(100000);
         }
 
-        if (status.trigger & VPAD_BUTTON_R) {
+        if ((vpad_status.trigger & VPAD_BUTTON_R) | (kpad_status.trigger & (WPAD_BUTTON_1 | WPAD_CLASSIC_BUTTON_R | WPAD_PRO_TRIGGER_R))) {
             if (menu == 1) {
                 tsort = (tsort + 1) % 4;
                 qsort(titles, count, sizeof(Title), titleSort);
@@ -730,7 +747,7 @@ int main(void) {
             }
         }
 
-        if (status.trigger & VPAD_BUTTON_L) {
+        if ((vpad_status.trigger & VPAD_BUTTON_L) | (kpad_status.trigger & (WPAD_BUTTON_2 | WPAD_CLASSIC_BUTTON_L | WPAD_PRO_TRIGGER_L))) {
             if ((menu==1) && (tsort > 0)) {
                 sorta *= -1;
                 qsort(titles, count, sizeof(Title), titleSort);
@@ -740,7 +757,7 @@ int main(void) {
             }
         }
 
-        if (status.trigger & VPAD_BUTTON_A) {
+        if ((vpad_status.trigger & VPAD_BUTTON_A) | (kpad_status.trigger & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_PRO_BUTTON_A))) {
             clearBuffers();
             if (menu < 3) {
                 if (menu == 0) {
@@ -851,7 +868,7 @@ int main(void) {
                         } break;
                 }
             }
-        } else if ((status.trigger & VPAD_BUTTON_B) && menu > 0) {
+        } else if (((vpad_status.trigger & VPAD_BUTTON_B) || (kpad_status.trigger & (WPAD_BUTTON_B || WPAD_CLASSIC_BUTTON_B || WPAD_PRO_BUTTON_B))) && menu > 0) {
             clearBuffers();
             menu--;
             cursor = scroll = 0;
