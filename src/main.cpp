@@ -402,11 +402,10 @@ int main(void) {
     }
     setFSAFD(fsaFd);
 
-    IOSUHAX_FSA_Mount(fsaFd, "/dev/sdcard01", "/vol/storage_sdcard", 2, (void*)0, 0);
+    IOSUHAX_FSA_Mount(fsaFd, "/dev/sdcard01", "/vol/storage_sdcard", 2, (char*)0, 0);
     mount_fs("slccmpt01", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
     mount_fs("storage_mlc", fsaFd, NULL, "/vol/storage_mlc01");
     mount_fs("storage_usb01", fsaFd, NULL, "/vol/storage_usb01");
-
     mount_fs("storage_odd", fsaFd, "/dev/odd03", "/vol/storage_odd_content");
     
     clearBuffers();
