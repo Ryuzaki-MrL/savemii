@@ -68,7 +68,7 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         int mcp_handle = MCP_Open();
         int count = MCP_TitleCount(mcp_handle);
         int listSize = count*0x61;
-        tList = memalign(32, listSize);
+        tList = (char*)memalign(32, listSize);
         memset(tList, 0, listSize);
         receivedCount = count;
         MCP_TitleList(mcp_handle, &receivedCount, (MCPTitleListType *)tList, listSize);
@@ -77,12 +77,12 @@ Title* loadWiiUTitles(int run, int fsaFd) {
     }
 
     int usable = receivedCount, j = 0;
-    Saves* savesl = malloc(receivedCount*sizeof(Saves));
+    Saves* savesl = (Saves*)malloc(receivedCount*sizeof(Saves));
     if (!savesl) {
         promptError("Out of memory.");
         return NULL;
     }
-    for (int i = 0; i < receivedCount; i++) {
+    for (uint32_t i = 0; i < receivedCount; i++) {
         char* element = tList+(i*0x61);
         savesl[j].highID = *(u32*)(element);
         if (savesl[j].highID != 0x00050000) {
@@ -94,7 +94,7 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         savesl[j].found = false;
         j++;
     }
-    savesl = realloc(savesl, usable * sizeof(Saves));
+    savesl = (Saves*)realloc(savesl, usable * sizeof(Saves));
 
     int dirUH, foundCount = 0, pos = 0, tNoSave = usable;
     for (int i = 0; i <= 1; i++) {
@@ -127,7 +127,7 @@ Title* loadWiiUTitles(int run, int fsaFd) {
     }
 
     foundCount += tNoSave;
-    Saves* saves = malloc((foundCount + tNoSave)*sizeof(Saves));
+    Saves* saves = (Saves*)malloc((foundCount + tNoSave)*sizeof(Saves));
     if (!saves) {
         promptError("Out of memory.");
         return NULL;
@@ -166,7 +166,7 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         }
     }
 
-    Title* titles = malloc(foundCount*sizeof(Title));
+    Title* titles = (Title*)malloc(foundCount*sizeof(Title));
     if (!titles) {
         promptError("Out of memory.");
         return NULL;
@@ -270,7 +270,7 @@ Title* loadWiiTitles(int fsaFd) {
     }
     if (titlesvwii == 0) return NULL;
 
-    Title* titles = malloc(titlesvwii * sizeof(Title));
+    Title* titles = (Title*)malloc(titlesvwii * sizeof(Title));
     if (!titles) {
         promptError("Out of memory.");
         return NULL;
@@ -426,16 +426,14 @@ int main(void) {
     VPADReadError vpad_error;
     while(WHBProcIsRunning()) {
         VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
-        for (int i = 0; i < 4; i++)
-        {
-            WPADExtensionType controllerType;
-            // check if the controller is connected
-            if (WPADProbe((WPADChan)i, &controllerType) != 0)
-                continue;
 
-            KPADRead((WPADChan)i, &(kpad[i]), 1);
-            kpad_status = kpad[i];
-        }
+        WPADExtensionType controllerType;
+        if (WPADProbe(0, &controllerType) == 0) {
+            KPADRead(WPAD_CHAN_0, kpad, 1);
+            kpad_status = kpad[0];
+        } else
+            kpad_status = (KPADStatus)0;
+
 
         if (tgaBufDRC) {
             drawBackgroundDRC(wDRC, hDRC, tgaBufDRC);
@@ -756,7 +754,7 @@ int main(void) {
             }
         }
 
-        if ((vpad_status.trigger & VPAD_BUTTON_A) | (kpad_status.trigger & (WPAD_BUTTON_A)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A))) {
+        if ((vpad_status.trigger & VPAD_BUTTON_A) | ((kpad_status.trigger & (WPAD_BUTTON_A)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A)))) {
             clearBuffers();
             sleep(0.2);
             if (menu < 3) {
@@ -868,7 +866,7 @@ int main(void) {
                         } break;
                 }
             }
-        } else if (((vpad_status.trigger & VPAD_BUTTON_B) | (kpad_status.trigger & (WPAD_BUTTON_B)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_B)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_B)) && menu > 0)) {
+        } else if (((vpad_status.trigger & VPAD_BUTTON_B) | ((kpad_status.trigger & WPAD_BUTTON_B) | (kpad_status.classic.trigger & WPAD_CLASSIC_BUTTON_B) | (kpad_status.pro.trigger & WPAD_PRO_BUTTON_B))) && menu > 0) {
             clearBuffers();
             menu--;
             cursor = scroll = 0;
