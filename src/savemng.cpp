@@ -279,10 +279,10 @@ bool promptConfirm(Style st, const char* question) {
             KPADRead(i, &(kpad[i]), 1);
             kpad_status = kpad[i];
         }
-        if ((vpad_status.trigger & (VPAD_BUTTON_A)) | (kpad_status.trigger & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_PRO_BUTTON_A))) {
+        if ((vpad_status.trigger & (VPAD_BUTTON_A)) | (kpad_status.trigger & (WPAD_BUTTON_A)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A))) {
             ret = true;
             break;
-        } else if((vpad_status.trigger & (VPAD_BUTTON_B)) | (kpad_status.trigger & (WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B | WPAD_PRO_BUTTON_B))) {
+        } else if((vpad_status.trigger & (VPAD_BUTTON_B)) | (kpad_status.trigger & (WPAD_BUTTON_B)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_B)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_B))) {
 			ret = false;
 			break;
 		}
