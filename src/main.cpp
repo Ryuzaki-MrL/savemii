@@ -16,7 +16,7 @@ using namespace std;
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 3
-#define VERSION_MICRO 2
+#define VERSION_MICRO 3
 #define M_OFF 1
 
 u8 slot = 0;
@@ -430,10 +430,10 @@ int main(void) {
         {
             WPADExtensionType controllerType;
             // check if the controller is connected
-            if (WPADProbe(i, &controllerType) != 0)
+            if (WPADProbe((WPADChan)i, &controllerType) != 0)
                 continue;
 
-            KPADRead(i, &(kpad[i]), 1);
+            KPADRead((WPADChan)i, &(kpad[i]), 1);
             kpad_status = kpad[i];
         }
 
@@ -482,7 +482,7 @@ int main(void) {
                         if (mode == 0) {
                             if (titles[i + scroll].iconBuf) drawTGA((M_OFF + 4) * 12 - 2, (i + 3.2) * 24, 0.18, titles[i + scroll].iconBuf);
                         } else if (mode == 1) {
-                            if (titles[i + scroll].iconBuf) drawRGB5A3((M_OFF + 2) * 12 - 2, (i + 3) * 24 + 3, 0.25, titles[i + scroll].iconBuf);
+                            if (titles[i + scroll].iconBuf) drawRGB5A3((M_OFF + 2) * 12 - 2, (i + 3.22) * 24 + 3, 0.25, titles[i + scroll].iconBuf);
                         }
                     }
                     if (mode == 0) {

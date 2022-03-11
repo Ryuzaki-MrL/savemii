@@ -273,10 +273,10 @@ bool promptConfirm(Style st, const char* question) {
         {
             WPADExtensionType controllerType;
             // check if the controller is connected
-            if (WPADProbe(i, &controllerType) != 0)
+            if (WPADProbe((WPADChan)i, &controllerType) != 0)
                 continue;
 
-            KPADRead(i, &(kpad[i]), 1);
+            KPADRead((WPADChan)i, &(kpad[i]), 1);
             kpad_status = kpad[i];
         }
         if ((vpad_status.trigger & (VPAD_BUTTON_A)) | (kpad_status.trigger & (WPAD_BUTTON_A)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A))) {
