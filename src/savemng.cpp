@@ -1,5 +1,6 @@
 #include <nn/act/client_cpp.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include "string.hpp"
 extern "C" {
 	#include "common/fs_defs.h"
@@ -124,34 +125,34 @@ int folderEmpty(const char * fPath) {
 }
 
 int createFolder(const char * fPath) { //Adapted from mkdir_p made by JonathonReinhart
-	const size_t len = strlen(fPath);
-	char _path[FS_MAX_FULLPATH_SIZE];
-	char *p;
+    const size_t len = strlen(fPath);
+    char _path[FS_MAX_FULLPATH_SIZE];
+    char *p;
 	int ret, found = 0;
 
-	if (len > sizeof(_path)-1) {
-		return -1;
-	}
-	strcpy(_path, fPath);
+    if (len > sizeof(_path)-1) {
+        return -1;
+    }
+    strcpy(_path, fPath);
 
-	for (p = _path + 1; *p; p++) {
-		if (*p == '/') {
+    for (p = _path + 1; *p; p++) {
+        if (*p == '/') {
 			found++;
 			if (found > 2) {
-				*p = '\0';
+	            *p = '\0';
 				if (checkEntry(_path) == 0) {
-					if ((ret = mkdir(_path, 0666)) < 0) return -1;
+					if ((ret = FSAR(IOSUHAX_FSA_MakeDir(fsaFd, _path, 0x666))) < 0) return -1;
 				}
-				*p = '/';
+	            *p = '/';
 			}
-		}
-	}
+        }
+    }
 
 	if (checkEntry(_path) == 0) {
-		if ((ret = mkdir(_path, 0666)) < 0) return -1;
+    	if ((ret = FSAR(IOSUHAX_FSA_MakeDir(fsaFd, _path, 0x666))) < 0) return -1;
 	}
 
-	return 0;
+    return 0;
 }
 
 void console_print_pos_aligned(int y, u16 offset, u8 align, const char* format, ...) {
@@ -262,11 +263,11 @@ bool promptConfirm(Style st, const char* question) {
 	if (st & ST_MULTILINE) {
 
 	} else {
-    	console_print_pos(31 - (strlen(question) / 24), 7, question);
-    	console_print_pos(31 - (strlen(msg) / 24), 9, msg);
+    	console_print_pos(23, 7, question);
+    	console_print_pos(23, 9, msg);
 	}
     flipBuffers();
-	int ret = 0;
+	sleep(0.2);
     while(1) {	
         VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
 		for (int i = 0; i < 4; i++)
@@ -280,14 +281,11 @@ bool promptConfirm(Style st, const char* question) {
             kpad_status = kpad[i];
         }
         if ((vpad_status.trigger & (VPAD_BUTTON_A)) | (kpad_status.trigger & (WPAD_BUTTON_A)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A))) {
-            ret = true;
-            break;
+            return 1;
         } else if((vpad_status.trigger & (VPAD_BUTTON_B)) | (kpad_status.trigger & (WPAD_BUTTON_B)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_B)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_B))) {
-			ret = false;
-			break;
+			return 0;
 		}
     }
-    return ret;
 }
 
 void promptError(const char* message, ...) {
@@ -296,7 +294,7 @@ void promptError(const char* message, ...) {
 	va_start(va, message);
     OSScreenClearBufferEx(SCREEN_TV, 0x7F000000);
     OSScreenClearBufferEx(SCREEN_DRC, 0x7F000000);
-    console_print_pos_va(25 - (strlen(message)>>1), 9, message, va);
+    console_print_pos_va(25, 9, message, va);
     OSScreenFlipBuffersEx(SCREEN_TV);
     OSScreenFlipBuffersEx(SCREEN_DRC);
 	va_end(va);
@@ -368,7 +366,7 @@ void getAccountsSD(Title* title, u8 slot) {
 			if (ret != 0) break;
 
 			if (strncmp(data.name, "common", 6) == 0) continue;
-			sprintf(sdacc[i].persistentID, "%s", data.name);
+			string_format(sdacc[i].persistentID, "%s", data.name);
 			sdacc[i].pID = strtoul(data.name, NULL, 16);
 			sdacc[i].slot = i;
 		}
@@ -376,13 +374,27 @@ void getAccountsSD(Title* title, u8 slot) {
 	}
 }
 
-int DumpFile(char *pPath, const char * oPath)
+int DumpFile(char *pPath, char * oPath)
 {
+	// replace pPath
 	if(StartsWith(pPath, "/vol/storage_slccmpt01"))
 		pPath = replace_str(pPath, (char*)"/vol/storage_slccmpt01", (char*)"slccmpt01:");
 	
 	if(StartsWith(pPath, "/vol/storage_usb01")) 
 		pPath = replace_str(pPath, (char*)"/vol/storage_usb01", (char*)"storage_usb01:");
+	
+	if(StartsWith(pPath, "/vol/storage_mlc")) 
+		pPath = replace_str(pPath, (char*)"/vol/storage_mlc", (char*)"storage_mlc:");
+	
+	// replace oPath too
+	if(StartsWith(oPath, "/vol/storage_slccmpt01"))
+		oPath = replace_str(oPath, (char*)"/vol/storage_slccmpt01", (char*)"slccmpt01:");
+	
+	if(StartsWith(oPath, "/vol/storage_usb01")) 
+		oPath = replace_str(oPath, (char*)"/vol/storage_usb01", (char*)"storage_usb01:");
+	
+	if(StartsWith(oPath, "/vol/storage_mlc")) 
+		oPath = replace_str(oPath, (char*)"/vol/storage_mlc", (char*)"storage_mlc:");
 	
 	FILE* source = fopen(pPath, "rb");
     if (source == NULL)
@@ -410,7 +422,7 @@ int DumpFile(char *pPath, const char * oPath)
 	
 	while ((size = fread(pBuffer, 1, buf_size, source)) > 0) {
 		fwrite(pBuffer, 1, buf_size, dest);
-		passedMs = (uint32_t)OSTicksToMilliseconds(OSGetTime() - startTime);
+		passedMs = (OSGetTime() - startTime) * 4000ULL / BUS_SPEED;
         if(passedMs == 0)
             passedMs = 1; // avoid 0 div
 		OSScreenClearBufferEx(SCREEN_TV, 0);
@@ -420,7 +432,7 @@ int DumpFile(char *pPath, const char * oPath)
 		console_print_pos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", sizew, sizef,  (u32)(((u64)sizew * 1000) / ((u64)1024 * passedMs)));    
 		flipBuffers();
 	}
-
+	
     fclose(source);
     fclose(dest);
 	free(pBuffer);
@@ -428,138 +440,58 @@ int DumpFile(char *pPath, const char * oPath)
     return 0;
 }
 
-int CheckFile(const char * filepath)
-{
-	if(!filepath)
-		return 0;
+int DumpDir(char* pPath, const char* tPath) { // Source: ft2sd
+    int dirH;
 
-	struct stat filestat;
+	if (IOSUHAX_FSA_OpenDir(fsaFd, pPath, &dirH) < 0) return -1;
+	IOSUHAX_FSA_MakeDir(fsaFd, tPath, 0x666);
 
-	char dirnoslash[strlen(filepath)+2];
-	snprintf(dirnoslash, sizeof(dirnoslash), "%s", filepath);
+    while (1) {
+		directoryEntry_s data;
+		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
+		if (ret != 0)
+			break;
 
-	while(dirnoslash[strlen(dirnoslash)-1] == '/')
-		dirnoslash[strlen(dirnoslash)-1] = '\0';
+        OSScreenClearBufferEx(SCREEN_TV, 0);
+        OSScreenClearBufferEx(SCREEN_DRC, 0);
 
-	char * notRoot = strrchr(dirnoslash, '/');
-	if(!notRoot)
-	{
-		strcat(dirnoslash, "/");
-	}
-
-	if (stat(dirnoslash, &filestat) == 0)
-		return 1;
-
-	return 0;
-}
-
-int CreateSubfolder(const char * fullpath)
-{
-	if(!fullpath)
-		return 0;
-
-	int result = 0;
-
-	char dirnoslash[strlen(fullpath)+1];
-	strcpy(dirnoslash, fullpath);
-
-	int pos = strlen(dirnoslash)-1;
-	while(dirnoslash[pos] == '/')
-	{
-		dirnoslash[pos] = '\0';
-		pos--;
-	}
-
-	if(CheckFile(dirnoslash))
-	{
-		return 1;
-	}
-	else
-	{
-		char parentpath[strlen(dirnoslash)+2];
-		strcpy(parentpath, dirnoslash);
-		char * ptr = strrchr(parentpath, '/');
-
-		if(!ptr)
-		{
-			//!Device root directory (must be with '/')
-			strcat(parentpath, "/");
-			struct stat filestat;
-			if (stat(parentpath, &filestat) == 0)
-				return 1;
-
-			return 0;
-		}
-
-		ptr++;
-		ptr[0] = '\0';
-
-		result = CreateSubfolder(parentpath);
-	}
-
-	if(!result)
-		return 0;
-
-	if (mkdir(dirnoslash, 0777) == -1)
-	{
-		return 0;
-	}
-
-	return 1;
-}
-
-int DumpDir(char* pPath, const char* target_path) { // Source: ft2sd
-
-    struct dirent* dirent = NULL;
-    DIR* dir = NULL;
-
-    dir = opendir(pPath);
-    if (dir == NULL) return -1;
-
-    CreateSubfolder(target_path);
-
-    while ((dirent = readdir(dir)) != 0) {
-
-        if (strcmp(dirent->d_name, "..") == 0 || strcmp(dirent->d_name, ".") == 0) continue;
+        if (strcmp(data.name, "..") == 0 || strcmp(data.name, ".") == 0) continue;
 
         int len = strlen(pPath);
-        snprintf(pPath + len, FS_MAX_FULLPATH_SIZE - len, "/%s", dirent->d_name);
+        snprintf(pPath + len, FS_MAX_FULLPATH_SIZE - len, "/%s", data.name);
 
-        if (dirent->d_type & DT_DIR) {
-
+        if (data.stat.flag & DIR_ENTRY_IS_DIRECTORY) {
             char* targetPath = (char*)malloc(FS_MAX_FULLPATH_SIZE);
-            snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", target_path, dirent->d_name);
+            snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", tPath, data.name);
 
-            CreateSubfolder(targetPath);
-            if (DumpDir(pPath, targetPath)!=0) {
-                closedir(dir);
+            IOSUHAX_FSA_MakeDir(fsaFd, targetPath, 0x666);
+            if (DumpDir(pPath, targetPath) != 0) {
+                IOSUHAX_FSA_CloseDir(fsaFd, dirH);
                 return -2;
             }
 
             free(targetPath);
-
         } else {
-
             char* targetPath = (char*)malloc(FS_MAX_FULLPATH_SIZE);
-            snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", target_path, dirent->d_name);
+            snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", tPath, data.name);
 
-            if (DumpFile(pPath, targetPath)!=0) {
-                closedir(dir);
+			p1 = data.name;
+			show_file_operation(data.name, pPath, targetPath);
+
+            if (DumpFile(pPath, targetPath) != 0) {
+                IOSUHAX_FSA_CloseDir(fsaFd, dirH);
                 return -3;
             }
 
             free(targetPath);
-
         }
 
         pPath[len] = 0;
-
     }
 
-    closedir(dir);
+    IOSUHAX_FSA_CloseDir(fsaFd, dirH);
 
     return 0;
-
 }
 
 int DeleteDir(char* pPath) {
@@ -865,7 +797,7 @@ void backupAllSave(Title* titles, int count, OSCalendarTime* date) {
 		bool isUSB = titles[i].isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 		char srcPath[PATH_SIZE];
 		char dstPath[PATH_SIZE];
-		const char* path = (isWii ? "slccmpt01:/title" : (isUSB ? "storage_usb01:/usr/save" : "storage_mlc:/usr/save"));
+		const char* path = (isWii ? "/vol/slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc/usr/save"));
 		sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
 		sprintf(dstPath, "/vol/storage_sdcard/wiiu/backups/batch/%s/%08x%08x", datetime, highID, lowID);
 
@@ -881,7 +813,7 @@ void backupSavedata(Title* title, u8 slot, s8 allusers, bool common) {
 	bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 	char srcPath[PATH_SIZE];
 	char dstPath[PATH_SIZE];
-		const char* path = (isWii ? "slccmpt01:/title" : (isUSB ? "storage_usb01:/usr/save" : "storage_mlc:/usr/save"));
+		const char* path = (isWii ? "/vol/slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc/usr/save"));
 	sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
 	if (isWii && (slot == 255)) {
 		sprintf(dstPath, "/vol/storage_sdcard/savegames/%08x%08x", highID, lowID);
@@ -921,18 +853,19 @@ void backupSavedata(Title* title, u8 slot, s8 allusers, bool common) {
 
 void restoreSavedata(Title* title, u8 slot, s8 sdusers, s8 allusers, bool common) {
 
-	if (isSlotEmpty(title->highID, title->lowID, slot)) {
-		promptError("No backup found on selected slot.");
-		return;
-	}
-	if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
-	int slotb = getEmptySlot(title->highID, title->lowID);
-	if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first to next empty slot?")) backupSavedata(title, slotb, allusers, common);
-	u32 highID = title->highID, lowID = title->lowID;
-	bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-	char srcPath[PATH_SIZE];
-	char dstPath[PATH_SIZE];
-	const char* path = (isWii ? "slccmpt01:/title" : (isUSB ? "storage_usb01:/usr/save" : "storage_mlc:/usr/save"));
+    if (isSlotEmpty(title->highID, title->lowID, slot)) {
+        promptError("No backup found on selected slot.");
+        return;
+    }
+	sleep(0.3);
+    if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
+    int slotb = getEmptySlot(title->highID, title->lowID);
+    if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first to next empty slot?")) backupSavedata(title, slotb, allusers, common);
+    u32 highID = title->highID, lowID = title->lowID;
+    bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
+    char srcPath[PATH_SIZE];
+    char dstPath[PATH_SIZE];
+    const char* path = (isWii ? "/vol/storage_slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save"));
 	if (isWii && (slot == 255)) {
 		sprintf(srcPath, "/vol/storage_sdcard/savegames/%08x%08x", highID, lowID);
 	} else {
@@ -941,19 +874,19 @@ void restoreSavedata(Title* title, u8 slot, s8 sdusers, s8 allusers, bool common
 	sprintf(dstPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
 	createFolder(dstPath);
 
-	if ((sdusers > -1) && !isWii) {
-		u32 srcOffset = strlen(srcPath);
-		u32 dstOffset = strlen(dstPath);
-		if (common) {
-			strcpy(srcPath + srcOffset, "/common");
-			strcpy(dstPath + dstOffset, "/common");
-			if (DumpDir(srcPath, dstPath) != 0) promptError("Common save not found.");
-		}
-		sprintf(srcPath + srcOffset, "/%s", sdacc[sdusers].persistentID);
-		sprintf(dstPath + dstOffset, "/%s", wiiuacc[allusers].persistentID);
-	}
+    if ((sdusers > -1) && !isWii) {
+        u32 srcOffset = strlen(srcPath);
+        u32 dstOffset = strlen(dstPath);
+        if (common) {
+            strcpy(srcPath + srcOffset, "/common");
+            strcpy(dstPath + dstOffset, "/common");
+            if (DumpDir(srcPath, dstPath) != 0) promptError("Common save not found.");
+        }
+        sprintf(srcPath + srcOffset, "/%s", sdacc[sdusers].persistentID);
+        sprintf(dstPath + dstOffset, "/%s", wiiuacc[allusers].persistentID);
+    }
 
-	if (DumpDir(srcPath, dstPath) != 0) promptError("Restore failed.");
+    if (DumpDir(srcPath, dstPath) != 0) promptError("Restore failed.");
 
 	if (strncmp(strchr(dstPath, '_'), "_usb", 4) == 0) {
 		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_usb01");
@@ -975,7 +908,7 @@ void wipeSavedata(Title* title, s8 allusers, bool common) {
 	bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 	char srcPath[PATH_SIZE];
 	char origPath[PATH_SIZE];
-		const char* path = (isWii ? "slccmpt01:/title" : (isUSB ? "storage_usb01:/usr/save" : "storage_mlc:/usr/save"));
+		const char* path = (isWii ? "/vol/slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc/usr/save"));
 	sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
 	if ((allusers > -1) && !isWii) {
 		u32 offset = strlen(srcPath);

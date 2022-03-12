@@ -486,7 +486,7 @@ int main(void) {
                     if (mode == 0) {
                         console_print_pos(-1, 2 + cursor, "->");
                     } else if (mode == 1) {
-                        console_print_pos(-1, 2 + cursor, "->");
+                        console_print_pos(-3.5, 2 + cursor, "->");
                     }
                     console_print_pos_aligned(17, 4, 2, "(A): Select Game  (B): Back");
                 }
