@@ -378,6 +378,12 @@ void getAccountsSD(Title* title, u8 slot) {
 
 int DumpFile(char *pPath, const char * oPath)
 {
+	if(StartsWith(pPath, "/vol/storage_slccmpt01"))
+		pPath = replace_str(pPath, (char*)"/vol/storage_slccmpt01", (char*)"slccmpt01:");
+	
+	if(StartsWith(pPath, "/vol/storage_usb01")) 
+		pPath = replace_str(pPath, (char*)"/vol/storage_usb01", (char*)"storage_usb01:");
+	
 	FILE* source = fopen(pPath, "rb");
     if (source == NULL)
         return -1;
@@ -730,7 +736,7 @@ bool hasAccountSave(Title* title, bool inSD, bool iine, u32 user, u8 slot, int v
 	char srcPath[PATH_SIZE];
 	if (!isWii) {
 		if (!inSD) {
-			const char* path = (isUSB ? "storage_usb01:/usr/save" : "storage_mlc01:/usr/save");
+			const char* path = (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save");
 			if (user == 0)
 				sprintf(srcPath, "%s/%08x/%08x/%s/common", path, highID, lowID, "user");
 			else if (user == 0xFFFFFFFF)
@@ -756,7 +762,7 @@ bool hasAccountSave(Title* title, bool inSD, bool iine, u32 user, u8 slot, int v
 		}
 	} else {
 		if (!inSD) {
-			sprintf(srcPath, "slccmpt01:/title/%08x/%08x/data", highID, lowID);
+			sprintf(srcPath, "/vol/storage_slccmpt01/title/%08x/%08x/data", highID, lowID);
 		} else {
 			sprintf(srcPath, "/vol/storage_sdcard/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
 		}
@@ -774,7 +780,7 @@ bool hasCommonSave(Title* title, bool inSD, bool iine, u8 slot, int version) {
 
 	char srcPath[PATH_SIZE];
 	if (!inSD) {
-		const char* path = (isUSB ? "storage_usb01:/usr/save" : "storage_mlc:/usr/save");
+		const char* path = (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save");
 		sprintf(srcPath, "%s/%08x/%08x/%s/common", path, highID, lowID, "user");
 	} else {
 		if (!iine)
@@ -807,8 +813,8 @@ void copySavedata(Title* title, Title* titleb, s8 allusers, s8 allusers_d, bool 
 
 	char srcPath[PATH_SIZE];
 	char dstPath[PATH_SIZE];
-	const char* path = (isUSB ? "storage_usb01:/usr/save" : "storage_mlc:/usr/save");
-	const char* pathb = (isUSBb ? "storage_usb01:/usr/save" : "storage_mlc:/usr/save");
+	const char* path = (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save");
+	const char* pathb = (isUSBb ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save");
 	sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, "user");
 	sprintf(dstPath, "%s/%08x/%08x/%s", pathb, highIDb, lowIDb, "user");
 	createFolder(dstPath);
