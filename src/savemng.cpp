@@ -5,6 +5,7 @@
 extern "C" {
 	#include "common/fs_defs.h"
 	#include "savemng.h"
+	#include "log_freetype.h"
 }
 using namespace std;
 
@@ -295,8 +296,7 @@ void promptError(const char* message, ...) {
 		ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, true, false);
 	}
 	if (tmp) free(tmp);
-    OSScreenFlipBuffersEx(SCREEN_TV);
-    OSScreenFlipBuffersEx(SCREEN_DRC);
+    flipBuffers();
 	va_end(va);
 	sleep(2);	
 }

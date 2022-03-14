@@ -230,6 +230,7 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         disclaimer();
         console_print_pos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
         flipBuffers();
+        WHBLogFreetypeDraw();
     }
 
     free(savesl);
@@ -366,6 +367,7 @@ Title* loadWiiTitles(int fsaFd) {
                 console_print_pos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
                 console_print_pos(21, 11, "Loaded %i Wii titles.", i);
                 flipBuffers();
+                WHBLogFreetypeDraw();
             }
             IOSUHAX_FSA_CloseDir(fsaFd, dirH);
         }
@@ -625,6 +627,7 @@ int main(void) {
         console_print_pos(0,17, "Press \ue044 to exit.");
 
         flipBuffers();
+        WHBLogFreetypeDraw();
 
         if ((vpad_status.trigger & (VPAD_BUTTON_DOWN | VPAD_STICK_L_EMULATION_DOWN)) | (kpad_status.trigger & (WPAD_BUTTON_DOWN)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_DOWN | WPAD_CLASSIC_STICK_L_EMULATION_DOWN)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_DOWN | WPAD_PRO_STICK_L_EMULATION_DOWN))) {
             if (entrycount <= 14) cursor = (cursor + 1) % entrycount;
@@ -759,6 +762,7 @@ int main(void) {
 
         if ((vpad_status.trigger & VPAD_BUTTON_A) | ((kpad_status.trigger & (WPAD_BUTTON_A)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A)))) {
             clearBuffers();
+            WHBLogFreetypeDraw();
             sleep(0.2);
             if (menu < 3) {
                 if (menu == 0) {
@@ -871,6 +875,7 @@ int main(void) {
             }
         } else if (((vpad_status.trigger & VPAD_BUTTON_B) | ((kpad_status.trigger & WPAD_BUTTON_B) | (kpad_status.classic.trigger & WPAD_CLASSIC_BUTTON_B) | (kpad_status.pro.trigger & WPAD_PRO_BUTTON_B))) && menu > 0) {
             clearBuffers();
+            WHBLogFreetypeDraw();
             menu--;
             cursor = scroll = 0;
             if (menu == 1) {
