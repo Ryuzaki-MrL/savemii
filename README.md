@@ -1,4 +1,8 @@
-# savemii wut (Original by Ryuzaki-MrL, WUT Port by me)
+# SaveMii Wut Port
+
+Original by Ryuzaki-MrL
+WUT Port by me
+
 WiiU/vWii Save Manager
 
 This homebrew allows you to backup your Wii U and vWii savegames to the SD card and also restore them.
@@ -11,8 +15,10 @@ Use it at your own risk and please report any issues that may occur.
 
 TODO:
 - installable package
-- libgui/sdl port
 
 Credits:
 - Bruno Vinicius, for the icon
 - Maschell, for libiosuhax
+- Crementif for help with freetype
+- V10lator for helping with a lot of stuff
+- Vague Rant for testing
