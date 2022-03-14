@@ -179,9 +179,8 @@ void console_print_pos(int x, int y, const char* format, ...) { // Source: ftpii
 
 	va_list va;
 	va_start(va, format);
-	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
-		ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
-	}
+	vasprintf(&tmp, format, va);
+	ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
 	va_end(va);
 	if (tmp) free(tmp);
 }
@@ -194,7 +193,7 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char* format, ..
 	va_start(va, format);
 	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
 
-        if ((ttfStringWidth(tmp, -1) / 12) > len) {
+        if ((uint32_t)(ttfStringWidth(tmp, -1) / 12) > len) {
 			char* p = tmp;
 			if (strrchr(p, '\n') != NULL) p = strrchr(p, '\n') + 1;
 			while((ttfStringWidth(p, -1) / 12) > len) {
@@ -203,7 +202,7 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char* format, ..
 				for(int i = l1; i > 0; i--) {
 					char o = q[l1];
 					q[l1] = '\0';
-					if ((ttfStringWidth(p, -1) / 12) <= len) {
+					if ((uint32_t)(ttfStringWidth(p, -1) / 12) <= len) {
 						if (strrchr(p, cdiv) != NULL) p = strrchr(p, cdiv) + 1;
 						else p = q + l1;
 						q[l1] = o;
@@ -258,8 +257,8 @@ bool promptConfirm(Style st, const char* question) {
 	if (st & ST_MULTILINE) {
 
 	} else {
-    	console_print_pos(31 - (ttfStringWidth(question, 0) / 24), 7, question);
-    	console_print_pos(31 - (ttfStringWidth(msg, -1) / 24), 9, msg);
+    	console_print_pos(31 - (ttfStringWidth((char*)question, 0) / 24), 7, question);
+    	console_print_pos(31 - (ttfStringWidth((char*)msg, -1) / 24), 9, msg);
 	}
     flipBuffers();
 	sleep(0.2);

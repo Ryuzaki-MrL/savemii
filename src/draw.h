@@ -18,7 +18,7 @@ typedef union _RGBAColor {
 } RGBAColor;
 
 //Function declarations for my graphics library
-//void drawInit();
+void drawInit();
 void drawFini();
 void flipBuffers();
 void clearBuffers();
@@ -41,5 +41,6 @@ void drawBackgroundTV(u32 w, u32 h, u8* out);
 bool initFont(void* fontBuf, FT_Long fsize);
 int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX);
 int ttfStringWidth(char *string, int8_t part);
+void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y);
 
 #endif /* DRAW_H */

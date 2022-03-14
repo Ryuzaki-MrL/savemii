@@ -230,7 +230,6 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         disclaimer();
         console_print_pos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
         flipBuffers();
-
     }
 
     free(savesl);
@@ -429,23 +428,22 @@ int main(void) {
         VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
 
         WPADExtensionType controllerType;
-        if (WPADProbe(0, &controllerType) == 0) {
+        if (WPADProbe((WPADChan)0, &controllerType) == 0) {
             KPADRead(WPAD_CHAN_0, kpad, 1);
             kpad_status = kpad[0];
         } else
             kpad_status = (KPADStatus)0;
 
 
-        if (tgaBufDRC) {
+        if (tgaBufDRC)
             drawBackgroundDRC(wDRC, hDRC, tgaBufDRC);
-        } else {
+        else
             OSScreenClearBufferEx(SCREEN_DRC, 0x00006F00);
-        }
-        if (tgaBufTV) {
+
+        if (tgaBufTV)
             drawBackgroundTV(wTV, hTV, tgaBufTV);
-        } else {
+        else
             OSScreenClearBufferEx(SCREEN_TV, 0x00006F00);
-        }
 
         console_print_pos(0, 0, "SaveMii v%u.%u.%u", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
         console_print_pos(0, 1, "----------------------------------------------------------------------------");

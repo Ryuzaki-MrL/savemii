@@ -1,4 +1,5 @@
 #include "log_freetype.h"
+#include "draw.h"
 
 #define CONSOLE_FRAME_HEAP_TAG (0x0002B2B)
 #define NUM_LINES (16)
@@ -115,7 +116,7 @@ bool WHBLogFreetypeInit() {
     if ((result = FT_Select_Charmap(fontFace, FT_ENCODING_UNICODE)) != 0) {
         return true;
     }
-    if (result = FT_Set_Pixel_Sizes(fontFace, 0, 22)) {
+    if ((result = FT_Set_Pixel_Sizes(fontFace, 0, 22))) {
         return true;
     }
 
