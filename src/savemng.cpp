@@ -262,6 +262,7 @@ bool promptConfirm(Style st, const char* question) {
     	console_print_pos(31 - (ttfStringWidth((char*)msg, -1) / 24), 9, msg);
 	}
     flipBuffers();
+	WHBLogFreetypeDraw();
 	sleep(0.2);
     while(1) {	
         VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
@@ -297,6 +298,7 @@ void promptError(const char* message, ...) {
 	}
 	if (tmp) free(tmp);
     flipBuffers();
+	WHBLogFreetypeDraw();
 	va_end(va);
 	sleep(2);	
 }
@@ -431,6 +433,7 @@ int DumpFile(char *pPath, char * oPath)
 		show_file_operation(basename(pPath), pPath, oPath);
 		console_print_pos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", sizew, sizef,  (u32)(((u64)sizew * 1000) / ((u64)1024 * passedMs)));    
 		flipBuffers();
+		WHBLogFreetypeDraw();
 	}
 	
     fclose(source);
@@ -531,6 +534,7 @@ int DeleteDir(char* pPath) {
 		}
 
 		flipBuffers();
+		WHBLogFreetypeDraw();
 		pPath[len] = 0;
 	}
 

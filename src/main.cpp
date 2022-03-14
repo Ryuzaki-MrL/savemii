@@ -226,7 +226,7 @@ Title* loadWiiUTitles(int run, int fsaFd) {
 
         OSScreenClearBufferEx(SCREEN_TV, 0);
         OSScreenClearBufferEx(SCREEN_DRC, 0);
-        drawTGA(298, 144, 1, icon_tga);
+        drawTGA(285, 144, 1, icon_tga);
         disclaimer();
         console_print_pos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
         flipBuffers();
@@ -362,7 +362,7 @@ Title* loadWiiTitles(int fsaFd) {
 
                 OSScreenClearBufferEx(SCREEN_TV, 0);
                 OSScreenClearBufferEx(SCREEN_DRC, 0);
-                drawTGA(298, 144, 1, icon_tga);
+                drawTGA(285, 144, 1, icon_tga);
                 disclaimer();
                 console_print_pos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
                 console_print_pos(21, 11, "Loaded %i Wii titles.", i);
@@ -426,7 +426,7 @@ int main(void) {
     KPADStatus kpad[4], kpad_status;
     VPADStatus vpad_status;
     VPADReadError vpad_error;
-    while(1) {
+    while(WHBProcIsRunning()) {
         VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
 
         WPADExtensionType controllerType;
@@ -489,32 +489,33 @@ int main(void) {
                         }
                     }
                     if (mode == 0) {
-                        console_print_pos(0, 2 + cursor, "\u2192");
-                    } else if (mode == 1) {
                         console_print_pos(-1, 2 + cursor, "\u2192");
+                    } else if (mode == 1) {
+                        console_print_pos(-3, 2 + cursor, "\u2192");
                     }
                     console_print_pos_aligned(17, 4, 2, "\ue000: Select Game  \ue001: Back");
                 }
             } break;
-            case 2: { // Select Task
+           case 2: { // Select Task
                 entrycount = 3 + 2 * (mode == 0) + 1 * ((mode == 0) && (titles[targ].isTitleDupe));
                 console_print_pos(M_OFF, 2, "   [%08X-%08X] [%s]", titles[targ].highID, titles[targ].lowID, titles[targ].productCode);
                 console_print_pos(M_OFF, 3, "   %s", titles[targ].shortName);
+                //console_print_pos(M_OFF, 4, "   %s", titles[targ].longName);
                 console_print_pos(M_OFF, 5, "   Backup savedata");
                 console_print_pos(M_OFF, 6, "   Restore savedata");
                 console_print_pos(M_OFF, 7, "   Wipe savedata");
                 if (mode == 0) {
                     console_print_pos(M_OFF, 8, "   Import from loadiine");
                     console_print_pos(M_OFF, 9, "   Export to loadiine");
-                    if (titles[targ].isTitleDupe) {
-                        console_print_pos(M_OFF, 10, "   Copy Savedata to Title in %s", titles[targ].isTitleOnUSB ? "NAND" : "USB");
-                    }
+	                if (titles[targ].isTitleDupe) {
+	                    console_print_pos(M_OFF, 10, "   Copy Savedata to Title in %s", titles[targ].isTitleOnUSB ? "NAND" : "USB");
+	                }
                     if (titles[targ].iconBuf) drawTGA(660, 80, 1, titles[targ].iconBuf);
                 } else if (mode == 1) {
                     if (titles[targ].iconBuf) drawRGB5A3(650, 80, 1, titles[targ].iconBuf);
                 }
-                console_print_pos(M_OFF, 2 + 3 + cursor, "->");
-                console_print_pos_aligned(17, 4, 2, "(A): Select Task  (B): Back");
+                console_print_pos(M_OFF, 2 + 3 + cursor, "\u2192");
+                console_print_pos_aligned(17, 4, 2, "\ue000: Select Task  \ue001: Back");
             } break;
             case 3: { // Select Options
                 entrycount = 3;
@@ -606,7 +607,7 @@ int main(void) {
                         }
                     }
 
-                    console_print_pos(M_OFF, 5 + cursor * 3, "->");
+                    console_print_pos(M_OFF, 5 + cursor * 3, "\u2192");
                 if (titles[targ].iconBuf) drawTGA(660, 100, 1, titles[targ].iconBuf);
                 } else if (mode == 1) {
                     entrycount = 1;
@@ -884,8 +885,6 @@ int main(void) {
             }
             if (menu == 2) cursor = cursort;
         }
-        if(!WHBProcIsRunning())
-            break;
     }
 
     unloadTitles(wiiutitles, titleswiiu);

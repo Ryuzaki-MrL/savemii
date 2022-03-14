@@ -272,11 +272,6 @@ void ttfFontColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 }
 
 void WHBLogFreetypeDraw() {
-    //DCFlushRange(currTVFrameBuffer, frameBufferTVSize);
-    //DCFlushRange(currDRCFrameBuffer, frameBufferDRCSize);
-    //OSScreenFlipBuffersEx(SCREEN_TV);
-    //OSScreenFlipBuffersEx(SCREEN_DRC);
-
     currTVFrameBuffer = (currTVFrameBuffer == frameBufferTVFrontPtr) ? frameBufferTVBackPtr : frameBufferTVFrontPtr;
     currDRCFrameBuffer = (currDRCFrameBuffer == frameBufferDRCFrontPtr) ? frameBufferDRCBackPtr : frameBufferDRCFrontPtr;
 }
