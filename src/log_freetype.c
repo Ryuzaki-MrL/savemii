@@ -20,6 +20,7 @@ uint32_t frameBufferDRCSize = 0;
 uint8_t* currTVFrameBuffer = NULL;
 uint8_t* currDRCFrameBuffer = NULL;
 
+RGBAColor ttfColor = {0xFFFFFFFF};
 uint32_t fontColor = 0xFFFFFFFF;
 uint32_t backgroundColor = 0x0B5D5E00;
 FT_Library fontLibrary;
@@ -259,4 +260,13 @@ int ttfStringWidth(char *string, int8_t part) {
 	}
 	if (spart < part) pen_x = 0;
 	return max(pen_x, max_x);
+}
+
+void ttfFontColor32(uint32_t color) {
+	ttfColor.c = color;
+}
+
+void ttfFontColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+	RGBAColor color = {.r = r, .g = g, .b = b, .a = a};
+	ttfFontColor32(color.c);
 }
