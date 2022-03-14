@@ -1,4 +1,5 @@
 #include "draw.h"
+#include "log_freetype.h"
 
 uint8_t *scrBuffer;
 bool cur_buf1;
@@ -60,7 +61,7 @@ void drawPixel32(int x, int y, RGBAColor color) {
 	drawPixel(x, y, color.r, color.g, color.b, color.a);
 }
 
-void drawPixel(int x, int y, u8 r, u8 g, u8 b, u8 a) {
+void drawPixelOld(int x, int y, u8 r, u8 g, u8 b, u8 a) {
 	uint32_t num = (r << 24) | (g << 16) | (b << 8) | a;
 	OSScreenPutPixelEx(0, x, y, num);
 	OSScreenPutPixelEx(1, x, y, num);
@@ -249,39 +250,67 @@ void drawBackgroundTV(u32 w, u32 h, u8* out) {
 	memcpy(screen1, out, w * h * 4);
 }
 
+bool initFont(void* fontBuf, FT_Long fsize) {
+    FT_Long size = fsize;
+	if (fontBuf) {
+		ttfFont = fontBuf;
+	} else {
+    	OSGetSharedData(2, 0, &ttfFont, &size);
+	}
+
+	FT_Init_FreeType(&library);
+    FT_New_Memory_Face(library, (FT_Byte *) ttfFont, size, 0, &face);
+	FT_Set_Pixel_Sizes(face, 0, 22);
+
+	return true;
+}
+
 void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y) {
 	FT_Int i, j, p, q;
 	FT_Int x_max;
 	FT_Int y_max = y + bitmap->rows;
 
 	switch(bitmap->pixel_mode) {
-		case FT_PIXEL_MODE_GRAY: {
+		case FT_PIXEL_MODE_GRAY:
 			x_max = x + bitmap->width;
 			for (i = x, p = 0; i < x_max; i++, p++) {
 				for (j = y, q = 0; j < y_max; j++, q++) {
 					if (i < 0 || j < 0 || i >= 854 || j >= 480) continue;
-					u8 col = bitmap->buffer[q * bitmap->pitch + p];
+					uint8_t col = bitmap->buffer[q * bitmap->pitch + p];
 					if (col == 0) continue;
 					float opacity = col / 255.0;
-					drawPixel(i, j, fcolor.r, fcolor.g, fcolor.b, (u8)(fcolor.a * opacity));
+					drawPixel(i, j, fcolor.r, fcolor.g, fcolor.b, (uint8_t)(fcolor.a * opacity));
 				}
 			}
 			break;
-		}
-		case FT_PIXEL_MODE_LCD: {
+		case FT_PIXEL_MODE_LCD:
 			x_max = x + bitmap->width / 3;
 			for (i = x, p = 0; i < x_max; i++, p++) {
 				for (j = y, q = 0; j < y_max; j++, q++) {
 					if (i < 0 || j < 0 || i >= 854 || j >= 480) continue;
-					u8 cr = bitmap->buffer[q * bitmap->pitch + p * 3];
-					u8 cg = bitmap->buffer[q * bitmap->pitch + p * 3 + 1];
-					u8 cb = bitmap->buffer[q * bitmap->pitch + p * 3 + 2];
+					uint8_t cr = bitmap->buffer[q * bitmap->pitch + p * 3];
+					uint8_t cg = bitmap->buffer[q * bitmap->pitch + p * 3 + 1];
+					uint8_t cb = bitmap->buffer[q * bitmap->pitch + p * 3 + 2];
 
 					if ((cr | cg | cb) == 0) continue;
 					drawPixel(i, j, cr, cg, cb, 255);
 				}
 			}
 			break;
-		}
+		case FT_PIXEL_MODE_BGRA:
+			x_max = x + bitmap->width/2;
+			for (i = x, p = 0; i < x_max; i++, p++) {
+				for (j = y, q = 0; j < y_max; j++, q++) {
+					if (i < 0 || j < 0 || i >= 854 || j >= 480) continue;
+					uint8_t cb = bitmap->buffer[q * bitmap->pitch + p * 4];
+					uint8_t cg = bitmap->buffer[q * bitmap->pitch + p * 4 + 1];
+					uint8_t cr = bitmap->buffer[q * bitmap->pitch + p * 4 + 2];
+					uint8_t ca = bitmap->buffer[q * bitmap->pitch + p * 4 + 3];
+
+					if ((cr | cg | cb) == 0) continue;
+					drawPixel(i, j, cr, cg, cb, ca);
+				}
+			}
+			break;
 	}
 }

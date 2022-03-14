@@ -47,7 +47,7 @@ CXXFLAGS	:= -std=gnu++20 -g -Wall -Wno-int-in-bool-context -Ofast -ffunction-sec
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -liosuhax -lwut
+LIBS	:= -liosuhax -lwut -lfreetype -lpng -lz -lm -lbz2
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level

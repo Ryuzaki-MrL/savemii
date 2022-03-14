@@ -17,18 +17,14 @@ typedef union _RGBAColor {
     };
 } RGBAColor;
 
-#ifndef max
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-#endif
-
 //Function declarations for my graphics library
-void drawInit();
+//void drawInit();
 void drawFini();
 void flipBuffers();
 void clearBuffers();
 void fillScreen(u8 r, u8 g, u8 b, u8 a);
 void drawPixel32(int x, int y, RGBAColor color);
-void drawPixel(int x, int y, u8 r, u8 g, u8 b, u8 a);
+void drawPixelOld(int x, int y, u8 r, u8 g, u8 b, u8 a);
 void drawLine(int x1, int y1, int x2, int y2, u8 r, u8 g, u8 b, u8 a);
 void drawRect(int x1, int y1, int x2, int y2, u8 r, u8 g, u8 b, u8 a);
 void drawFillRect(int x1, int y1, int x2, int y2, u8 r, u8 g, u8 b, u8 a);
@@ -41,5 +37,9 @@ void drawTGA(int x, int y, float scale, u8* fileContent);
 void drawRGB5A3(int x, int y, float scale, u8* pixels);
 void drawBackgroundDRC(u32 w, u32 h, u8* out);
 void drawBackgroundTV(u32 w, u32 h, u8* out);
+
+bool initFont(void* fontBuf, FT_Long fsize);
+int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX);
+int ttfStringWidth(char *string, int8_t part);
 
 #endif /* DRAW_H */

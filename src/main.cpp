@@ -9,6 +9,7 @@ extern "C" {
 #include "main.h"
 #include "wiiu.h"
 #include "savemng.h"
+#include "log_freetype.h"
 #include "icon.h"
 }
 
@@ -383,7 +384,7 @@ void unloadTitles(Title* titles, int count) {
 
 /* Entry point */
 int main(void) {
-    drawInit();
+    WHBLogFreetypeInit();
     WHBProcInit();
     KPADInit();
     VPADInit();
@@ -407,7 +408,7 @@ int main(void) {
     mount_fs("storage_mlc", fsaFd, NULL, "/vol/storage_mlc01");
     mount_fs("storage_usb01", fsaFd, NULL, "/vol/storage_usb01");
     mount_fs("storage_odd", fsaFd, "/dev/odd03", "/vol/storage_odd_content");
-    
+
     clearBuffers();
     Title* wiiutitles = loadWiiUTitles(1, fsaFd);
     Title* wiititles = loadWiiTitles(fsaFd);
@@ -878,8 +879,6 @@ int main(void) {
         }
     }
 
-    if (tgaBufDRC) free(tgaBufDRC);
-    if (tgaBufTV) free(tgaBufTV);
     unloadTitles(wiiutitles, titleswiiu);
     unloadTitles(wiititles, titlesvwii);
     free(versionList);
@@ -888,7 +887,7 @@ int main(void) {
     IOSUHAX_usb_disc_interface.shutdown();
 
     OSScreenShutdown();
-    drawFini();
+    WHBLogFreetypeFree();
     WHBProcShutdown();
     unmount_fs("slccmpt01");
     unmount_fs("storage_mlc");

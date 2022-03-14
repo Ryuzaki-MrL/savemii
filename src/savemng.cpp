@@ -155,21 +155,20 @@ int createFolder(const char * fPath) { //Adapted from mkdir_p made by JonathonRe
     return 0;
 }
 
-void console_print_pos_aligned(int y, u16 offset, u8 align, const char* format, ...) {
+void console_print_pos_aligned(int y, uint16_t offset, uint8_t align, const char* format, ...) {
 	char* tmp = NULL;
 	int x = 0;
+
 	va_list va;
 	va_start(va, format);
 	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
-		if (strlen(tmp) > 79) tmp[79] = 0;
 		switch(align) {
 			case 0: x = (offset * 12); break;
-			case 1: x = (853 - strlen(tmp)) / 2; break;
-			case 2: x = 853 - (offset * 12) - strlen(tmp); break;
-			default:  x = (853 - strlen(tmp)) / 2; break;
+			case 1: x = (853 - ttfStringWidth(tmp, -2)) / 2; break;
+			case 2: x = 853 - (offset * 12) - ttfStringWidth(tmp, 0); break;
+			default:  x = (853 - ttfStringWidth(tmp, -2)) / 2; break;
 		}
-        OSScreenPutFontEx(SCREEN_TV, x, y, tmp);
-        OSScreenPutFontEx(SCREEN_DRC, x, y, tmp);
+		ttfPrintString(x, (y + 1) * 24, tmp, false, false);
 	}
 	va_end(va);
 	if (tmp) free(tmp);
@@ -181,32 +180,30 @@ void console_print_pos(int x, int y, const char* format, ...) { // Source: ftpii
 	va_list va;
 	va_start(va, format);
 	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
-        if (strlen(tmp) > 79) tmp[79] = 0;
-        OSScreenPutFontEx(SCREEN_TV, x, y, tmp);
-        OSScreenPutFontEx(SCREEN_DRC, x, y, tmp);
+		ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
 	}
-
 	va_end(va);
 	if (tmp) free(tmp);
 }
 
 void console_print_pos_multiline(int x, int y, char cdiv, const char* format, ...) { // Source: ftpiiu
 	char* tmp = NULL;
-	int len = (66 - x);
+	uint32_t len = (66 - x);
 
 	va_list va;
 	va_start(va, format);
 	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
-		if ((strlen(tmp) / 12) > (unsigned)len) {
+
+        if ((ttfStringWidth(tmp, -1) / 12) > len) {
 			char* p = tmp;
 			if (strrchr(p, '\n') != NULL) p = strrchr(p, '\n') + 1;
-			while((strlen(p) / 12) > (unsigned)len) {
+			while((ttfStringWidth(p, -1) / 12) > len) {
 				char* q = p;
 				int l1 = strlen(q);
 				for(int i = l1; i > 0; i--) {
 					char o = q[l1];
 					q[l1] = '\0';
-					if ((strlen(p) / 12) <= (unsigned)len) {
+					if ((ttfStringWidth(p, -1) / 12) <= len) {
 						if (strrchr(p, cdiv) != NULL) p = strrchr(p, cdiv) + 1;
 						else p = q + l1;
 						q[l1] = o;
@@ -215,16 +212,15 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char* format, ..
 					q[l1] = o;
 					l1--;
 				}
-				char buf[256];
-				memset(buf, 0, sizeof(buf));
+				char buf[255];
+				memset(buf, 0, 255);
 				strcpy(buf, p);
 				sprintf(p, "\n%s", buf);
 				p++;
 				len = 69;
 			}
 		}
-		OSScreenPutFontEx(SCREEN_TV, x, y, tmp);
-		OSScreenPutFontEx(SCREEN_DRC, x, y, tmp);
+		ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, true, true);
 	}
 	va_end(va);
 	if (tmp) free(tmp);
@@ -234,8 +230,7 @@ void console_print_pos_va(int x, int y, const char* format, va_list va) { // Sou
 	char* tmp = NULL;
 
 	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
-		OSScreenPutFontEx(SCREEN_TV, x, y, tmp);
-		OSScreenPutFontEx(SCREEN_DRC, x, y, tmp);
+		ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
 	}
 	if (tmp) free(tmp);
 }
@@ -263,8 +258,8 @@ bool promptConfirm(Style st, const char* question) {
 	if (st & ST_MULTILINE) {
 
 	} else {
-    	console_print_pos(23, 7, question);
-    	console_print_pos(23, 9, msg);
+    	console_print_pos(31 - (ttfStringWidth(question, 0) / 24), 7, question);
+    	console_print_pos(31 - (ttfStringWidth(msg, -1) / 24), 9, msg);
 	}
     flipBuffers();
 	sleep(0.2);
@@ -294,7 +289,13 @@ void promptError(const char* message, ...) {
 	va_start(va, message);
     OSScreenClearBufferEx(SCREEN_TV, 0x7F000000);
     OSScreenClearBufferEx(SCREEN_DRC, 0x7F000000);
-    console_print_pos_va(25, 9, message, va);
+    char* tmp = NULL;
+	if ((vasprintf(&tmp, message, va) >= 0) && tmp) {
+		int x = 31 - (ttfStringWidth(tmp, -2) / 24), y = 8;
+ 		x = (x < -4 ? -4 : x);
+		ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, true, false);
+	}
+	if (tmp) free(tmp);
     OSScreenFlipBuffersEx(SCREEN_TV);
     OSScreenFlipBuffersEx(SCREEN_DRC);
 	va_end(va);
