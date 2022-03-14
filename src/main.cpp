@@ -17,7 +17,7 @@ using namespace std;
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 3
-#define VERSION_MICRO 3
+#define VERSION_MICRO 4
 #define M_OFF 1
 
 u8 slot = 0;
