@@ -279,7 +279,8 @@ bool promptConfirm(Style st, const char* question) {
         }
         if ((vpad_status.trigger & (VPAD_BUTTON_A)) | (kpad_status.trigger & (WPAD_BUTTON_A)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A))) {
             return 1;
-        } else if((vpad_status.trigger & (VPAD_BUTTON_B)) | (kpad_status.trigger & (WPAD_BUTTON_B)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_B)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_B))) {
+        }
+		if((vpad_status.trigger & (VPAD_BUTTON_B)) | (kpad_status.trigger & (WPAD_BUTTON_B)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_B)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_B))) {
 			return 0;
 		}
     }
@@ -412,12 +413,13 @@ int DumpFile(char *pPath, char * oPath)
     }
     size_t buf_size = 0x8020;
     char* pBuffer = (char*)MEMAllocFromDefaultHeapEx(buf_size, 0x40);
+	char* oBuffer = (char*)MEMAllocFromDefaultHeapEx(IO_MAX_FILE_BUFFER, 0x40);
     if (pBuffer == NULL) {
     	fclose(source);
         fclose(dest);
         return -1;
     }
-	//setvbuf(dest, pBuffer, _IOFBF, IO_MAX_FILE_BUFFER);
+	setvbuf(dest, oBuffer, _IOFBF, IO_MAX_FILE_BUFFER);
 	struct stat st;
 	stat(pPath, &st);
 	int sizef = st.st_size;

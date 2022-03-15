@@ -78,20 +78,6 @@ uint32_t initScreen() {
     return 0;
 }
 
-static uint32_t FreetypeProcCallbackReleased(void *context) {
-    if (!freetypeHasForeground) return 0;
-    MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
-    MEMFreeByStateToFrmHeap(heap, CONSOLE_FRAME_HEAP_TAG);
-    freetypeHasForeground = false;
-    currTVFrameBuffer = NULL;
-    frameBufferTVFrontPtr = NULL;
-    frameBufferTVBackPtr = NULL;
-    currDRCFrameBuffer = NULL;
-    frameBufferDRCFrontPtr = NULL;
-    frameBufferDRCBackPtr = NULL;
-    return 0;
-}
-
 bool WHBLogFreetypeInit() {
     // Initialize screen
     OSScreenInit();
@@ -138,7 +124,6 @@ int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) {
 
     while(*string) {
 		uint32_t buf = *string++;
-		int dy = 0;
 
 		if ((buf >> 6) == 3) {
 			if ((buf & 0xF0) == 0xC0) {
@@ -175,7 +160,6 @@ int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) {
 			FT_Vector vector;
 			FT_Get_Kerning(fontFace, previous_glyph, glyph_index, FT_KERNING_DEFAULT, &vector);
 			pen_x += (vector.x >> 6);
-			dy = vector.y >> 6;
 		}
 
 		error = FT_Load_Glyph(fontFace, glyph_index, FT_LOAD_DEFAULT);

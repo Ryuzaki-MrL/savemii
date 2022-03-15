@@ -764,7 +764,7 @@ int main(void) {
         if ((vpad_status.trigger & VPAD_BUTTON_A) | ((kpad_status.trigger & (WPAD_BUTTON_A)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A)))) {
             clearBuffers();
             WHBLogFreetypeDraw();
-            sleep(0.2);
+            sleep(0.3);
             if (menu < 3) {
                 if (menu == 0) {
                     mode = cursor;
@@ -779,6 +779,7 @@ int main(void) {
                 }
 
                 if (menu == 1) {
+                    sleep(0.3);
                     targ = cursor + scroll;
                     cursorb = cursor;
                     scrollb = scroll;
@@ -798,15 +799,15 @@ int main(void) {
                     if (titles[targ].highID==0 || titles[targ].lowID==0) continue;
                     if ((mode == 0) && (strcmp(titles[targ].shortName, "DONT TOUCH ME") == 0)) {
                         if (!promptConfirm(ST_ERROR, "CBHC save. Could be dangerous to modify. Continue?") || !promptConfirm(ST_WARNING, "Are you REALLY sure?")) {
-                            cursor = cursorb;
-                            scroll = scrollb;
+                            menu = 0;
+                            sleep(0.3);
                             continue;
                         }
                     }
                     if ((mode == 0) && (!titles[targ].saveInit)) {
                         if (!promptConfirm(ST_WARNING, "Recommended to run Game at least one time. Continue?") || !promptConfirm(ST_WARNING, "Are you REALLY sure?")) {
-                            cursor = cursorb;
-                            scroll = scrollb;
+                            menu = 0;
+                            sleep(0.3);
                             continue;
                         }
                     }
