@@ -197,7 +197,7 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char* format, ..
         if ((uint32_t)(ttfStringWidth(tmp, -1) / 12) > len) {
 			char* p = tmp;
 			if (strrchr(p, '\n') != NULL) p = strrchr(p, '\n') + 1;
-			while((ttfStringWidth(p, -1) / 12) > len) {
+			while((uint32_t)(ttfStringWidth(p, -1) / 12) > len) {
 				char* q = p;
 				int l1 = strlen(q);
 				for(int i = l1; i > 0; i--) {
@@ -237,6 +237,7 @@ void console_print_pos_va(int x, int y, const char* format, va_list va) { // Sou
 
 bool promptConfirm(Style st, const char* question) {
     clearBuffers();
+	WHBLogFreetypeDraw();
 	const char* msg1 = "(A) Yes - (B) No";
 	const char* msg2 = "(A) Confirm - (B) Cancel";
 	const char* msg;
@@ -286,6 +287,7 @@ bool promptConfirm(Style st, const char* question) {
 
 void promptError(const char* message, ...) {
     clearBuffers();
+	WHBLogFreetypeDraw();
 	va_list va;
 	va_start(va, message);
     OSScreenClearBufferEx(SCREEN_TV, 0x7F000000);
