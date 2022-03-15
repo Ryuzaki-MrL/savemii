@@ -414,7 +414,7 @@ int DumpFile(char *pPath, char * oPath)
         fclose(dest);
         return -1;
     }
-	setvbuf(dest, pBuffer, _IOFBF, IO_MAX_FILE_BUFFER);
+	//setvbuf(dest, pBuffer, _IOFBF, IO_MAX_FILE_BUFFER);
 	struct stat st;
 	stat(pPath, &st);
 	int sizef = st.st_size;
