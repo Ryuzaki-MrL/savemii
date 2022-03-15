@@ -423,7 +423,7 @@ int DumpFile(char *pPath, char * oPath)
 	u64 startTime = OSGetTime();
 	
 	while ((size = fread(pBuffer, 1, buf_size, source)) > 0) {
-		fwrite(pBuffer, 1, buf_size, dest);
+		fwrite(pBuffer, 1, size, dest);
 		passedMs = (OSGetTime() - startTime) * 4000ULL / BUS_SPEED;
         if(passedMs == 0)
             passedMs = 1; // avoid 0 div
