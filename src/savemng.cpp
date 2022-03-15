@@ -407,7 +407,7 @@ int DumpFile(char *pPath, char * oPath)
         fclose(source);
         return -1;
     }
-    size_t buf_size = IO_MAX_FILE_BUFFER;
+    size_t buf_size = 0x8020;
     char* pBuffer = (char*)MEMAllocFromDefaultHeapEx(IO_MAX_FILE_BUFFER, 0x40);
     if (pBuffer == NULL) {
     	fclose(source);
