@@ -389,6 +389,7 @@ int DumpFile(char *pPath, char * oPath)
 		pPath = replace_str(pPath, (char*)"/vol/storage_mlc", (char*)"storage_mlc:");
 	
 	// replace oPath too
+	char* origOpath = oPath;
 	if(StartsWith(oPath, "/vol/storage_slccmpt01"))
 		oPath = replace_str(oPath, (char*)"/vol/storage_slccmpt01", (char*)"slccmpt01:");
 	
@@ -408,7 +409,7 @@ int DumpFile(char *pPath, char * oPath)
         return -1;
     }
     size_t buf_size = 0x8020;
-    char* pBuffer = (char*)MEMAllocFromDefaultHeapEx(IO_MAX_FILE_BUFFER, 0x40);
+    char* pBuffer = (char*)MEMAllocFromDefaultHeapEx(buf_size, 0x40);
     if (pBuffer == NULL) {
     	fclose(source);
         fclose(dest);
@@ -435,10 +436,10 @@ int DumpFile(char *pPath, char * oPath)
 		flipBuffers();
 		WHBLogFreetypeDraw();
 	}
-	
     fclose(source);
     fclose(dest);
 	free(pBuffer);
+	IOSUHAX_FSA_ChangeMode(fsaFd, origOpath, 0x666);
 	
     return 0;
 }
