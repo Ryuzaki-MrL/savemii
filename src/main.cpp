@@ -423,18 +423,22 @@ int main(void) {
     u8* tgaBufDRC = NULL;
     u8* tgaBufTV = NULL;
     u32 wDRC = 0, hDRC = 0, wTV = 0, hTV = 0;
-    KPADStatus kpad[4], kpad_status;
+    KPADStatus kpad_status;
     VPADStatus vpad_status;
     VPADReadError vpad_error;
     while(WHBProcIsRunning()) {
         VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
+        if(vpad_error != VPAD_READ_SUCCESS)
+            memset(&vpad_status, 0, sizeof(VPADStatus));
 
+        memset(&kpad_status, 0, sizeof(KPADStatus));
         WPADExtensionType controllerType;
-        if (WPADProbe((WPADChan)0, &controllerType) == 0) {
-            KPADRead(WPAD_CHAN_0, kpad, 1);
-            kpad_status = kpad[0];
-        } else
-            kpad_status = (KPADStatus)0;
+        for (int i = 0; i < 4; i++) {
+            if (WPADProbe((WPADChan)i, &controllerType) == 0) {
+                KPADRead((WPADChan)i, &kpad_status, 1);
+                break;
+            }
+        }
 
 
         if (tgaBufDRC)
