@@ -405,15 +405,23 @@ int DumpFile(char *pPath, char * oPath)
         fclose(source);
         return -1;
     }
-    size_t buf_size = 0x8020;
-    char* pBuffer = (char*)MEMAllocFromDefaultHeapEx(buf_size, 0x40);
-	char* oBuffer = (char*)MEMAllocFromDefaultHeapEx(IO_MAX_FILE_BUFFER, 0x40);
-    if (pBuffer == NULL) {
-    	fclose(source);
-        fclose(dest);
-        return -1;
-    }
-	setvbuf(dest, oBuffer, _IOFBF, IO_MAX_FILE_BUFFER);
+
+	char *buffer[3];
+	for (int i = 0; i < 3; i++) {
+		buffer[i] = (char *)MEMAllocFromDefaultHeapEx(IO_MAX_FILE_BUFFER, 0x40);
+		if(buffer[i] == NULL)
+		{
+			fclose(source);
+			fclose(dest);
+			for(i-- ; i >= 0; i--)
+				MEMFreeToDefaultHeap(buffer[i]);
+
+			return -1;
+		}
+	}
+
+	setvbuf(source, buffer[0], _IOFBF, IO_MAX_FILE_BUFFER);
+	setvbuf(dest, buffer[1], _IOFBF, IO_MAX_FILE_BUFFER);
 	struct stat st;
 	stat(pPath, &st);
 	int sizef = st.st_size;
@@ -421,8 +429,8 @@ int DumpFile(char *pPath, char * oPath)
 	u32 passedMs = 1;
 	u64 startTime = OSGetTime();
 	
-	while ((size = fread(pBuffer, 1, buf_size, source)) > 0) {
-		fwrite(pBuffer, 1, size, dest);
+	while ((size = fread(buffer[2], 1, IO_MAX_FILE_BUFFER, source)) > 0) {
+		fwrite(buffer[2], 1, size, dest);
 		passedMs = (OSGetTime() - startTime) * 4000ULL / BUS_SPEED;
         if(passedMs == 0)
             passedMs = 1; // avoid 0 div
@@ -436,7 +444,9 @@ int DumpFile(char *pPath, char * oPath)
 	}
     fclose(source);
     fclose(dest);
-	free(pBuffer);
+	for (int i = 0; i < 3; i++)
+		MEMFreeToDefaultHeap(buffer[i]);
+
 	IOSUHAX_FSA_ChangeMode(fsaFd, origOpath, 0x666);
 	
     return 0;
