@@ -30,6 +30,6 @@ jobs:
     - uses: actions/download-artifact@master
       with:
         name: binary
-        path: wiiu/apps
+        path: wiiu/apps/SaveMiiModWUTPort
     - name: zip artifact
       run: zip -r ${{ env.REPOSITORY_NAME }}_${{ env.DATETIME }}.zip wiiu
