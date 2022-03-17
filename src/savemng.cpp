@@ -385,11 +385,11 @@ int DumpFile(char *pPath, char * oPath)
 	if(StartsWith(pPath, "/vol/storage_slccmpt01"))
 		pPath = replace_str(pPath, (char*)"/vol/storage_slccmpt01", (char*)"slccmpt01:");
 	
-	if(StartsWith(pPath, "/vol/storage_usb01")) 
+	if(StartsWith(pPath, "/vol/storage_usb01"))
 		pPath = replace_str(pPath, (char*)"/vol/storage_usb01", (char*)"storage_usb01:");
 	
-	if(StartsWith(pPath, "/vol/storage_mlc")) 
-		pPath = replace_str(pPath, (char*)"/vol/storage_mlc", (char*)"storage_mlc:");
+	if(StartsWith(pPath, "/vol/storage_mlc01"))
+		pPath = replace_str(pPath, (char*)"/vol/storage_mlc01", (char*)"storage_mlc01:");
 	
 	// replace oPath too
 	char* origOpath = oPath;
@@ -399,8 +399,8 @@ int DumpFile(char *pPath, char * oPath)
 	if(StartsWith(oPath, "/vol/storage_usb01")) 
 		oPath = replace_str(oPath, (char*)"/vol/storage_usb01", (char*)"storage_usb01:");
 	
-	if(StartsWith(oPath, "/vol/storage_mlc")) 
-		oPath = replace_str(oPath, (char*)"/vol/storage_mlc", (char*)"storage_mlc:");
+	if(StartsWith(oPath, "/vol/storage_mlc01"))
+		oPath = replace_str(oPath, (char*)"/vol/storage_mlc01", (char*)"storage_mlc01:");
 	
 	FILE* source = fopen(pPath, "rb");
     if (source == NULL)
@@ -806,7 +806,7 @@ void backupAllSave(Title* titles, int count, OSCalendarTime* date) {
 		bool isUSB = titles[i].isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 		char srcPath[PATH_SIZE];
 		char dstPath[PATH_SIZE];
-		const char* path = (isWii ? "/vol/slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc/usr/save"));
+		const char* path = (isWii ? "/vol/slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save"));
 		sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
 		sprintf(dstPath, "/vol/storage_sdcard/wiiu/backups/batch/%s/%08x%08x", datetime, highID, lowID);
 
@@ -822,7 +822,7 @@ void backupSavedata(Title* title, u8 slot, s8 allusers, bool common) {
 	bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 	char srcPath[PATH_SIZE];
 	char dstPath[PATH_SIZE];
-		const char* path = (isWii ? "/vol/slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc/usr/save"));
+		const char* path = (isWii ? "/vol/slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save"));
 	sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
 	if (isWii && (slot == 255)) {
 		sprintf(dstPath, "/vol/storage_sdcard/savegames/%08x%08x", highID, lowID);
@@ -917,7 +917,7 @@ void wipeSavedata(Title* title, s8 allusers, bool common) {
 	bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 	char srcPath[PATH_SIZE];
 	char origPath[PATH_SIZE];
-		const char* path = (isWii ? "/vol/slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc/usr/save"));
+		const char* path = (isWii ? "/vol/slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save"));
 	sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
 	if ((allusers > -1) && !isWii) {
 		u32 offset = strlen(srcPath);

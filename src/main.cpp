@@ -406,7 +406,7 @@ int main(void) {
 
     IOSUHAX_FSA_Mount(fsaFd, "/dev/sdcard01", "/vol/storage_sdcard", 2, (char*)0, 0);
     mount_fs("slccmpt01", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
-    mount_fs("storage_mlc", fsaFd, NULL, "/vol/storage_mlc01");
+    mount_fs("storage_mlc01", fsaFd, NULL, "/vol/storage_mlc01");
     mount_fs("storage_usb01", fsaFd, NULL, "/vol/storage_usb01");
     mount_fs("storage_odd", fsaFd, "/dev/odd03", "/vol/storage_odd_content");
 
@@ -899,8 +899,8 @@ int main(void) {
     WHBLogFreetypeFree();
     WHBProcShutdown();
     unmount_fs("slccmpt01");
-    unmount_fs("storage_mlc");
-    unmount_fs("storage_usb");
+    unmount_fs("storage_mlc01");
+    unmount_fs("storage_usb01");
     unmount_fs("storage_odd");
 
     IOSUHAX_FSA_Close(fsaFd);
