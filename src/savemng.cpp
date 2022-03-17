@@ -388,6 +388,9 @@ int DumpFile(char *pPath, char * oPath)
 	if(StartsWith(pPath, "/vol/storage_usb01")) 
 		pPath = replace_str(pPath, (char*)"/vol/storage_usb01", (char*)"storage_usb01:");
 	
+	if(StartsWith(pPath, "/vol/storage_mlc")) 
+		pPath = replace_str(pPath, (char*)"/vol/storage_mlc", (char*)"storage_mlc:");
+	
 	// replace oPath too
 	char* origOpath = oPath;
 	if(StartsWith(oPath, "/vol/storage_slccmpt01"))
@@ -395,6 +398,9 @@ int DumpFile(char *pPath, char * oPath)
 	
 	if(StartsWith(oPath, "/vol/storage_usb01")) 
 		oPath = replace_str(oPath, (char*)"/vol/storage_usb01", (char*)"storage_usb01:");
+	
+	if(StartsWith(oPath, "/vol/storage_mlc")) 
+		oPath = replace_str(oPath, (char*)"/vol/storage_mlc", (char*)"storage_mlc:");
 	
 	FILE* source = fopen(pPath, "rb");
     if (source == NULL)
