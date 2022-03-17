@@ -6,18 +6,18 @@
 #include "string.hpp"
 
 extern "C" {
-#include "main.h"
-#include "wiiu.h"
-#include "savemng.h"
-#include "log_freetype.h"
-#include "icon.h"
+    #include "main.h"
+    #include "wiiu.h"
+    #include "savemng.h"
+    #include "log_freetype.h"
+    #include "icon.h"
 }
 
 using namespace std;
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 3
-#define VERSION_MICRO 6
+#define VERSION_MICRO 7
 #define M_OFF 1
 
 u8 slot = 0;

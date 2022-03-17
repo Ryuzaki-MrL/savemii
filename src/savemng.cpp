@@ -238,8 +238,8 @@ void console_print_pos_va(int x, int y, const char* format, va_list va) { // Sou
 bool promptConfirm(Style st, const char* question) {
     clearBuffers();
 	WHBLogFreetypeDraw();
-	const char* msg1 = "(A) Yes - (B) No";
-	const char* msg2 = "(A) Confirm - (B) Cancel";
+	const char* msg1 = "\ue000 Yes - \ue001 No";
+	const char* msg2 = "\ue000 Confirm - \ue001 Cancel";
 	const char* msg;
 	switch(st & 0x0F) {
 		case ST_YES_NO: msg = msg1; break;
@@ -262,6 +262,7 @@ bool promptConfirm(Style st, const char* question) {
     	console_print_pos(31 - (ttfStringWidth((char*)question, 0) / 24), 7, question);
     	console_print_pos(31 - (ttfStringWidth((char*)msg, -1) / 24), 9, msg);
 	}
+	int ret = 0;
     flipBuffers();
 	WHBLogFreetypeDraw();
 	sleep(0.2);
@@ -278,12 +279,15 @@ bool promptConfirm(Style st, const char* question) {
             kpad_status = kpad[i];
         }
         if ((vpad_status.trigger & (VPAD_BUTTON_A)) | (kpad_status.trigger & (WPAD_BUTTON_A)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A))) {
-            return 1;
+            ret = 1;
+			break;
         }
 		if((vpad_status.trigger & (VPAD_BUTTON_B)) | (kpad_status.trigger & (WPAD_BUTTON_B)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_B)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_B))) {
-			return 0;
+			ret = 0;
+			break;
 		}
     }
+	return ret;
 }
 
 void promptError(const char* message, ...) {
