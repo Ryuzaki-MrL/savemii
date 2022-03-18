@@ -417,20 +417,6 @@ int main(void) {
     VPADStatus vpad_status;
     VPADReadError vpad_error;
     while(WHBProcIsRunning()) {
-        VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
-        if(vpad_error != VPAD_READ_SUCCESS)
-            memset(&vpad_status, 0, sizeof(VPADStatus));
-
-        memset(&kpad_status, 0, sizeof(KPADStatus));
-        WPADExtensionType controllerType;
-        for (int i = 0; i < 4; i++) {
-            if (WPADProbe((WPADChan)i, &controllerType) == 0) {
-                KPADRead((WPADChan)i, &kpad_status, 1);
-                break;
-            }
-        }
-
-
         if (tgaBufDRC)
             drawBackgroundDRC(wDRC, hDRC, tgaBufDRC);
         else
@@ -623,6 +609,19 @@ int main(void) {
 
         flipBuffers();
         WHBLogFreetypeDraw();
+        
+        VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
+        if(vpad_error != VPAD_READ_SUCCESS)
+            memset(&vpad_status, 0, sizeof(VPADStatus));
+
+        memset(&kpad_status, 0, sizeof(KPADStatus));
+        WPADExtensionType controllerType;
+        for (int i = 0; i < 4; i++) {
+            if (WPADProbe((WPADChan)i, &controllerType) == 0) {
+                KPADRead((WPADChan)i, &kpad_status, 1);
+                break;
+            }
+        }
 
         if ((vpad_status.trigger & (VPAD_BUTTON_DOWN | VPAD_STICK_L_EMULATION_DOWN)) | (kpad_status.trigger & (WPAD_BUTTON_DOWN)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_DOWN | WPAD_CLASSIC_STICK_L_EMULATION_DOWN)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_DOWN | WPAD_PRO_STICK_L_EMULATION_DOWN))) {
             if (entrycount <= 14) cursor = (cursor + 1) % entrycount;
