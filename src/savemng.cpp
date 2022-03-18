@@ -22,6 +22,26 @@ VPADReadError vpad_error;
 
 KPADStatus kpad[4], kpad_status;
 
+static char *newlibToFSA(char *path)
+{
+	if (path[3] == ':')
+	{
+		switch (path[0])
+		{
+			case 'u':
+				path = replace_str(path, (char*)"usb:", (char*)"/vol/storage_usb01");
+				break;
+			case 'm':
+				path = replace_str(path, (char*)"mlc:", (char*)"/vol/storage_mlc01");
+				break;
+			case 's':
+				path = replace_str(path, (char*)"slc:", (char*)"/vol/storage_slccmpt01");
+				break;
+		}
+	}
+	return path;
+}
+
 void setFSAFD(int fd) {
 	fsaFd = fd;
 }
@@ -49,7 +69,10 @@ s32 loadFile(const char * fPath, u8 **buf) {
 
 		*buf = (u8*)malloc(size);
 		if (*buf) {
-			ret = fread(*buf, 1, size, file);
+			if (fread(*buf, size, 1, file) == 1)
+				ret = size;
+			else
+				free(*buf);
 		}
 		fclose(file);
 	}
@@ -57,22 +80,28 @@ s32 loadFile(const char * fPath, u8 **buf) {
 }
 
 s32 loadFilePart(const char * fPath, u32 start, u32 size, u8 **buf) {
-	int srcFd = -1;
-	int ret = IOSUHAX_FSA_OpenFile(fsaFd, fPath, "rb", &srcFd);
-	if (ret >= 0) {
-		fileStat_s fStat;
-		IOSUHAX_FSA_StatFile(fsaFd, srcFd, &fStat);
-		if ((start + size) > fStat.size) {
-			IOSUHAX_FSA_CloseFile(fsaFd, srcFd);
+	int ret = 0;
+	FILE* file = fopen(fPath, "rb");
+	if (file != NULL) {
+		struct stat st;
+		stat(fPath, &st);
+		if ((start + size) > st.st_size) {
+			fclose(file);
 			return -43;
 		}
-		IOSUHAX_FSA_SetFilePos(fsaFd, srcFd, start);
+		if (fseek(file, start, SEEK_SET) == -1) {
+			fclose(file);
+			return -43;
+		}
 
 		*buf = (u8*)malloc(size);
 		if (*buf) {
-			ret = IOSUHAX_FSA_ReadFile(fsaFd, *buf, 0x01, size, srcFd, 0);
+            if (fread(*buf, size, 1, file) == 1)
+				ret = size;
+			else
+				free(*buf);
 		}
-		IOSUHAX_FSA_CloseFile(fsaFd, srcFd);
+		fclose(file);
 	}
 	return ret;
 }
@@ -84,14 +113,14 @@ s32 loadTitleIcon(Title* title) {
 
 	if (isWii) {
 		if (title->saveInit) {
-			sprintf(path, "/vol/storage_slccmpt01/title/%08x/%08x/data/banner.bin", highID, lowID);
+			sprintf(path, "slc:/title/%08x/%08x/data/banner.bin", highID, lowID);
 			return loadFilePart(path, 0xA0, 24576, &title->iconBuf);
 		}
 	} else {
 		if (title->saveInit)
-			sprintf(path, "/vol/storage_%s01/usr/save/%08x/%08x/meta/iconTex.tga", isUSB ? "usb" : "mlc", highID, lowID);
+			sprintf(path, "%s:/usr/save/%08x/%08x/meta/iconTex.tga", isUSB ? "usb" : "mlc", highID, lowID);
 		else
-			sprintf(path, "/vol/storage_%s01/usr/title/%08x/%08x/meta/iconTex.tga", isUSB ? "usb" : "mlc", highID, lowID);
+			sprintf(path, "%s:/usr/title/%08x/%08x/meta/iconTex.tga", isUSB ? "usb" : "mlc", highID, lowID);
 
 		return loadFile(path, &title->iconBuf);
 	}
@@ -99,34 +128,35 @@ s32 loadTitleIcon(Title* title) {
 }
 
 int checkEntry(const char * fPath) {
-	fileStat_s fStat;
-	int ret = FSAR(IOSUHAX_FSA_GetStat(fsaFd, fPath, &fStat));
+	struct stat st;
+	if (stat(fPath, &st) == -1)
+		return 0;
 
-	if (ret == FSA_STATUS_NOT_FOUND) return 0;
-	else if (ret < 0) return -1;
-
-	if (fStat.flag & DIR_ENTRY_IS_DIRECTORY) return 2;
+	if (S_ISDIR(st.st_mode)) return 2;
 	return 1;
 }
 
 int folderEmpty(const char * fPath) {
-	int dirH;
+	DIR *dir = opendir(fPath);
+	if(dir == NULL)
+		return -1;
 
-	if (IOSUHAX_FSA_OpenDir(fsaFd, fPath, &dirH) >= 0) {
-		directoryEntry_s data;
-		int ret = FSAR(IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data));
-		IOSUHAX_FSA_CloseDir(fsaFd, dirH);
-		if (ret == FSA_STATUS_END_OF_DIRECTORY)
-			return 1;
-	} else return -1;
-	return 0;
+	int c = 0;
+	struct dirent *data;
+	while ((data = readdir(dir)) != NULL) {
+		if(++c > 2)
+			break;
+	}
+
+	closedir(dir);
+	return c < 3 ? 1 : 0;
 }
 
 int createFolder(const char * fPath) { //Adapted from mkdir_p made by JonathonReinhart
     const size_t len = strlen(fPath);
     char _path[FS_MAX_FULLPATH_SIZE];
     char *p;
-	int ret, found = 0;
+	int found = 0;
 
     if (len > sizeof(_path)-1) {
         return -1;
@@ -139,7 +169,7 @@ int createFolder(const char * fPath) { //Adapted from mkdir_p made by JonathonRe
 			if (found > 2) {
 	            *p = '\0';
 				if (checkEntry(_path) == 0) {
-					if ((ret = FSAR(IOSUHAX_FSA_MakeDir(fsaFd, _path, 0x666))) < 0) return -1;
+					if (mkdir(_path, DEFFILEMODE) == -1) return -1;
 				}
 	            *p = '/';
 			}
@@ -147,7 +177,7 @@ int createFolder(const char * fPath) { //Adapted from mkdir_p made by JonathonRe
     }
 
 	if (checkEntry(_path) == 0) {
-    	if ((ret = FSAR(IOSUHAX_FSA_MakeDir(fsaFd, _path, 0x666))) < 0) return -1;
+    	if (mkdir(_path, DEFFILEMODE) == -1) return -1;
 	}
 
     return 0;
@@ -345,63 +375,39 @@ void getAccountsWiiU() {
 
 void getAccountsSD(Title* title, u8 slot) {
 	u32 highID = title->highID, lowID = title->lowID;
-	int dirH;
 	sdaccn = 0;
 	if (sdacc) free(sdacc);
 
 	char path[255];
-	sprintf(path, "/vol/storage_sdcard/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
-	if (IOSUHAX_FSA_OpenDir(fsaFd, path, &dirH) >= 0) {
-		while (1) {
-			directoryEntry_s data;
-			int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-			if (ret != 0) break;
-
-			if (strncmp(data.name, "common", 6) == 0) continue;
+	sprintf(path, "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+	DIR *dir = opendir(path);
+	if (dir != NULL) {
+		struct dirent *data;
+		while ((data = readdir(dir)) != NULL) {
+			if (data->d_name[0] == '.' || strncmp(data->d_name, "common", 6) == 0) continue;
 			sdaccn++;
 		}
-		IOSUHAX_FSA_CloseDir(fsaFd, dirH);
+		closedir(dir);
 	}
 
 	sdacc = (Account*)malloc(sdaccn * sizeof(Account));
-	if (IOSUHAX_FSA_OpenDir(fsaFd, path, &dirH) >= 0) {
-		for(int i = 0; i < sdaccn; i++) {
-			directoryEntry_s data;
-			int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-			if (ret != 0) break;
-
-			if (strncmp(data.name, "common", 6) == 0) continue;
-			string_format(sdacc[i].persistentID, "%s", data.name);
-			sdacc[i].pID = strtoul(data.name, NULL, 16);
+	dir = opendir(path);
+	if (dir != NULL) {
+		struct dirent *data;
+		int i = 0;
+		while ((data = readdir(dir)) != NULL) {
+			if (data->d_name[0] == '.' || strncmp(data->d_name, "common", 6) == 0) continue;
+			string_format(sdacc[i].persistentID, "%s", data->d_name);
+			sdacc[i].pID = strtoul(data->d_name, NULL, 16);
 			sdacc[i].slot = i;
+            i++;
 		}
-		IOSUHAX_FSA_CloseDir(fsaFd, dirH);
+		closedir(dir);
 	}
 }
 
 int DumpFile(char *pPath, char * oPath)
 {
-	// replace pPath
-	if(StartsWith(pPath, "/vol/storage_slccmpt01"))
-		pPath = replace_str(pPath, (char*)"/vol/storage_slccmpt01", (char*)"slccmpt01:");
-	
-	if(StartsWith(pPath, "/vol/storage_usb01"))
-		pPath = replace_str(pPath, (char*)"/vol/storage_usb01", (char*)"storage_usb01:");
-	
-	if(StartsWith(pPath, "/vol/storage_mlc01"))
-		pPath = replace_str(pPath, (char*)"/vol/storage_mlc01", (char*)"storage_mlc01:");
-	
-	// replace oPath too
-	char* origOpath = oPath;
-	if(StartsWith(oPath, "/vol/storage_slccmpt01"))
-		oPath = replace_str(oPath, (char*)"/vol/storage_slccmpt01", (char*)"slccmpt01:");
-	
-	if(StartsWith(oPath, "/vol/storage_usb01")) 
-		oPath = replace_str(oPath, (char*)"/vol/storage_usb01", (char*)"storage_usb01:");
-	
-	if(StartsWith(oPath, "/vol/storage_mlc01"))
-		oPath = replace_str(oPath, (char*)"/vol/storage_mlc01", (char*)"storage_mlc01:");
-	
 	FILE* source = fopen(pPath, "rb");
     if (source == NULL)
         return -1;
@@ -453,85 +459,72 @@ int DumpFile(char *pPath, char * oPath)
 	for (int i = 0; i < 3; i++)
 		MEMFreeToDefaultHeap(buffer[i]);
 
-	IOSUHAX_FSA_ChangeMode(fsaFd, origOpath, 0x666);
+	IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA(oPath), 0x666);
 	
     return 0;
 }
 
 int DumpDir(char* pPath, const char* tPath) { // Source: ft2sd
-    int dirH;
+    DIR *dir = opendir(pPath);
+	if (dir == NULL)
+		return -1;
 
-	if (IOSUHAX_FSA_OpenDir(fsaFd, pPath, &dirH) < 0) return -1;
-	IOSUHAX_FSA_MakeDir(fsaFd, tPath, 0x666);
+	mkdir(tPath, DEFFILEMODE);
+	struct dirent *data;
 
-    while (1) {
-		directoryEntry_s data;
-		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-		if (ret != 0)
-			break;
-
+    while ((data = readdir(dir)) != NULL) {
         OSScreenClearBufferEx(SCREEN_TV, 0);
         OSScreenClearBufferEx(SCREEN_DRC, 0);
 
-        if (strcmp(data.name, "..") == 0 || strcmp(data.name, ".") == 0) continue;
+        if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0) continue;
 
         int len = strlen(pPath);
-        snprintf(pPath + len, FS_MAX_FULLPATH_SIZE - len, "/%s", data.name);
+        snprintf(pPath + len, FS_MAX_FULLPATH_SIZE - len, "/%s", data->d_name);
+        char* targetPath = (char*)malloc(FS_MAX_FULLPATH_SIZE);
+        snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", tPath, data->d_name);
 
-        if (data.stat.flag & DIR_ENTRY_IS_DIRECTORY) {
-            char* targetPath = (char*)malloc(FS_MAX_FULLPATH_SIZE);
-            snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", tPath, data.name);
-
-            IOSUHAX_FSA_MakeDir(fsaFd, targetPath, 0x666);
+        if (data->d_type & DT_DIR) {
+            mkdir(targetPath, DEFFILEMODE);
             if (DumpDir(pPath, targetPath) != 0) {
-                IOSUHAX_FSA_CloseDir(fsaFd, dirH);
+                closedir(dir);
                 return -2;
             }
-
-            free(targetPath);
         } else {
-            char* targetPath = (char*)malloc(FS_MAX_FULLPATH_SIZE);
-            snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", tPath, data.name);
-
-			p1 = data.name;
-			show_file_operation(data.name, pPath, targetPath);
+            p1 = data->d_name;
+			show_file_operation(data->d_name, pPath, targetPath);
 
             if (DumpFile(pPath, targetPath) != 0) {
-                IOSUHAX_FSA_CloseDir(fsaFd, dirH);
+                closedir( dir);
                 return -3;
             }
-
-            free(targetPath);
         }
 
+        free(targetPath);
         pPath[len] = 0;
     }
 
-    IOSUHAX_FSA_CloseDir(fsaFd, dirH);
+    closedir(dir);
 
     return 0;
 }
 
 int DeleteDir(char* pPath) {
-	int dirH;
+	DIR *dir = opendir(pPath);
+	if(dir == NULL)
+		return -1;
 
-	if (IOSUHAX_FSA_OpenDir(fsaFd, pPath, &dirH) < 0) return -1;
+	struct dirent *data;
 
-	while (1) {
-		directoryEntry_s data;
-		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-		if (ret != 0)
-			break;
-
+	while ((data = readdir(dir)) != NULL) {
 		OSScreenClearBufferEx(SCREEN_TV, 0);
 		OSScreenClearBufferEx(SCREEN_DRC, 0);
 
-		if (strcmp(data.name, "..") == 0 || strcmp(data.name, ".") == 0) continue;
+		if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0) continue;
 
 		int len = strlen(pPath);
-		snprintf(pPath + len, FS_MAX_FULLPATH_SIZE - len, "/%s", data.name);
+		snprintf(pPath + len, FS_MAX_FULLPATH_SIZE - len, "/%s", data->d_name);
 
-		if (data.stat.flag & DIR_ENTRY_IS_DIRECTORY) {
+		if (data->d_type & DT_DIR) {
 			char origPath[PATH_SIZE];
 			sprintf(origPath, "%s", pPath);
 			DeleteDir(pPath);
@@ -539,13 +532,13 @@ int DeleteDir(char* pPath) {
 			OSScreenClearBufferEx(SCREEN_TV, 0);
 			OSScreenClearBufferEx(SCREEN_DRC, 0);
 
-			console_print_pos(-2, 0, "Deleting folder %s", data.name);
+			console_print_pos(-2, 0, "Deleting folder %s", data->d_name);
 			console_print_pos_multiline(-2, 2, '/', "From: \n%s", origPath);
-			if (IOSUHAX_FSA_Remove(fsaFd, origPath) != 0) promptError("Failed to delete folder.");
+			if (rmdir(origPath) == -1) promptError("Failed to delete folder.");
 		} else {
-			console_print_pos(-2, 0, "Deleting file %s", data.name);
+			console_print_pos(-2, 0, "Deleting file %s", data->d_name);
 			console_print_pos_multiline(-2, 2, '/', "From: \n%s", pPath);
-			if (IOSUHAX_FSA_Remove(fsaFd, pPath) != 0) promptError("Failed to delete file.");
+			if (unlink(pPath) == -1) promptError("Failed to delete file.");
 		}
 
 		flipBuffers();
@@ -553,7 +546,7 @@ int DeleteDir(char* pPath) {
 		pPath[len] = 0;
 	}
 
-	IOSUHAX_FSA_CloseDir(fsaFd, dirH);
+	closedir(dir);
 	return 0;
 }
 
@@ -570,102 +563,90 @@ void getUserID(char* out) { // Source: loadiine_gx2
 }
 
 int getLoadiineGameSaveDir(char* out, const char* productCode) {
-	int dirH;
+	DIR *dir = opendir("/vol/external01/wiiu/saves");
 
-	if (IOSUHAX_FSA_OpenDir(fsaFd, "/vol/storage_sdcard/wiiu/saves", &dirH) < 0) return -1;
+	if (dir == NULL) return -1;
 
-	while (1) {
-		directoryEntry_s data;
-		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-		if (ret != 0)
-			break;
-
-		if ((data.stat.flag & DIR_ENTRY_IS_DIRECTORY) && (strstr(data.name, productCode) != NULL)) {
-			sprintf(out, "/vol/storage_sdcard/wiiu/saves/%s", data.name);
-			IOSUHAX_FSA_CloseDir(fsaFd, dirH);
+	struct dirent *data;
+	while ((data = readdir(dir)) != NULL) {
+		if ((data->d_type & DT_DIR) && (strstr(data->d_name, productCode) != NULL)) {
+			sprintf(out, "/vol/external01/wiiu/saves/%s", data->d_name);
+			closedir(dir);
 			return 0;
 		}
 	}
 
 	promptError("Loadiine game folder not found.");
-	IOSUHAX_FSA_CloseDir(fsaFd, dirH);
+	closedir(dir);
 	return -2;
 }
 
 int getLoadiineSaveVersionList(int* out, const char* gamePath) {
-	int dirH;
+	DIR *dir = opendir(gamePath);
 
-	if (IOSUHAX_FSA_OpenDir(fsaFd, gamePath, &dirH) < 0) {
+	if (dir == NULL) {
 		promptError("Loadiine game folder not found.");
 		return -1;
 	}
 
 	int i = 0;
-	while (i < 255) {
-		directoryEntry_s data;
-		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-		if (ret != 0)
-			break;
-
-		if ((data.stat.flag & DIR_ENTRY_IS_DIRECTORY) && (strchr(data.name, 'v') != NULL)) {
-			out[++i] = strtol((data.name)+1, NULL, 10);
+	struct dirent *data;
+	while (i < 255 && (data = readdir(dir)) != NULL) {
+		if ((data->d_type & DT_DIR) && (strchr(data->d_name, 'v') != NULL)) {
+			out[++i] = strtol((data->d_name)+1, NULL, 10);
 		}
 
 	}
 
-	IOSUHAX_FSA_CloseDir(fsaFd, dirH);
+	closedir(dir);
 	return 0;
 }
 
 int getLoadiineUserDir(char* out, const char* fullSavePath, const char* userID) {
-	int dirH;
+	DIR *dir = opendir(fullSavePath);
 
-	if (IOSUHAX_FSA_OpenDir(fsaFd, fullSavePath, &dirH) < 0) {
+	if (dir == NULL) {
 		promptError("Failed to open Loadiine game save directory.");
 		return -1;
 	}
 
-	while (1) {
-		directoryEntry_s data;
-		int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-		if (ret != 0)
-			break;
-
-		if ((data.stat.flag & DIR_ENTRY_IS_DIRECTORY) && (strstr(data.name, userID))) {
-			sprintf(out, "%s/%s", fullSavePath, data.name);
-			IOSUHAX_FSA_CloseDir(fsaFd, dirH);
+	struct dirent *data;
+	while ((data = readdir(dir)) != NULL) {
+		if ((data->d_type & DT_DIR) && (strstr(data->d_name, userID))) {
+			sprintf(out, "%s/%s", fullSavePath, data->d_name);
+			closedir(dir);
 			return 0;
 		}
 	}
 
 	sprintf(out, "%s/u", fullSavePath);
+	closedir(dir);
 	if (checkEntry(out) <= 0) return -1;
-	IOSUHAX_FSA_CloseDir(fsaFd, dirH);
 	return 0;
 }
 
 u64 getSlotDate(u32 highID, u32 lowID, u8 slot) {
 	char path[PATH_SIZE];
 	if (((highID & 0xFFFFFFF0) == 0x00010000) && (slot == 255)) {
-		sprintf(path, "/vol/storage_sdcard/savegames/%08x%08x", highID, lowID);
+		sprintf(path, "/vol/external01/savegames/%08x%08x", highID, lowID);
 	} else {
-		sprintf(path, "/vol/storage_sdcard/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+		sprintf(path, "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
 	}
 	int ret = checkEntry(path);
 	if (ret <= 0) return 0;
 	else {
-		fileStat_s fStat;
-		ret = FSAR(IOSUHAX_FSA_GetStat(fsaFd, path, &fStat));
-		return fStat.ctime;
+		struct stat st;
+		stat(path, &st);
+		return st.st_ctime;
 	}
 }
 
 bool isSlotEmpty(u32 highID, u32 lowID, u8 slot) {
 	char path[PATH_SIZE];
 	if (((highID & 0xFFFFFFF0) == 0x00010000) && (slot == 255)) {
-		sprintf(path, "/vol/storage_sdcard/savegames/%08x%08x", highID, lowID);
+		sprintf(path, "/vol/external01/savegames/%08x%08x", highID, lowID);
 	} else {
-		sprintf(path, "/vol/storage_sdcard/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+		sprintf(path, "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
 	}
 	int ret = checkEntry(path);
 	if (ret <= 0) return 1;
@@ -687,7 +668,7 @@ bool hasAccountSave(Title* title, bool inSD, bool iine, u32 user, u8 slot, int v
 	char srcPath[PATH_SIZE];
 	if (!isWii) {
 		if (!inSD) {
-			const char* path = (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save");
+			const char* path = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
 			if (user == 0)
 				sprintf(srcPath, "%s/%08x/%08x/%s/common", path, highID, lowID, "user");
 			else if (user == 0xFFFFFFFF)
@@ -696,7 +677,7 @@ bool hasAccountSave(Title* title, bool inSD, bool iine, u32 user, u8 slot, int v
 				sprintf(srcPath, "%s/%08x/%08x/%s/%08X", path, highID, lowID, "user", user);
 		} else {
 			if (!iine)
-				sprintf(srcPath, "/vol/storage_sdcard/wiiu/backups/%08x%08x/%u/%08X", highID, lowID, slot, user);
+				sprintf(srcPath, "/vol/external01/wiiu/backups/%08x%08x/%u/%08X", highID, lowID, slot, user);
 			else {
 				if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) return false;
 				if (version) sprintf(srcPath + strlen(srcPath), "/v%u", version);
@@ -713,9 +694,9 @@ bool hasAccountSave(Title* title, bool inSD, bool iine, u32 user, u8 slot, int v
 		}
 	} else {
 		if (!inSD) {
-			sprintf(srcPath, "/vol/storage_slccmpt01/title/%08x/%08x/data", highID, lowID);
+			sprintf(srcPath, "slc:/title/%08x/%08x/data", highID, lowID);
 		} else {
-			sprintf(srcPath, "/vol/storage_sdcard/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+			sprintf(srcPath, "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
 		}
 	}
 	if (checkEntry(srcPath) == 2)
@@ -731,11 +712,11 @@ bool hasCommonSave(Title* title, bool inSD, bool iine, u8 slot, int version) {
 
 	char srcPath[PATH_SIZE];
 	if (!inSD) {
-		const char* path = (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save");
+		const char* path = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
 		sprintf(srcPath, "%s/%08x/%08x/%s/common", path, highID, lowID, "user");
 	} else {
 		if (!iine)
-			sprintf(srcPath, "/vol/storage_sdcard/wiiu/backups/%08x%08x/%u/common", highID, lowID, slot);
+			sprintf(srcPath, "/vol/external01/wiiu/backups/%08x%08x/%u/common", highID, lowID, slot);
 		else {
 			if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) return false;
 			if (version) sprintf(srcPath + strlen(srcPath), "/v%u", version);
@@ -764,8 +745,8 @@ void copySavedata(Title* title, Title* titleb, s8 allusers, s8 allusers_d, bool 
 
 	char srcPath[PATH_SIZE];
 	char dstPath[PATH_SIZE];
-	const char* path = (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save");
-	const char* pathb = (isUSBb ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save");
+	const char* path = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
+	const char* pathb = (isUSBb ? "usb:/usr/save" : "mlc:/usr/save");
 	sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, "user");
 	sprintf(dstPath, "%s/%08x/%08x/%s", pathb, highIDb, lowIDb, "user");
 	createFolder(dstPath);
@@ -783,16 +764,6 @@ void copySavedata(Title* title, Title* titleb, s8 allusers, s8 allusers_d, bool 
 	}
 
 	if (DumpDir(srcPath, dstPath) != 0) promptError("Copy failed.");
-
-	if (strncmp(strchr(dstPath, '_'), "_usb", 4) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_usb01");
-	} else if (strncmp(strchr(dstPath, '_'), "_mlc", 4) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_mlc01");
-	} else if (strncmp(strchr(dstPath, '_'), "_slccmpt", 8) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_slccmpt01");
-	} else if (strncmp(strchr(dstPath, '_'), "_sdcard", 7) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_sdcard");
-	}
 }
 
 void backupAllSave(Title* titles, int count, OSCalendarTime* date) {
@@ -816,9 +787,9 @@ void backupAllSave(Title* titles, int count, OSCalendarTime* date) {
 		bool isUSB = titles[i].isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 		char srcPath[PATH_SIZE];
 		char dstPath[PATH_SIZE];
-		const char* path = (isWii ? "/vol/slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save"));
+		const char* path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
 		sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
-		sprintf(dstPath, "/vol/storage_sdcard/wiiu/backups/batch/%s/%08x%08x", datetime, highID, lowID);
+		sprintf(dstPath, "/vol/external01/wiiu/backups/batch/%s/%08x%08x", datetime, highID, lowID);
 
 		createFolder(dstPath);
 		if (DumpDir(srcPath, dstPath) != 0) promptError("Backup failed.");
@@ -832,12 +803,12 @@ void backupSavedata(Title* title, u8 slot, s8 allusers, bool common) {
 	bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 	char srcPath[PATH_SIZE];
 	char dstPath[PATH_SIZE];
-		const char* path = (isWii ? "/vol/slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save"));
+	const char* path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
 	sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
 	if (isWii && (slot == 255)) {
-		sprintf(dstPath, "/vol/storage_sdcard/savegames/%08x%08x", highID, lowID);
+		sprintf(dstPath, "/vol/external01/savegames/%08x%08x", highID, lowID);
 	} else {
-		sprintf(dstPath, "/vol/storage_sdcard/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+		sprintf(dstPath, "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
 	}
 	createFolder(dstPath);
 
@@ -858,16 +829,6 @@ void backupSavedata(Title* title, u8 slot, s8 allusers, bool common) {
 	}
 
 	if (DumpDir(srcPath, dstPath) != 0) promptError("Backup failed. DO NOT restore from this slot.");
-
-	if (strncmp(strchr(dstPath, '_'), "_usb", 4) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_usb01");
-	} else if (strncmp(strchr(dstPath, '_'), "_mlc", 4) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_mlc01");
-	} else if (strncmp(strchr(dstPath, '_'), "_slccmpt", 8) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_slccmpt01");
-	} else if (strncmp(strchr(dstPath, '_'), "_sdcard", 7) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_sdcard");
-	}
 }
 
 void restoreSavedata(Title* title, u8 slot, s8 sdusers, s8 allusers, bool common) {
@@ -884,11 +845,11 @@ void restoreSavedata(Title* title, u8 slot, s8 sdusers, s8 allusers, bool common
     bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
     char srcPath[PATH_SIZE];
     char dstPath[PATH_SIZE];
-    const char* path = (isWii ? "/vol/storage_slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save"));
+    const char* path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
 	if (isWii && (slot == 255)) {
-		sprintf(srcPath, "/vol/storage_sdcard/savegames/%08x%08x", highID, lowID);
+		sprintf(srcPath, "/vol/external01/savegames/%08x%08x", highID, lowID);
 	} else {
-		sprintf(srcPath, "/vol/storage_sdcard/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+		sprintf(srcPath, "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
 	}
 	sprintf(dstPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
 	createFolder(dstPath);
@@ -906,16 +867,6 @@ void restoreSavedata(Title* title, u8 slot, s8 sdusers, s8 allusers, bool common
     }
 
     if (DumpDir(srcPath, dstPath) != 0) promptError("Restore failed.");
-
-	if (strncmp(strchr(dstPath, '_'), "_usb", 4) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_usb01");
-	} else if (strncmp(strchr(dstPath, '_'), "_mlc", 4) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_mlc01");
-	} else if (strncmp(strchr(dstPath, '_'), "_slccmpt", 8) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_slccmpt01");
-	} else if (strncmp(strchr(dstPath, '_'), "_sdcard", 7) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_sdcard");
-	}
 }
 
 void wipeSavedata(Title* title, s8 allusers, bool common) {
@@ -927,7 +878,7 @@ void wipeSavedata(Title* title, s8 allusers, bool common) {
 	bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 	char srcPath[PATH_SIZE];
 	char origPath[PATH_SIZE];
-		const char* path = (isWii ? "/vol/slccmpt01/title" : (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save"));
+	const char* path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
 	sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
 	if ((allusers > -1) && !isWii) {
 		u32 offset = strlen(srcPath);
@@ -935,7 +886,7 @@ void wipeSavedata(Title* title, s8 allusers, bool common) {
 			strcpy(srcPath + offset, "/common");
 			sprintf(origPath, "%s", srcPath);
 			if (DeleteDir(srcPath) != 0) promptError("Common save not found.");
-			if (IOSUHAX_FSA_Remove(fsaFd, origPath) != 0) promptError("Failed to delete common folder.");
+			if (rmdir(origPath) == -1) promptError("Failed to delete common folder.");
 		}
 		sprintf(srcPath + offset, "/%s", wiiuacc[allusers].persistentID);
 		sprintf(origPath, "%s", srcPath);
@@ -943,17 +894,7 @@ void wipeSavedata(Title* title, s8 allusers, bool common) {
 
 	if (DeleteDir(srcPath)!=0) promptError("Failed to delete savefile.");
 	if ((allusers > -1) && !isWii) {
-		if (IOSUHAX_FSA_Remove(fsaFd, origPath) != 0) promptError("Failed to delete user folder.");
-	}
-
-	if (strncmp(strchr(srcPath, '_'), "_usb", 4) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_usb01");
-	} else if (strncmp(strchr(srcPath, '_'), "_mlc", 4) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_mlc01");
-	} else if (strncmp(strchr(srcPath, '_'), "_slccmpt", 8) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_slccmpt01");
-	} else if (strncmp(strchr(srcPath, '_'), "_sdcard", 7) == 0) {
-		IOSUHAX_FSA_FlushVolume(fsaFd, "/vol/storage_sdcard");
+		if (rmdir(origPath) == -1) promptError("Failed to delete user folder.");
 	}
 }
 
@@ -972,7 +913,7 @@ void importFromLoadiine(Title* title, bool common, int version) {
 	getUserID(usrPath);
 	u32 srcOffset = strlen(srcPath);
 	getLoadiineUserDir(srcPath, srcPath, usrPath);
-	sprintf(dstPath, "/vol/storage_%s01/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
+	sprintf(dstPath, "%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
 	createFolder(dstPath);
 	u32 dstOffset = strlen(dstPath);
 	sprintf(dstPath + dstOffset, "/%s", usrPath);
@@ -1001,7 +942,7 @@ void exportToLoadiine(Title* title, bool common, int version) {
 	getUserID(usrPath);
 	u32 dstOffset = strlen(dstPath);
 	getLoadiineUserDir(dstPath, dstPath, usrPath);
-	sprintf(srcPath, "/vol/storage_%s01/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
+	sprintf(srcPath, "%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
 	u32 srcOffset = strlen(srcPath);
 	sprintf(srcPath + srcOffset, "/%s", usrPath);
 	createFolder(dstPath);
