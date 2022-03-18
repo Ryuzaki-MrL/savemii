@@ -1,6 +1,8 @@
 name: CI-Release
 
 on:
+  pull_request:
+    types: [opened, reopened]
   push:
     branches:
       - refactor
