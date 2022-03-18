@@ -382,8 +382,10 @@ void unloadTitles(Title* titles, int count) {
 int main(void) {
     WHBProcInit();
     WHBLogFreetypeInit();
-    KPADInit();
     VPADInit();
+    WPADInit();
+    KPADInit();
+    WPADEnableURCC(1);
     loadWiiUTitles(0, -1);
 
     int res = IOSUHAX_Open(NULL);
