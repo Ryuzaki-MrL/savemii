@@ -70,6 +70,8 @@ void disclaimer() {
 Title* loadWiiUTitles(int run) {
     static char *tList;
     static uint32_t receivedCount;
+    const char* highIDs[2] = {"00050000", "00050002"};
+    const uint32_t highIDsNumeric[2] = {0x00050000, 0x00050002};
     // Source: haxchi installer
     if (run == 0) {
         int mcp_handle = MCP_Open();
@@ -92,7 +94,7 @@ Title* loadWiiUTitles(int run) {
     for (uint32_t i = 0; i < receivedCount; i++) {
         char* element = tList+(i*0x61);
         savesl[j].highID = *(uint32_t*)(element);
-        if (savesl[j].highID != 0x00050000) {
+        if (savesl[j].highID != (0x00050000 | 0x00050002)) {
             usable--;
             continue;
         }
@@ -105,31 +107,33 @@ Title* loadWiiUTitles(int run) {
 
     int foundCount = 0, pos = 0, tNoSave = usable;
     for (int i = 0; i <= 1; i++) {
-        char path[255];
-        sprintf(path, "%s:/usr/save/00050000", (i == 0) ? "usb" : "mlc");
-        DIR *dir = opendir(path);
-        if (dir != NULL) {
-            struct dirent *data;
-            while ((data = readdir(dir)) != NULL) {
-                if(data->d_name[0] == '.')
-                    continue;
+        for(uint8_t a = 0; a < 2; a++) {
+            char path[255];
+            sprintf(path, "%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
+            DIR *dir = opendir(path);
+            if (dir != NULL) {
+                struct dirent *data;
+                while ((data = readdir(dir)) != NULL) {
+                    if(data->d_name[0] == '.')
+                        continue;
 
-                sprintf(path, "%s:/usr/save/00050000/%s/user", (i == 0) ? "usb" : "mlc", data->d_name);
-                if (checkEntry(path) == 2) {
-                    sprintf(path, "%s:/usr/save/00050000/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", data->d_name);
-                    if (checkEntry(path) == 1) {
-                        for (int i = 0; i < usable; i++) {
-                            if ((savesl[i].highID == 0x00050000) && (strtoul(data->d_name, NULL, 16) == savesl[i].lowID)) {
-                                savesl[i].found = true;
-                                tNoSave--;
-                                break;
+                    sprintf(path, "%s:/usr/save/%s/%s/user", (i == 0) ? "usb" : "mlc", highIDs[a], data->d_name);
+                    if (checkEntry(path) == 2) {
+                        sprintf(path, "%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a], data->d_name);
+                        if (checkEntry(path) == 1) {
+                            for (int i = 0; i < usable; i++) {
+                                if ((savesl[i].highID == (0x00050000 | 0x00050002)) && (strtoul(data->d_name, NULL, 16) == savesl[i].lowID)) {
+                                    savesl[i].found = true;
+                                    tNoSave--;
+                                    break;
+                                }
                             }
+                            foundCount++;
                         }
-                        foundCount++;
                     }
                 }
+                closedir(dir);
             }
-            closedir(dir);
         }
     }
 
@@ -140,26 +144,28 @@ Title* loadWiiUTitles(int run) {
         return NULL;
     }
 
-    for (int i = 0; i <= 1; i++) {
-        char path[255];
-        sprintf(path, "%s:/usr/save/00050000", (i == 0) ? "usb" : "mlc");
-        DIR *dir = opendir(path);
-        if (dir != NULL) {
-            struct dirent *data;
-            while ((data = readdir(dir)) != NULL) {
-                if(data->d_name[0] == '.')
-                    continue;
+    for(uint8_t a = 0; a < 2; a++) {
+        for (int i = 0; i <= 1; i++) {
+            char path[255];
+            sprintf(path, "%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
+            DIR *dir = opendir(path);
+            if (dir != NULL) {
+                struct dirent *data;
+                while ((data = readdir(dir)) != NULL) {
+                    if(data->d_name[0] == '.')
+                        continue;
 
-                sprintf(path, "%s:/usr/save/00050000/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", data->d_name);
-                if (checkEntry(path) == 1) {
-                    saves[pos].highID = 0x00050000;
-                    saves[pos].lowID = strtoul(data->d_name, NULL, 16);
-                    saves[pos].dev = i;
-                    saves[pos].found = false;
-                    pos++;
+                    sprintf(path, "%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a], data->d_name);
+                    if (checkEntry(path) == 1) {
+                        saves[pos].highID = highIDsNumeric[a];
+                        saves[pos].lowID = strtoul(data->d_name, NULL, 16);
+                        saves[pos].dev = i;
+                        saves[pos].found = false;
+                        pos++;
+                    }
                 }
+                closedir(dir);
             }
-            closedir(dir);
         }
     }
 
