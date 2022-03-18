@@ -49,7 +49,6 @@ s32 loadFile(const char * fPath, u8 **buf) {
 
 		*buf = (u8*)malloc(size);
 		if (*buf) {
-			memset(*buf, 0, size);
 			ret = fread(*buf, 1, size, file);
 		}
 		fclose(file);
@@ -71,7 +70,6 @@ s32 loadFilePart(const char * fPath, u32 start, u32 size, u8 **buf) {
 
 		*buf = (u8*)malloc(size);
 		if (*buf) {
-			memset(*buf, 0, size);
 			ret = IOSUHAX_FSA_ReadFile(fsaFd, *buf, 0x01, size, srcFd, 0);
 		}
 		IOSUHAX_FSA_CloseFile(fsaFd, srcFd);
@@ -83,7 +81,6 @@ s32 loadTitleIcon(Title* title) {
 	u32 highID = title->highID, lowID = title->lowID;
 	bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 	char path[256];
-	memset(path, 0, sizeof(path));
 
 	if (isWii) {
 		if (title->saveInit) {
@@ -213,7 +210,6 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char* format, ..
 					l1--;
 				}
 				char buf[255];
-				memset(buf, 0, 255);
 				strcpy(buf, p);
 				sprintf(p, "\n%s", buf);
 				p++;

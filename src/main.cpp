@@ -178,12 +178,7 @@ Title* loadWiiUTitles(int run, int fsaFd) {
         bool isTitleOnUSB = !saves[i].dev;
 
         char path[255];
-        memset(path, 0, 255);
-        if (saves[i].found) {
-            sprintf(path, "/vol/storage_%s01/usr/title/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", highID, lowID);
-        } else {
-            sprintf(path, "/vol/storage_%s01/usr/save/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", highID, lowID);
-        }
+        sprintf(path, "/vol/storage_%s01/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", saves[i].found ? "title" : "save", highID, lowID);
         titles[titleswiiu].saveInit = !saves[i].found;
 
         char* xmlBuf = NULL;
