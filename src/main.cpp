@@ -235,8 +235,7 @@ Title* loadWiiUTitles(int run) {
 
 }
 
-Title* loadWiiTitles(int fsaFd) {
-    int dirH;
+Title* loadWiiTitles() {
     const char* highIDs[3] = {"00010000", "00010001", "00010004"};
     bool found = false;
     static const uint32_t blacklist[7][2] = {
@@ -248,20 +247,19 @@ Title* loadWiiTitles(int fsaFd) {
 
     char pathW[256];
     for (int k = 0; k < 3; k++) {
-        sprintf(pathW, "/vol/storage_slccmpt01/title/%s", highIDs[k]);
-        if (IOSUHAX_FSA_OpenDir(fsaFd, pathW, &dirH) >= 0) {
-            while (1) {
-                directoryEntry_s data;
-                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-                if (ret != 0) break;
+        sprintf(pathW, "slc:/title/%s", highIDs[k]);
+        DIR *dir = opendir(pathW);
+        if (dir != NULL) {
+            struct dirent *data;
+            while ((data = readdir(dir)) != NULL) {
                 for (int ii = 0; ii < 7; ii++) {
                     if (blacklist[ii][0] == strtoul(highIDs[k], NULL, 16)) {
-                        if (blacklist[ii][1] == strtoul(data.name, NULL, 16)) {found = true; break;}
+                        if (blacklist[ii][1] == strtoul(data->d_name, NULL, 16)) {found = true; break;}
                     }
                 } if (found) {found = false; continue;}
 
                 titlesvwii++;
-            } IOSUHAX_FSA_CloseDir(fsaFd, dirH);
+            } closedir(dir);
         }
     }
     if (titlesvwii == 0) return NULL;
@@ -274,29 +272,25 @@ Title* loadWiiTitles(int fsaFd) {
 
     int i = 0;
     for (int k = 0; k < 3; k++) {
-        sprintf(pathW, "/vol/storage_slccmpt01/title/%s", highIDs[k]);
-        if (IOSUHAX_FSA_OpenDir(fsaFd, pathW, &dirH) >= 0) {
-            while (1) {
-                directoryEntry_s data;
-                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
-                if (ret != 0) break;
+        sprintf(pathW, "slc:/title/%s", highIDs[k]);
+        DIR *dir = opendir(pathW);
+        if (dir != NULL) {
+            struct dirent *data;
+            while ((data = readdir(dir)) != NULL) {
                 for (int ii = 0; ii < 7; ii++) {
                     if (blacklist[ii][0] == strtoul(highIDs[k], NULL, 16)) {
-                        if (blacklist[ii][1] == strtoul(data.name, NULL, 16)) {found = true; break;}
+                        if (blacklist[ii][1] == strtoul(data->d_name, NULL, 16)) {found = true; break;}
                     }
                 } if (found) {found = false; continue;}
 
-                int srcFd = -1;
                 char path[256];
-                sprintf(path, "/vol/storage_slccmpt01/title/%s/%s/data/banner.bin", highIDs[k], data.name);
-                ret = IOSUHAX_FSA_OpenFile(fsaFd, path, "rb", &srcFd);
-                if (ret >= 0) {
-                    IOSUHAX_FSA_SetFilePos(fsaFd, srcFd, 0x20);
+                sprintf(path, "slc:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
+                FILE *file = fopen(path, "rb");
+                if (file != NULL) {
+                    fseek(file, 0x20, SEEK_SET);
                     uint16_t* bnrBuf = (uint16_t*)malloc(0x80);
                     if (bnrBuf) {
-                        IOSUHAX_FSA_ReadFile(fsaFd, bnrBuf, 0x02, 0x40, srcFd, 0);
-                        IOSUHAX_FSA_CloseFile(fsaFd, srcFd);
-
+                        fread(bnrBuf, 0x02, 0x20, file);
                         memset(titles[i].shortName, 0, sizeof(titles[i].shortName));
                         for (int j = 0, k = 0; j < 0x20; j++) {
                             if (bnrBuf[j] < 0x80)
@@ -330,18 +324,19 @@ Title* loadWiiTitles(int fsaFd) {
                                 titles[i].longName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
                             }
                         }
-
-                        free(bnrBuf);
                         titles[i].saveInit = true;
+                        
+                        free(bnrBuf);
                     }
+                    fclose(file);
                 } else {
-                    sprintf(titles[i].shortName, "%s%s (No banner.bin)", highIDs[k], data.name);
+                    sprintf(titles[i].shortName, "%s%s (No banner.bin)", highIDs[k], data->d_name);
                     memset(titles[i].longName, 0, sizeof(titles[i].longName));
                     titles[i].saveInit = false;
                 }
 
                 titles[i].highID = strtoul(highIDs[k], NULL, 16);
-                titles[i].lowID = strtoul(data.name, NULL, 16);
+                titles[i].lowID = strtoul(data->d_name, NULL, 16);
 
                 titles[i].listID = i;
                 memcpy(titles[i].productCode, &titles[i].lowID, 4);
@@ -364,7 +359,7 @@ Title* loadWiiTitles(int fsaFd) {
                 flipBuffers();
                 WHBLogFreetypeDraw();
             }
-            IOSUHAX_FSA_CloseDir(fsaFd, dirH);
+            closedir(dir);
         }
     }
 
@@ -407,7 +402,7 @@ int main(void) {
 
     clearBuffers();
     Title* wiiutitles = loadWiiUTitles(1);
-    Title* wiititles = loadWiiTitles(fsaFd);
+    Title* wiititles = loadWiiTitles();
     int* versionList = (int*)malloc(0x100 * sizeof(int));
     sleep(1);
     getAccountsWiiU();
