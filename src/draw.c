@@ -9,32 +9,10 @@ size_t drcBufferSize = 0;
 void* tvBuffer;
 void* drcBuffer;
 
-u8 *ttfFont;
+uint8_t *ttfFont;
 RGBAColor fcolor = {0xFFFFFFFF};
 FT_Library  library;
 FT_Face     face;
-
-void drawInit() {
-	OSScreenInit();
-
-    size_t tvBufferSize = OSScreenGetBufferSizeEx(SCREEN_TV);
-    size_t drcBufferSize = OSScreenGetBufferSizeEx(SCREEN_DRC);
-
-    void* tvBuffer = memalign(0x100, tvBufferSize);
-    void* drcBuffer = memalign(0x100, drcBufferSize);
-
-    OSScreenSetBufferEx(SCREEN_TV, tvBuffer);
-    OSScreenSetBufferEx(SCREEN_DRC, drcBuffer);
-
-    OSScreenEnableEx(SCREEN_TV, true);
-    OSScreenEnableEx(SCREEN_DRC, true);
-	clearBuffers();
-}
-
-void drawFini() {
-	if (tvBuffer) free(tvBuffer);
-    if (drcBuffer) free(drcBuffer);
-}
 
 void flipBuffers() {
 	DCFlushRange(tvBuffer, tvBufferSize);
@@ -50,7 +28,7 @@ void clearBuffers() {
 	flipBuffers();
 }
 
-void fillScreen(u8 r, u8 g, u8 b, u8 a) {
+void fillScreen(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 	RGBAColor color;
 	color.r = r; color.g = g; color.b = b; color.a = a;
 	OSScreenClearBufferEx(SCREEN_TV, color.c);
@@ -61,13 +39,7 @@ void drawPixel32(int x, int y, RGBAColor color) {
 	drawPixel(x, y, color.r, color.g, color.b, color.a);
 }
 
-void drawPixelOld(int x, int y, u8 r, u8 g, u8 b, u8 a) {
-	uint32_t num = (r << 24) | (g << 16) | (b << 8) | a;
-	OSScreenPutPixelEx(0, x, y, num);
-	OSScreenPutPixelEx(1, x, y, num);
-}
-
-void drawLine(int x1, int y1, int x2, int y2, u8 r, u8 g, u8 b, u8 a) {
+void drawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 
 	int x, y;
 	if (x1 == x2){
@@ -80,14 +52,14 @@ void drawLine(int x1, int y1, int x2, int y2, u8 r, u8 g, u8 b, u8 a) {
 	}
 }
 
-void drawRect(int x1, int y1, int x2, int y2, u8 r, u8 g, u8 b, u8 a) {
+void drawRect(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 	drawLine(x1, y1, x2, y1, r, g, b, a);
 	drawLine(x2, y1, x2, y2, r, g, b, a);
 	drawLine(x1, y2, x2, y2, r, g, b, a);
 	drawLine(x1, y1, x1, y2, r, g, b, a);
 }
 
-void drawFillRect(int x1, int y1, int x2, int y2, u8 r, u8 g, u8 b, u8 a) {
+void drawFillRect(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 	int X1, X2, Y1, Y2, i, j;
 
 	if (x1 < x2){
@@ -114,7 +86,7 @@ void drawFillRect(int x1, int y1, int x2, int y2, u8 r, u8 g, u8 b, u8 a) {
 	}
 }
 
-void drawCircle(int xCen, int yCen, int radius, u8 r, u8 g, u8 b, u8 a) {
+void drawCircle(int xCen, int yCen, int radius, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 	int x = 0;
 	int y = radius;
 	int p = (5 - radius * 4) / 4;
@@ -132,7 +104,7 @@ void drawCircle(int xCen, int yCen, int radius, u8 r, u8 g, u8 b, u8 a) {
 	}
 }
 
-void drawFillCircle(int xCen, int yCen, int radius, u8 r, u8 g, u8 b, u8 a) {
+void drawFillCircle(int xCen, int yCen, int radius, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 	drawCircle(xCen, yCen, radius, r, g, b, a);
 	int x, y;
 	for (y = -radius; y <= radius; y++){
@@ -142,7 +114,7 @@ void drawFillCircle(int xCen, int yCen, int radius, u8 r, u8 g, u8 b, u8 a) {
 	}
 }
 
-void drawCircleCircum(int cx, int cy, int x, int y, u8 r, u8 g, u8 b, u8 a) {
+void drawCircleCircum(int cx, int cy, int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 
 	if (x == 0){
 		drawPixel(cx, cy + y, r, g, b, a);
@@ -168,25 +140,25 @@ void drawCircleCircum(int cx, int cy, int x, int y, u8 r, u8 g, u8 b, u8 a) {
 	}
 }
 
-void drawPic(int x, int y, u32 w, u32 h, float scale, u32* pixels) {
-	u32 nw = w, nh = h;
+void drawPic(int x, int y, uint32_t w, uint32_t h, float scale, uint32_t* pixels) {
+	uint32_t nw = w, nh = h;
 	RGBAColor color;
 	if (scale <= 0) scale = 1;
 	nw = w * scale; nh = h * scale;
 
 
-	for (u32 j = y; j < (y + nh); j++) {
-		for (u32 i = x; i < (x + nw); i++) {
+	for (uint32_t j = y; j < (y + nh); j++) {
+		for (uint32_t i = x; i < (x + nw); i++) {
 			color.c = pixels[((i - x) * w / nw) + ((j - y) * h / nh) * w];
 			drawPixel32(i, j, color);
 		}
 	}
 }
 
-void drawTGA(int x, int y, float scale, u8* fileContent) {
-	u32 w = tgaGetWidth(fileContent), h = tgaGetHeight(fileContent);
-	u32 nw = w, nh = h;
-	u32* out = (u32*)tgaRead(fileContent, TGA_READER_RGBA);
+void drawTGA(int x, int y, float scale, uint8_t* fileContent) {
+	uint32_t w = tgaGetWidth(fileContent), h = tgaGetHeight(fileContent);
+	uint32_t nw = w, nh = h;
+	uint32_t* out = (uint32_t*)tgaRead(fileContent, TGA_READER_RGBA);
 
 	if (scale <= 0) scale = 1;
 	nw = w * scale; nh = h * scale;
@@ -200,22 +172,22 @@ void drawTGA(int x, int y, float scale, u8* fileContent) {
 	free(out);
 }
 
-void drawRGB5A3(int x, int y, float scale, u8* fileContent) {
-	u32 w = 192, h = 64;
-	u32 nw = w, nh = h;
+void drawRGB5A3(int x, int y, float scale, uint8_t* fileContent) {
+	uint32_t w = 192, h = 64;
+	uint32_t nw = w, nh = h;
 
 	if (scale <= 0) scale = 1;
 	nw = w * scale; nh = h * scale;
 
-	u32 pos = 0, npos = 0;
+	uint32_t pos = 0, npos = 0;
 	RGBAColor color;
-	u16* pixels = (u16*)fileContent;
+	uint16_t* pixels = (uint16_t*)fileContent;
 
-	u8 sum = (4 * scale);
-	for (u32 j = y; j < (y + nh); j += sum) {
-		for (u32 i = x; i < (x + nw); i += sum) {
-			for (u32 sj = j; sj < (j + sum); sj++, pos++) {
-				for (u32 si = i; si < (i + sum); si++) {
+	uint8_t sum = (4 * scale);
+	for (uint32_t j = y; j < (y + nh); j += sum) {
+		for (uint32_t i = x; i < (x + nw); i += sum) {
+			for (uint32_t sj = j; sj < (j + sum); sj++, pos++) {
+				for (uint32_t si = i; si < (i + sum); si++) {
 					npos = ((si - i) / scale) + ((pos / scale) * 4);
 					if (pixels[npos] & 0x8000)
 						color.c = ((pixels[npos] & 0x7C00) << 17) | ((pixels[npos] & 0x3E0) << 14) | ((pixels[npos] & 0x1F) << 11) | 0xFF;
@@ -233,7 +205,7 @@ void drawRGB5A3(int x, int y, float scale, u8* fileContent) {
 	}
 }
 
-void drawBackgroundDRC(u32 w, u32 h, u8* out) {
+void drawBackgroundDRC(uint32_t w, uint32_t h, uint8_t* out) {
 	uint32_t *screen2 = NULL;
 	int otherBuff1 = drcBufferSize / 2;
 
@@ -242,27 +214,12 @@ void drawBackgroundDRC(u32 w, u32 h, u8* out) {
 	memcpy(screen2, out, w * h * 4);
 }
 
-void drawBackgroundTV(u32 w, u32 h, u8* out) {
+void drawBackgroundTV(uint32_t w, uint32_t h, uint8_t* out) {
 	uint32_t *screen1 = (uint32_t*)scrBuffer;
 	int otherBuff0 = tvBufferSize / 2;
 
 	if (cur_buf1) screen1 = (uint32_t*)scrBuffer + otherBuff0;
 	memcpy(screen1, out, w * h * 4);
-}
-
-bool initFont(void* fontBuf, FT_Long fsize) {
-    FT_Long size = fsize;
-	if (fontBuf) {
-		ttfFont = fontBuf;
-	} else {
-    	OSGetSharedData(2, 0, &ttfFont, &size);
-	}
-
-	FT_Init_FreeType(&library);
-    FT_New_Memory_Face(library, (FT_Byte *) ttfFont, size, 0, &face);
-	FT_Set_Pixel_Sizes(face, 0, 22);
-
-	return true;
 }
 
 void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y) {

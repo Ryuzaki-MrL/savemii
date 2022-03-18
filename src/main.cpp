@@ -20,8 +20,8 @@ using namespace std;
 #define VERSION_MICRO 7
 #define M_OFF 1
 
-u8 slot = 0;
-s8 allusers = -1, allusers_d = -1, sdusers = -1;
+uint8_t slot = 0;
+int8_t allusers = -1, allusers_d = -1, sdusers = -1;
 bool common = 1;
 int menu = 0, mode = 0, task = 0, targ = 0, tsort = 1, sorta = 1;
 int cursor = 0, scroll = 0;
@@ -85,12 +85,12 @@ Title* loadWiiUTitles(int run) {
     }
     for (uint32_t i = 0; i < receivedCount; i++) {
         char* element = tList+(i*0x61);
-        savesl[j].highID = *(u32*)(element);
+        savesl[j].highID = *(uint32_t*)(element);
         if (savesl[j].highID != 0x00050000) {
             usable--;
             continue;
         }
-        savesl[j].lowID = *(u32*)(element+4);
+        savesl[j].lowID = *(uint32_t*)(element+4);
         savesl[j].dev = !(memcmp(element+0x56, "usb", 4) == 0);
         savesl[j].found = false;
         j++;
@@ -174,7 +174,7 @@ Title* loadWiiUTitles(int run) {
     }
 
     for (int i = 0; i < foundCount; i++) {
-        u32 highID = saves[i].highID, lowID = saves[i].lowID;
+        uint32_t highID = saves[i].highID, lowID = saves[i].lowID;
         bool isTitleOnUSB = !saves[i].dev;
 
         char path[255];
@@ -182,7 +182,7 @@ Title* loadWiiUTitles(int run) {
         titles[titleswiiu].saveInit = !saves[i].found;
 
         char* xmlBuf = NULL;
-        if (loadFile(path, (u8**)&xmlBuf) > 0) {
+        if (loadFile(path, (uint8_t**)&xmlBuf) > 0) {
             char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
             memset(titles[titleswiiu].productCode, 0, sizeof(titles[titleswiiu].productCode));
             strncpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<"));
@@ -235,10 +235,11 @@ Title* loadWiiUTitles(int run) {
 
 }
 
-Title* loadWiiTitles() {
+Title* loadWiiTitles(int fsaFd) {
+    int dirH;
     const char* highIDs[3] = {"00010000", "00010001", "00010004"};
     bool found = false;
-    static const u32 blacklist[7][2] = {
+    static const uint32_t blacklist[7][2] = {
         {0x00010000, 0x00555044}, {0x00010000, 0x00555045},
         {0x00010000, 0x0055504A}, {0x00010000, 0x524F4E45},
         {0x00010000, 0x52543445}, {0x00010001, 0x48424344},
@@ -247,19 +248,20 @@ Title* loadWiiTitles() {
 
     char pathW[256];
     for (int k = 0; k < 3; k++) {
-        sprintf(pathW, "slc:/title/%s", highIDs[k]);
-        DIR *dir = opendir(pathW);
-        if (dir != NULL) {
-            struct dirent *data;
-            while ((data = readdir(dir)) != NULL) {
+        sprintf(pathW, "/vol/storage_slccmpt01/title/%s", highIDs[k]);
+        if (IOSUHAX_FSA_OpenDir(fsaFd, pathW, &dirH) >= 0) {
+            while (1) {
+                directoryEntry_s data;
+                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
+                if (ret != 0) break;
                 for (int ii = 0; ii < 7; ii++) {
                     if (blacklist[ii][0] == strtoul(highIDs[k], NULL, 16)) {
-                        if (blacklist[ii][1] == strtoul(data->d_name, NULL, 16)) {found = true; break;}
+                        if (blacklist[ii][1] == strtoul(data.name, NULL, 16)) {found = true; break;}
                     }
                 } if (found) {found = false; continue;}
 
                 titlesvwii++;
-            } closedir(dir);
+            } IOSUHAX_FSA_CloseDir(fsaFd, dirH);
         }
     }
     if (titlesvwii == 0) return NULL;
@@ -272,71 +274,74 @@ Title* loadWiiTitles() {
 
     int i = 0;
     for (int k = 0; k < 3; k++) {
-        sprintf(pathW, "slc:/title/%s", highIDs[k]);
-        DIR *dir = opendir(pathW);
-        if (dir != NULL) {
-            struct dirent *data;
-            while ((data = readdir(dir)) != NULL) {
+        sprintf(pathW, "/vol/storage_slccmpt01/title/%s", highIDs[k]);
+        if (IOSUHAX_FSA_OpenDir(fsaFd, pathW, &dirH) >= 0) {
+            while (1) {
+                directoryEntry_s data;
+                int ret = IOSUHAX_FSA_ReadDir(fsaFd, dirH, &data);
+                if (ret != 0) break;
                 for (int ii = 0; ii < 7; ii++) {
                     if (blacklist[ii][0] == strtoul(highIDs[k], NULL, 16)) {
-                        if (blacklist[ii][1] == strtoul(data->d_name, NULL, 16)) {found = true; break;}
+                        if (blacklist[ii][1] == strtoul(data.name, NULL, 16)) {found = true; break;}
                     }
                 } if (found) {found = false; continue;}
 
+                int srcFd = -1;
                 char path[256];
-                sprintf(path, "slc:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
-                FILE *file = fopen(path, "rb");
-                if (file != NULL) {
-                    fseek(file, 0x20, SEEK_SET);
-                    u16* bnrBuf = (u16*)malloc(0x80);
+                sprintf(path, "/vol/storage_slccmpt01/title/%s/%s/data/banner.bin", highIDs[k], data.name);
+                ret = IOSUHAX_FSA_OpenFile(fsaFd, path, "rb", &srcFd);
+                if (ret >= 0) {
+                    IOSUHAX_FSA_SetFilePos(fsaFd, srcFd, 0x20);
+                    uint16_t* bnrBuf = (uint16_t*)malloc(0x80);
                     if (bnrBuf) {
-                        if (fread(bnrBuf, 0x100, 1, file) == 1) {
-                            memset(titles[i].shortName, 0, sizeof(titles[i].shortName));
-                            for (int j = 0, k = 0; j < 0x20; j++) {
-                                if (bnrBuf[j] < 0x80)
-                                    titles[i].shortName[k++] = (char)bnrBuf[j];
-                                else if ((bnrBuf[j] & 0xF000) > 0) {
-                                    titles[i].shortName[k++] = 0xE0 | ((bnrBuf[j] & 0xF000) >> 12);
-                                    titles[i].shortName[k++] = 0x80 | ((bnrBuf[j] & 0xFC0) >> 6);
-                                    titles[i].shortName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
-                                } else if (bnrBuf[j] < 0x400) {
-                                    titles[i].shortName[k++] = 0xC0 | ((bnrBuf[j] & 0x3C0) >> 6);
-                                    titles[i].shortName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
-                                } else {
-                                    titles[i].shortName[k++] = 0xD0 | ((bnrBuf[j] & 0x3C0) >> 6);
-                                    titles[i].shortName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
-                                }
-                            }
+                        IOSUHAX_FSA_ReadFile(fsaFd, bnrBuf, 0x02, 0x40, srcFd, 0);
+                        IOSUHAX_FSA_CloseFile(fsaFd, srcFd);
 
-                            memset(titles[i].longName, 0, sizeof(titles[i].longName));
-                            for (int j = 0x20, k = 0; j < 0x40; j++) {
-                                if (bnrBuf[j] < 0x80)
-                                    titles[i].longName[k++] = (char)bnrBuf[j];
-                                else if ((bnrBuf[j] & 0xF000) > 0) {
-                                    titles[i].longName[k++] = 0xE0 | ((bnrBuf[j] & 0xF000) >> 12);
-                                    titles[i].longName[k++] = 0x80 | ((bnrBuf[j] & 0xFC0) >> 6);
-                                    titles[i].longName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
-                                } else if (bnrBuf[j] < 0x400) {
-                                    titles[i].longName[k++] = 0xC0 | ((bnrBuf[j] & 0x3C0) >> 6);
-                                    titles[i].longName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
-                                } else {
-                                    titles[i].longName[k++] = 0xD0 | ((bnrBuf[j] & 0x3C0) >> 6);
-                                    titles[i].longName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
-                                }
+                        memset(titles[i].shortName, 0, sizeof(titles[i].shortName));
+                        for (int j = 0, k = 0; j < 0x20; j++) {
+                            if (bnrBuf[j] < 0x80)
+                                titles[i].shortName[k++] = (char)bnrBuf[j];
+                            else if ((bnrBuf[j] & 0xF000) > 0) {
+                                titles[i].shortName[k++] = 0xE0 | ((bnrBuf[j] & 0xF000) >> 12);
+                                titles[i].shortName[k++] = 0x80 | ((bnrBuf[j] & 0xFC0) >> 6);
+                                titles[i].shortName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
+                            } else if (bnrBuf[j] < 0x400) {
+                                titles[i].shortName[k++] = 0xC0 | ((bnrBuf[j] & 0x3C0) >> 6);
+                                titles[i].shortName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
+                            } else {
+                                titles[i].shortName[k++] = 0xD0 | ((bnrBuf[j] & 0x3C0) >> 6);
+                                titles[i].shortName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
                             }
-                            titles[i].saveInit = true;
                         }
+
+                        memset(titles[i].longName, 0, sizeof(titles[i].longName));
+                        for (int j = 0x20, k = 0; j < 0x40; j++) {
+                            if (bnrBuf[j] < 0x80)
+                                titles[i].longName[k++] = (char)bnrBuf[j];
+                            else if ((bnrBuf[j] & 0xF000) > 0) {
+                                titles[i].longName[k++] = 0xE0 | ((bnrBuf[j] & 0xF000) >> 12);
+                                titles[i].longName[k++] = 0x80 | ((bnrBuf[j] & 0xFC0) >> 6);
+                                titles[i].longName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
+                            } else if (bnrBuf[j] < 0x400) {
+                                titles[i].longName[k++] = 0xC0 | ((bnrBuf[j] & 0x3C0) >> 6);
+                                titles[i].longName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
+                            } else {
+                                titles[i].longName[k++] = 0xD0 | ((bnrBuf[j] & 0x3C0) >> 6);
+                                titles[i].longName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
+                            }
+                        }
+
                         free(bnrBuf);
+                        titles[i].saveInit = true;
                     }
-                    fclose(file);
                 } else {
-                    sprintf(titles[i].shortName, "%s%s (No banner.bin)", highIDs[k], data->d_name);
+                    sprintf(titles[i].shortName, "%s%s (No banner.bin)", highIDs[k], data.name);
                     memset(titles[i].longName, 0, sizeof(titles[i].longName));
                     titles[i].saveInit = false;
                 }
 
                 titles[i].highID = strtoul(highIDs[k], NULL, 16);
-                titles[i].lowID = strtoul(data->d_name, NULL, 16);
+                titles[i].lowID = strtoul(data.name, NULL, 16);
 
                 titles[i].listID = i;
                 memcpy(titles[i].productCode, &titles[i].lowID, 4);
@@ -359,7 +364,7 @@ Title* loadWiiTitles() {
                 flipBuffers();
                 WHBLogFreetypeDraw();
             }
-            closedir(dir);
+            IOSUHAX_FSA_CloseDir(fsaFd, dirH);
         }
     }
 
@@ -386,13 +391,13 @@ int main(void) {
     int res = IOSUHAX_Open(NULL);
     if (res < 0) {
         promptError("IOSUHAX_Open failed.");
-        return EXIT_SUCCESS;
+        return 0;
     }
 
     int fsaFd = IOSUHAX_FSA_Open();
     if (fsaFd < 0) {
         promptError("IOSUHAX_FSA_Open failed.");
-        return EXIT_SUCCESS;
+        return 0;
     }
     setFSAFD(fsaFd);
 
@@ -402,7 +407,7 @@ int main(void) {
 
     clearBuffers();
     Title* wiiutitles = loadWiiUTitles(1);
-    Title* wiititles = loadWiiTitles();
+    Title* wiititles = loadWiiTitles(fsaFd);
     int* versionList = (int*)malloc(0x100 * sizeof(int));
     sleep(1);
     getAccountsWiiU();
@@ -410,9 +415,9 @@ int main(void) {
     qsort(wiiutitles, titleswiiu, sizeof(Title), titleSort);
     qsort(wiititles, titlesvwii, sizeof(Title), titleSort);
 
-    u8* tgaBufDRC = NULL;
-    u8* tgaBufTV = NULL;
-    u32 wDRC = 0, hDRC = 0, wTV = 0, hTV = 0;
+    uint8_t* tgaBufDRC = NULL;
+    uint8_t* tgaBufTV = NULL;
+    uint32_t wDRC = 0, hDRC = 0, wTV = 0, hTV = 0;
     KPADStatus kpad_status;
     VPADStatus vpad_status;
     VPADReadError vpad_error;
@@ -896,5 +901,5 @@ int main(void) {
     IOSUHAX_FSA_Close(fsaFd);
     IOSUHAX_Close();
 
-    return EXIT_SUCCESS;
+    return 0;
 }

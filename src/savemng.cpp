@@ -3,7 +3,6 @@
 #include <fcntl.h>
 #include "string.hpp"
 extern "C" {
-	#include "common/fs_defs.h"
 	#include "savemng.h"
 	#include "log_freetype.h"
 }
@@ -15,7 +14,7 @@ int fsaFd = -1;
 char * p1;
 Account* wiiuacc;
 Account* sdacc;
-u8 wiiuaccn = 0, sdaccn = 5;
+uint8_t wiiuaccn = 0, sdaccn = 5;
 
 VPADStatus vpad_status;
 VPADReadError vpad_error;
@@ -59,7 +58,7 @@ int FSAR(int result) {
 		return result;
 }
 
-s32 loadFile(const char * fPath, u8 **buf) {
+int32_t loadFile(const char * fPath, uint8_t **buf) {
 	int ret = 0;
 	FILE* file = fopen(fPath, "rb");
 	if (file != NULL) {
@@ -67,7 +66,7 @@ s32 loadFile(const char * fPath, u8 **buf) {
 		stat(fPath, &st);
 		int size = st.st_size;
 
-		*buf = (u8*)malloc(size);
+		*buf = (uint8_t*)malloc(size);
 		if (*buf) {
 			if (fread(*buf, size, 1, file) == 1)
 				ret = size;
@@ -79,7 +78,7 @@ s32 loadFile(const char * fPath, u8 **buf) {
 	return ret;
 }
 
-s32 loadFilePart(const char * fPath, u32 start, u32 size, u8 **buf) {
+int32_t loadFilePart(const char * fPath, uint32_t start, uint32_t size, uint8_t **buf) {
 	int ret = 0;
 	FILE* file = fopen(fPath, "rb");
 	if (file != NULL) {
@@ -94,7 +93,7 @@ s32 loadFilePart(const char * fPath, u32 start, u32 size, u8 **buf) {
 			return -43;
 		}
 
-		*buf = (u8*)malloc(size);
+		*buf = (uint8_t*)malloc(size);
 		if (*buf) {
             if (fread(*buf, size, 1, file) == 1)
 				ret = size;
@@ -106,8 +105,8 @@ s32 loadFilePart(const char * fPath, u32 start, u32 size, u8 **buf) {
 	return ret;
 }
 
-s32 loadTitleIcon(Title* title) {
-	u32 highID = title->highID, lowID = title->lowID;
+int32_t loadTitleIcon(Title* title) {
+	uint32_t highID = title->highID, lowID = title->lowID;
 	bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 	char path[256];
 
@@ -154,7 +153,7 @@ int folderEmpty(const char * fPath) {
 
 int createFolder(const char * fPath) { //Adapted from mkdir_p made by JonathonReinhart
     const size_t len = strlen(fPath);
-    char _path[FS_MAX_FULLPATH_SIZE];
+    char _path[PATH_MAX];
     char *p;
 	int found = 0;
 
@@ -373,8 +372,8 @@ void getAccountsWiiU() {
 	nn::act::Finalize();
 }
 
-void getAccountsSD(Title* title, u8 slot) {
-	u32 highID = title->highID, lowID = title->lowID;
+void getAccountsSD(Title* title, uint8_t slot) {
+	uint32_t highID = title->highID, lowID = title->lowID;
 	sdaccn = 0;
 	if (sdacc) free(sdacc);
 
@@ -438,19 +437,19 @@ int DumpFile(char *pPath, char * oPath)
 	stat(pPath, &st);
 	int sizef = st.st_size;
 	int sizew = 0, size;
-	u32 passedMs = 1;
-	u64 startTime = OSGetTime();
+	uint32_t passedMs = 1;
+	uint64_t startTime = OSGetTime();
 	
 	while ((size = fread(buffer[2], 1, IO_MAX_FILE_BUFFER, source)) > 0) {
 		fwrite(buffer[2], 1, size, dest);
-		passedMs = (OSGetTime() - startTime) * 4000ULL / BUS_SPEED;
+		passedMs = (uint32_t)OSTicksToMilliseconds(OSGetTime() - startTime);
         if(passedMs == 0)
             passedMs = 1; // avoid 0 div
 		OSScreenClearBufferEx(SCREEN_TV, 0);
 		OSScreenClearBufferEx(SCREEN_DRC, 0);
 		sizew += size;
 		show_file_operation(basename(pPath), pPath, oPath);
-		console_print_pos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", sizew, sizef,  (u32)(((u64)sizew * 1000) / ((u64)1024 * passedMs)));    
+		console_print_pos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", sizew, sizef,  (uint32_t)(((uint64_t)sizew * 1000) / ((uint64_t)1024 * passedMs)));    
 		flipBuffers();
 		WHBLogFreetypeDraw();
 	}
@@ -479,9 +478,9 @@ int DumpDir(char* pPath, const char* tPath) { // Source: ft2sd
         if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0) continue;
 
         int len = strlen(pPath);
-        snprintf(pPath + len, FS_MAX_FULLPATH_SIZE - len, "/%s", data->d_name);
-        char* targetPath = (char*)malloc(FS_MAX_FULLPATH_SIZE);
-        snprintf(targetPath, FS_MAX_FULLPATH_SIZE, "%s/%s", tPath, data->d_name);
+        snprintf(pPath + len, PATH_MAX - len, "/%s", data->d_name);
+        char* targetPath = (char*)malloc(PATH_MAX);
+        snprintf(targetPath, PATH_MAX, "%s/%s", tPath, data->d_name);
 
         if (data->d_type & DT_DIR) {
             mkdir(targetPath, DEFFILEMODE);
@@ -522,7 +521,7 @@ int DeleteDir(char* pPath) {
 		if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0) continue;
 
 		int len = strlen(pPath);
-		snprintf(pPath + len, FS_MAX_FULLPATH_SIZE - len, "/%s", data->d_name);
+		snprintf(pPath + len, PATH_MAX - len, "/%s", data->d_name);
 
 		if (data->d_type & DT_DIR) {
 			char origPath[PATH_SIZE];
@@ -625,7 +624,7 @@ int getLoadiineUserDir(char* out, const char* fullSavePath, const char* userID) 
 	return 0;
 }
 
-u64 getSlotDate(u32 highID, u32 lowID, u8 slot) {
+uint64_t getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
 	char path[PATH_SIZE];
 	if (((highID & 0xFFFFFFF0) == 0x00010000) && (slot == 255)) {
 		sprintf(path, "/vol/external01/savegames/%08x%08x", highID, lowID);
@@ -641,7 +640,7 @@ u64 getSlotDate(u32 highID, u32 lowID, u8 slot) {
 	}
 }
 
-bool isSlotEmpty(u32 highID, u32 lowID, u8 slot) {
+bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) {
 	char path[PATH_SIZE];
 	if (((highID & 0xFFFFFFF0) == 0x00010000) && (slot == 255)) {
 		sprintf(path, "/vol/external01/savegames/%08x%08x", highID, lowID);
@@ -653,15 +652,15 @@ bool isSlotEmpty(u32 highID, u32 lowID, u8 slot) {
 	else return 0;
 }
 
-int getEmptySlot(u32 highID, u32 lowID) {
+int getEmptySlot(uint32_t highID, uint32_t lowID) {
 	for (int i = 0; i < 256; i++) {
 		if (isSlotEmpty(highID, lowID, i)) return i;
 	}
 	return -1;
 }
 
-bool hasAccountSave(Title* title, bool inSD, bool iine, u32 user, u8 slot, int version) {
-	u32 highID = title->highID, lowID = title->lowID;
+bool hasAccountSave(Title* title, bool inSD, bool iine, uint32_t user, uint8_t slot, int version) {
+	uint32_t highID = title->highID, lowID = title->lowID;
 	bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 	if (highID == 0 || lowID == 0) return false;
 
@@ -682,7 +681,7 @@ bool hasAccountSave(Title* title, bool inSD, bool iine, u32 user, u8 slot, int v
 				if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) return false;
 				if (version) sprintf(srcPath + strlen(srcPath), "/v%u", version);
 				if (user == 0) {
-					u32 srcOffset = strlen(srcPath);
+					uint32_t srcOffset = strlen(srcPath);
 					strcpy(srcPath + srcOffset, "/c\0");
 				} else {
 					char usrPath[16];
@@ -705,8 +704,8 @@ bool hasAccountSave(Title* title, bool inSD, bool iine, u32 user, u8 slot, int v
 	return false;
 }
 
-bool hasCommonSave(Title* title, bool inSD, bool iine, u8 slot, int version) {
-	u32 highID = title->highID, lowID = title->lowID;
+bool hasCommonSave(Title* title, bool inSD, bool iine, uint8_t slot, int version) {
+	uint32_t highID = title->highID, lowID = title->lowID;
 	bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 	if (isWii) return false;
 
@@ -720,7 +719,7 @@ bool hasCommonSave(Title* title, bool inSD, bool iine, u8 slot, int version) {
 		else {
 			if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) return false;
 			if (version) sprintf(srcPath + strlen(srcPath), "/v%u", version);
-			u32 srcOffset = strlen(srcPath);
+			uint32_t srcOffset = strlen(srcPath);
 			strcpy(srcPath + srcOffset, "/c\0");
 		}
 	}
@@ -729,11 +728,11 @@ bool hasCommonSave(Title* title, bool inSD, bool iine, u8 slot, int version) {
 	return false;
 }
 
-void copySavedata(Title* title, Title* titleb, s8 allusers, s8 allusers_d, bool common) {
+void copySavedata(Title* title, Title* titleb, int8_t allusers, int8_t allusers_d, bool common) {
 
-	u32 highID = title->highID, lowID = title->lowID;
+	uint32_t highID = title->highID, lowID = title->lowID;
 	bool isUSB = title->isTitleOnUSB;
-	u32 highIDb = titleb->highID, lowIDb = titleb->lowID;
+	uint32_t highIDb = titleb->highID, lowIDb = titleb->lowID;
 	bool isUSBb = titleb->isTitleOnUSB;
 
 	if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
@@ -752,8 +751,8 @@ void copySavedata(Title* title, Title* titleb, s8 allusers, s8 allusers_d, bool 
 	createFolder(dstPath);
 
 	if (allusers > -1) {
-		u32 srcOffset = strlen(srcPath);
-		u32 dstOffset = strlen(dstPath);
+		uint32_t srcOffset = strlen(srcPath);
+		uint32_t dstOffset = strlen(dstPath);
 		if (common) {
 			strcpy(srcPath + srcOffset, "/common");
 			strcpy(dstPath + dstOffset, "/common");
@@ -783,7 +782,7 @@ void backupAllSave(Title* titles, int count, OSCalendarTime* date) {
 	for (int i = 0; i < count; i++) {
 		if (titles[i].highID == 0 || titles[i].lowID == 0 || !titles[i].saveInit) continue;
 
-		u32 highID = titles[i].highID, lowID = titles[i].lowID;
+		uint32_t highID = titles[i].highID, lowID = titles[i].lowID;
 		bool isUSB = titles[i].isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 		char srcPath[PATH_SIZE];
 		char dstPath[PATH_SIZE];
@@ -796,10 +795,10 @@ void backupAllSave(Title* titles, int count, OSCalendarTime* date) {
 	}
 }
 
-void backupSavedata(Title* title, u8 slot, s8 allusers, bool common) {
+void backupSavedata(Title* title, uint8_t slot, int8_t allusers, bool common) {
 
 	if (!isSlotEmpty(title->highID, title->lowID, slot) && !promptConfirm(ST_WARNING, "Backup found on this slot. Overwrite it?")) return;
-	u32 highID = title->highID, lowID = title->lowID;
+	uint32_t highID = title->highID, lowID = title->lowID;
 	bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 	char srcPath[PATH_SIZE];
 	char dstPath[PATH_SIZE];
@@ -813,8 +812,8 @@ void backupSavedata(Title* title, u8 slot, s8 allusers, bool common) {
 	createFolder(dstPath);
 
 	if ((allusers > -1) && !isWii) {
-		u32 srcOffset = strlen(srcPath);
-		u32 dstOffset = strlen(dstPath);
+		uint32_t srcOffset = strlen(srcPath);
+		uint32_t dstOffset = strlen(dstPath);
 		if (common) {
 			strcpy(srcPath + srcOffset, "/common");
 			strcpy(dstPath + dstOffset, "/common");
@@ -831,7 +830,7 @@ void backupSavedata(Title* title, u8 slot, s8 allusers, bool common) {
 	if (DumpDir(srcPath, dstPath) != 0) promptError("Backup failed. DO NOT restore from this slot.");
 }
 
-void restoreSavedata(Title* title, u8 slot, s8 sdusers, s8 allusers, bool common) {
+void restoreSavedata(Title* title, uint8_t slot, int8_t sdusers, int8_t allusers, bool common) {
 
     if (isSlotEmpty(title->highID, title->lowID, slot)) {
         promptError("No backup found on selected slot.");
@@ -841,7 +840,7 @@ void restoreSavedata(Title* title, u8 slot, s8 sdusers, s8 allusers, bool common
     if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
     int slotb = getEmptySlot(title->highID, title->lowID);
     if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first to next empty slot?")) backupSavedata(title, slotb, allusers, common);
-    u32 highID = title->highID, lowID = title->lowID;
+    uint32_t highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
     char srcPath[PATH_SIZE];
     char dstPath[PATH_SIZE];
@@ -855,8 +854,8 @@ void restoreSavedata(Title* title, u8 slot, s8 sdusers, s8 allusers, bool common
 	createFolder(dstPath);
 
     if ((sdusers > -1) && !isWii) {
-        u32 srcOffset = strlen(srcPath);
-        u32 dstOffset = strlen(dstPath);
+        uint32_t srcOffset = strlen(srcPath);
+        uint32_t dstOffset = strlen(dstPath);
         if (common) {
             strcpy(srcPath + srcOffset, "/common");
             strcpy(dstPath + dstOffset, "/common");
@@ -869,19 +868,19 @@ void restoreSavedata(Title* title, u8 slot, s8 sdusers, s8 allusers, bool common
     if (DumpDir(srcPath, dstPath) != 0) promptError("Restore failed.");
 }
 
-void wipeSavedata(Title* title, s8 allusers, bool common) {
+void wipeSavedata(Title* title, int8_t allusers, bool common) {
 
 	if (!promptConfirm(ST_WARNING, "Are you sure?") || !promptConfirm(ST_WARNING, "Hm, are you REALLY sure?")) return;
 	int slotb = getEmptySlot(title->highID, title->lowID);
 	if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first?")) backupSavedata(title, slotb, allusers, common);
-	u32 highID = title->highID, lowID = title->lowID;
+	uint32_t highID = title->highID, lowID = title->lowID;
 	bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
 	char srcPath[PATH_SIZE];
 	char origPath[PATH_SIZE];
 	const char* path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
 	sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
 	if ((allusers > -1) && !isWii) {
-		u32 offset = strlen(srcPath);
+		uint32_t offset = strlen(srcPath);
 		if (common) {
 			strcpy(srcPath + offset, "/common");
 			sprintf(origPath, "%s", srcPath);
@@ -903,7 +902,7 @@ void importFromLoadiine(Title* title, bool common, int version) {
 	if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
 	int slotb = getEmptySlot(title->highID, title->lowID);
 	if (slotb>=0 && promptConfirm(ST_YES_NO, "Backup current savedata first?")) backupSavedata(title, slotb, 0, common);
-	u32 highID = title->highID, lowID = title->lowID;
+	uint32_t highID = title->highID, lowID = title->lowID;
 	bool isUSB = title->isTitleOnUSB;
 	char srcPath[PATH_SIZE];
 	char dstPath[PATH_SIZE];
@@ -911,11 +910,11 @@ void importFromLoadiine(Title* title, bool common, int version) {
 	if (version) sprintf(srcPath + strlen(srcPath), "/v%i", version);
 	char usrPath[16];
 	getUserID(usrPath);
-	u32 srcOffset = strlen(srcPath);
+	uint32_t srcOffset = strlen(srcPath);
 	getLoadiineUserDir(srcPath, srcPath, usrPath);
 	sprintf(dstPath, "%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
 	createFolder(dstPath);
-	u32 dstOffset = strlen(dstPath);
+	uint32_t dstOffset = strlen(dstPath);
 	sprintf(dstPath + dstOffset, "/%s", usrPath);
 	promptError(srcPath);
 	promptError(dstPath);
@@ -932,7 +931,7 @@ void importFromLoadiine(Title* title, bool common, int version) {
 void exportToLoadiine(Title* title, bool common, int version) {
 
 	if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
-	u32 highID = title->highID, lowID = title->lowID;
+	uint32_t highID = title->highID, lowID = title->lowID;
 	bool isUSB = title->isTitleOnUSB;
 	char srcPath[PATH_SIZE];
 	char dstPath[PATH_SIZE];
@@ -940,10 +939,10 @@ void exportToLoadiine(Title* title, bool common, int version) {
 	if (version) sprintf(dstPath + strlen(dstPath), "/v%u", version);
 	char usrPath[16];
 	getUserID(usrPath);
-	u32 dstOffset = strlen(dstPath);
+	uint32_t dstOffset = strlen(dstPath);
 	getLoadiineUserDir(dstPath, dstPath, usrPath);
 	sprintf(srcPath, "%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
-	u32 srcOffset = strlen(srcPath);
+	uint32_t srcOffset = strlen(srcPath);
 	sprintf(srcPath + srcOffset, "/%s", usrPath);
 	createFolder(dstPath);
 	promptError(srcPath);

@@ -5,20 +5,9 @@
 ifeq ($(strip $(DEVKITPRO)),)
 $(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
 endif
-export LIBOGC_INC	:=	$(DEVKITPRO)/libogc/include
-export LIBOGC_LIB	:=	$(DEVKITPRO)/libogc/lib/wii
 export PORTLIBS		:=	$(DEVKITPRO)/portlibs/ppc
 
 TOPDIR ?= $(CURDIR)
-
-#-------------------------------------------------------------------------------
-# APP_NAME sets the long name of the application
-# APP_SHORTNAME sets the short name of the application
-# APP_AUTHOR sets the author of the application
-#-------------------------------------------------------------------------------
-#APP_NAME	:= Application Name
-#APP_SHORTNAME	:= App Name
-#APP_AUTHOR	:= Built with devkitPPC & wut
 
 include $(DEVKITPRO)/wut/share/wut_rules
 
@@ -31,7 +20,6 @@ include $(DEVKITPRO)/wut/share/wut_rules
 TARGET		:=	savemii
 BUILD		:=	build
 SOURCES		:=	src \
-                src/common \
 DATA		:=  
 INCLUDES	:=  src
 DEFS        :=  
@@ -97,11 +85,10 @@ export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD) -I$(LIBOGC_INC) \
-			-I$(CURDIR)/$(BUILD) -I$(CURDIR)/libxml2/include -I/opt/devkitpro/portlibs/ppc/include/freetype2/
+			-I$(CURDIR)/$(BUILD) \
+			-I/opt/devkitpro/portlibs/ppc/include/freetype2/
 
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
-					-L$(CURDIR)/libxml2/lib
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) 
 
 
 .PHONY: $(BUILD) clean all

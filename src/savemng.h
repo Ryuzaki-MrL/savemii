@@ -2,7 +2,6 @@
 #define _SAVEMNG_H_
 
 #include <sys/dirent.h>
-#include <gctypes.h>
 #include <iosuhax.h>
 #include <iosuhax_devoptab.h>
 #include <iosuhax_disc_interface.h>
@@ -17,31 +16,31 @@ extern VPADReadError vpad_error;
 extern KPADStatus kpad_status;
 
 typedef struct {
-    u32 highID;
-    u32 lowID;
-    u16 listID;
+    uint32_t highID;
+    uint32_t lowID;
+    uint16_t listID;
     char shortName[256];
     char longName[512];
     char productCode[5];
     bool saveInit;
     bool isTitleOnUSB;
     bool isTitleDupe;
-    u16 dupeID;
-    u8* iconBuf;
+    uint16_t dupeID;
+    uint8_t* iconBuf;
 } Title;
 
 typedef struct {
-    u32 highID;
-    u32 lowID;
-    u8 dev;
+    uint32_t highID;
+    uint32_t lowID;
+    uint8_t dev;
     bool found;
 } Saves;
 
 typedef struct {
     char persistentID[9];
-    u32 pID;
+    uint32_t pID;
     char miiName[50];
-    u8 slot;
+    uint8_t slot;
 } Account;
 
 typedef enum {
@@ -54,41 +53,41 @@ typedef enum {
 
 extern Account* wiiuacc;
 extern Account* sdacc;
-extern u8 wiiuaccn, sdaccn;
+extern uint8_t wiiuaccn, sdaccn;
 
 void console_print_pos(int x, int y, const char* format, ...);
 bool promptConfirm(Style st, const char* question);
 void promptError(const char* message, ...);
 void getUserID(char* out);
 void getAccountsWiiU();
-void getAccountsSD(Title* title, u8 slot);
-bool hasAccountSave(Title* title, bool inSD, bool iine, u32 user, u8 slot, int version);
+void getAccountsSD(Title* title, uint8_t slot);
+bool hasAccountSave(Title* title, bool inSD, bool iine, uint32_t user, uint8_t slot, int version);
 
 int getLoadiineGameSaveDir(char* out, const char* productCode);
 int getLoadiineSaveVersionList(int* out, const char* gamePath);
 int getLoadiineUserDir(char* out, const char* fullSavePath, const char* userID);
 
-u64 getSlotDate(u32 highID, u32 lowID, u8 slot);
-bool isSlotEmpty(u32 highID, u32 lowID, u8 slot);
-bool hasCommonSave(Title* title, bool inSD, bool iine, u8 slot, int version);
+uint64_t getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot);
+bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot);
+bool hasCommonSave(Title* title, bool inSD, bool iine, uint8_t slot, int version);
 
-void copySavedata(Title* title, Title* titled, s8 allusers, s8 allusers_d, bool common);
+void copySavedata(Title* title, Title* titled, int8_t allusers, int8_t allusers_d, bool common);
 void backupAllSave(Title* titles, int count, OSCalendarTime* date);
-void backupSavedata(Title* title, u8 slot, s8 allusers, bool common);
-void restoreSavedata(Title* title, u8 slot, s8 sdusers, s8 allusers, bool common);
-void wipeSavedata(Title* title, s8 allusers, bool common);
+void backupSavedata(Title* title, uint8_t slot, int8_t allusers, bool common);
+void restoreSavedata(Title* title, uint8_t slot, int8_t sdusers, int8_t allusers, bool common);
+void wipeSavedata(Title* title, int8_t allusers, bool common);
 void importFromLoadiine(Title* title, bool common, int version);
 void exportToLoadiine(Title* title, bool common, int version);
 
 void setFSAFD(int fd);
 int checkEntry(const char * fPath);
 int folderEmpty(const char * fPath);
-s32 loadFile(const char * fPath, u8 **buf);
-s32 loadFilePart(const char * fPath, u32 start, u32 size, u8 **buf);
-s32 loadTitleIcon(Title* title);
+int32_t loadFile(const char * fPath, uint8_t **buf);
+int32_t loadFilePart(const char * fPath, uint32_t start, uint32_t size, uint8_t **buf);
+int32_t loadTitleIcon(Title* title);
 
 void show_file_operation(const char* file_name, const char* file_src, const char* file_dest);
 void console_print_pos_multiline(int x, int y, char cdiv,const char* format, ...);
-void console_print_pos_aligned(int y, u16 offset, u8 align, const char* format, ...);
+void console_print_pos_aligned(int y, uint16_t offset, uint8_t align, const char* format, ...);
 
 #endif

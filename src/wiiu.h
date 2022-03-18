@@ -21,6 +21,5 @@
 #include <whb/sdcard.h>
 
 #include <malloc.h>
-#include "common/common.h"
 
 #endif // WIIU_H
