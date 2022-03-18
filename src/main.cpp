@@ -812,14 +812,20 @@ int main(void) {
                     if (titles[targ].highID==0 || titles[targ].lowID==0) continue;
                     if ((mode == 0) && (strcmp(titles[targ].shortName, "DONT TOUCH ME") == 0)) {
                         if (!promptConfirm(ST_ERROR, "CBHC save. Could be dangerous to modify. Continue?") || !promptConfirm(ST_WARNING, "Are you REALLY sure?")) {
-                            menu = 0;
+                            sleep(0.3);
+                            continue;
+                        }
+                    }
+                    char path[255];
+                    sprintf(path, "%s:/usr/title/000%x/%x/code/fw.img", (titles[targ].isTitleOnUSB == true) ? "usb" : "mlc", titles[targ].highID, titles[targ].lowID);
+                    if ((mode == 0) && checkEntry(path)) {
+                        if (!promptConfirm(ST_ERROR, "vWii saves are in the vWii section. Continue?")) {
                             sleep(0.3);
                             continue;
                         }
                     }
                     if ((mode == 0) && (!titles[targ].saveInit)) {
                         if (!promptConfirm(ST_WARNING, "Recommended to run Game at least one time. Continue?") || !promptConfirm(ST_WARNING, "Are you REALLY sure?")) {
-                            menu = 0;
                             sleep(0.3);
                             continue;
                         }
