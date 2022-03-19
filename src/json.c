@@ -69,31 +69,29 @@ bool setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char* date)
 {
     char path[PATH_SIZE];
     sprintf(path, "/vol/external01/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
-    if(checkEntry(path)){
-        cJSON *config = cJSON_CreateObject();
-        if(config == NULL)
-            return false;
+   
+    cJSON *config = cJSON_CreateObject();
+    if(config == NULL)
+       return false;
         
-        cJSON *entry = cJSON_CreateString(date);
-        if(entry == NULL)
-        {
-            cJSON_Delete(config);
-            return false;
-        }
-        cJSON_AddItemToObject(config, "Date", entry);
-
-        char *configString = cJSON_Print(config);
+    cJSON *entry = cJSON_CreateString(date);
+    if(entry == NULL)
+    {
         cJSON_Delete(config);
-        if(configString == NULL)
-            return false;
-        
-        FILE *fp = fopen(path, "wb");
-        if(fp == NULL)
-            return false;
-        
-        fwrite(configString, strlen(configString), 1, fp);
-        
-        return true;
+        return false;
     }
-    return false;
+    cJSON_AddItemToObject(config, "Date", entry);
+
+    char *configString = cJSON_Print(config);
+    cJSON_Delete(config);
+    if(configString == NULL)
+        return false;
+        
+    FILE *fp = fopen(path, "wb");
+    if(fp == NULL)
+        return false;
+        
+    fwrite(configString, strlen(configString), 1, fp);
+        
+    return true;
 }
