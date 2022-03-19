@@ -396,7 +396,7 @@ void getAccountsSD(Title* title, uint8_t slot) {
 		int i = 0;
 		while ((data = readdir(dir)) != NULL) {
 			if (data->d_name[0] == '.' || strncmp(data->d_name, "common", 6) == 0) continue;
-			string_format(sdacc[i].persistentID, "%s", data->d_name);
+			sprintf(sdacc[i].persistentID, "%s", data->d_name);
 			sdacc[i].pID = strtoul(data->d_name, NULL, 16);
 			sdacc[i].slot = i;
             i++;
