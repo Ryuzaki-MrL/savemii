@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <malloc.h>
-#include <time.h>
+#include <fat.h>
 
 #include "string.hpp"
 
@@ -410,6 +410,7 @@ int main(void) {
     }
     setFSAFD(fsaFd);
 
+    fatMountSimple("sd", &IOSUHAX_sdio_disc_interface);
     mount_fs("slc", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
     mount_fs("mlc", fsaFd, NULL, "/vol/storage_mlc01");
     mount_fs("usb", fsaFd, NULL, "/vol/storage_usb01");

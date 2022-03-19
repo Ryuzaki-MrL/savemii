@@ -4,7 +4,6 @@ char* doit(char *text)
 {
     char *out = NULL;
     cJSON *json = NULL;
-    cJSON *readValue = NULL;
 
     json = cJSON_Parse(text);
     if (!json)
@@ -57,7 +56,7 @@ long getFilesize(FILE *fp)
 char* getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot)
 {
     char path[PATH_SIZE];
-    sprintf(path, "/vol/external01/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
+    sprintf(path, "sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
     if(checkEntry(path)){
         char* info = dofile(path);
 	    return info;
@@ -68,7 +67,7 @@ char* getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot)
 bool setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char* date)
 {
     char path[PATH_SIZE];
-    sprintf(path, "/vol/external01/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
+    sprintf(path, "sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
    
     cJSON *config = cJSON_CreateObject();
     if(config == NULL)

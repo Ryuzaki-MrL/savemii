@@ -5,6 +5,8 @@
 ifeq ($(strip $(DEVKITPRO)),)
 $(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
 endif
+export LIBOGC_INC	:=	$(DEVKITPRO)/libogc/include
+export LIBOGC_LIB	:=	$(DEVKITPRO)/libogc/lib/wii
 export PORTLIBS		:=	$(DEVKITPRO)/portlibs/ppc
 
 TOPDIR ?= $(CURDIR)
@@ -27,15 +29,15 @@ DEFS        :=
 # options for code generation
 #-------------------------------------------------------------------------------
 CFLAGS	:=	-std=gnu2x -g -Wall -Ofast -ffunction-sections -fno-use-linker-plugin -fno-lto \
-			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__
+			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__ -D__wiiu__
 
 CXXFLAGS	:= -std=gnu++20 -g -Wall -Wno-int-in-bool-context -Ofast -ffunction-sections -fpermissive -fno-use-linker-plugin -fno-lto \
-			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__
+			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__ -D__wiiu__
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -liosuhax -lwut -lfreetype -lpng -lz -lm -lbz2
+LIBS	:= -lfat -liosuhax -lwut -lfreetype -lpng -lz -lm -lbz2 -lfat
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level
@@ -85,7 +87,7 @@ export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD) \
+			-I$(CURDIR)/$(BUILD)  \
 			-I/opt/devkitpro/portlibs/ppc/include/freetype2/
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) 

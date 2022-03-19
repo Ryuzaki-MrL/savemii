@@ -4,6 +4,7 @@
 #include <sys/dirent.h>
 #include <iosuhax.h>
 #include <iosuhax_devoptab.h>
+#include <iosuhax_disc_interface.h>
 
 #include "draw.h"
 #include "wiiu.h"
