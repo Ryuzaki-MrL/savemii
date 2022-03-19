@@ -534,7 +534,7 @@ int DeleteDir(char* pPath) {
 
 			console_print_pos(-2, 0, "Deleting folder %s", data->d_name);
 			console_print_pos_multiline(-2, 2, '/', "From: \n%s", origPath);
-			if (rmdir(origPath) == -1) promptError("Failed to delete folder %s\n%s", origPath, strerror(errno));
+			if (unlink(origPath) == -1) promptError("Failed to delete folder %s\n%s", origPath, strerror(errno));
 		} else {
 			console_print_pos(-2, 0, "Deleting file %s", data->d_name);
 			console_print_pos_multiline(-2, 2, '/', "From: \n%s", pPath);
@@ -886,7 +886,7 @@ void wipeSavedata(Title* title, s8 allusers, bool common) {
 			strcpy(srcPath + offset, "/common");
 			sprintf(origPath, "%s", srcPath);
 			if (DeleteDir(srcPath) != 0) promptError("Common save not found.");
-			if (rmdir(origPath) == -1) promptError("Failed to delete common folder.");
+			if (unlink(origPath) == -1) promptError("Failed to delete common folder.\n%s", strerror(errno));
 		}
 		sprintf(srcPath + offset, "/%s", wiiuacc[allusers].persistentID);
 		sprintf(origPath, "%s", srcPath);
@@ -894,7 +894,7 @@ void wipeSavedata(Title* title, s8 allusers, bool common) {
 
 	if (DeleteDir(srcPath)!=0) promptError("Failed to delete savefile.");
 	if ((allusers > -1) && !isWii) {
-		if (rmdir(origPath) == -1) promptError("Failed to delete user folder.");
+		if (unlink(origPath) == -1) promptError("Failed to delete user folder.\n%s", strerror(errno));
 	}
 }
 
