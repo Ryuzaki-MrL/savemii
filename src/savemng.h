@@ -4,7 +4,6 @@
 #include <sys/dirent.h>
 #include <iosuhax.h>
 #include <iosuhax_devoptab.h>
-#include <iosuhax_disc_interface.h>
 
 #include "draw.h"
 #include "wiiu.h"
@@ -67,7 +66,6 @@ int getLoadiineGameSaveDir(char* out, const char* productCode);
 int getLoadiineSaveVersionList(int* out, const char* gamePath);
 int getLoadiineUserDir(char* out, const char* fullSavePath, const char* userID);
 
-uint64_t getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot);
 bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot);
 bool hasCommonSave(Title* title, bool inSD, bool iine, uint8_t slot, int version);
 

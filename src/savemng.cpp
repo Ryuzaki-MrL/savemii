@@ -5,6 +5,7 @@
 extern "C" {
 	#include "savemng.h"
 	#include "log_freetype.h"
+	#include "json.h"
 }
 using namespace std;
 
@@ -624,22 +625,6 @@ int getLoadiineUserDir(char* out, const char* fullSavePath, const char* userID) 
 	return 0;
 }
 
-uint64_t getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
-	char path[PATH_SIZE];
-	if (((highID & 0xFFFFFFF0) == 0x00010000) && (slot == 255)) {
-		sprintf(path, "/vol/external01/savegames/%08x%08x", highID, lowID);
-	} else {
-		sprintf(path, "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
-	}
-	int ret = checkEntry(path);
-	if (ret <= 0) return 0;
-	else {
-		struct stat st;
-		stat(path, &st);
-		return st.st_ctime;
-	}
-}
-
 bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) {
 	char path[PATH_SIZE];
 	if (((highID & 0xFFFFFFF0) == 0x00010000) && (slot == 255)) {
@@ -826,8 +811,13 @@ void backupSavedata(Title* title, uint8_t slot, int8_t allusers, bool common) {
 			return;
 		}
 	}
-
 	if (DumpDir(srcPath, dstPath) != 0) promptError("Backup failed. DO NOT restore from this slot.");
+	OSCalendarTime now;
+    OSTicksToCalendarTime(OSGetTime(), &now);
+	char date[255];
+    sprintf(date, "%d:%d:%d", now.tm_hour, now.tm_min, now.tm_sec);
+	promptError(date);
+	setSlotDate(title->highID, title->lowID, slot, date);
 }
 
 void restoreSavedata(Title* title, uint8_t slot, int8_t sdusers, int8_t allusers, bool common) {

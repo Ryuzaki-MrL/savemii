@@ -19,9 +19,9 @@ include $(DEVKITPRO)/wut/share/wut_rules
 #-------------------------------------------------------------------------------
 TARGET		:=	savemii
 BUILD		:=	build
-SOURCES		:=	src \
+SOURCES		:=	src cJSON
 DATA		:=  
-INCLUDES	:=  src
+INCLUDES	:=  src cJSON
 DEFS        :=  
 #-------------------------------------------------------------------------------
 # options for code generation

@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <time.h>
 
 #include "string.hpp"
 
@@ -11,6 +12,7 @@ extern "C" {
     #include "savemng.h"
     #include "log_freetype.h"
     #include "icon.h"
+    #include "json.h"
 }
 
 using namespace std;
@@ -538,6 +540,7 @@ int main(void) {
                         if (task == 1) {
                             if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
                                 entrycount++;
+                                console_print_pos(M_OFF, 15, "Date: %s", getSlotDate(titles[targ].highID, titles[targ].lowID, slot));
                                 console_print_pos(M_OFF, 7, "Select SD user to copy from:");
                                 if (sdusers == -1)
                                     console_print_pos(M_OFF, 8, "   < %s >", "all users");
