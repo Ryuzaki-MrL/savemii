@@ -534,11 +534,11 @@ int DeleteDir(char* pPath) {
 
 			console_print_pos(-2, 0, "Deleting folder %s", data->d_name);
 			console_print_pos_multiline(-2, 2, '/', "From: \n%s", origPath);
-			if (rmdir(origPath) == -1) promptError("Failed to delete folder.");
+			if (rmdir(origPath) == -1) promptError("Failed to delete folder %s\n%s", origPath, strerror(errno));
 		} else {
 			console_print_pos(-2, 0, "Deleting file %s", data->d_name);
 			console_print_pos_multiline(-2, 2, '/', "From: \n%s", pPath);
-			if (unlink(pPath) == -1) promptError("Failed to delete file.");
+			if (unlink(pPath) == -1) promptError("Failed to delete file %s\n%s", pPath, strerror(errno));
 		}
 
 		flipBuffers();
