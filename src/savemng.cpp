@@ -815,7 +815,7 @@ void backupSavedata(Title* title, uint8_t slot, int8_t allusers, bool common) {
 	OSCalendarTime now;
     OSTicksToCalendarTime(OSGetTime(), &now);
 	char date[255];
-    sprintf(date, "%d/%d/%d %d:%d:%d", now.tm_mday, now.tm_mon, now.tm_year, now.tm_hour, now.tm_min, now.tm_sec);
+    sprintf(date, "%d/%d/%d %d:%d", now.tm_mday, now.tm_mon, now.tm_year, now.tm_hour, now.tm_min);
 	promptError(date);
 	setSlotDate(title->highID, title->lowID, slot, date);
 }
