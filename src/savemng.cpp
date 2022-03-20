@@ -291,7 +291,7 @@ bool promptConfirm(Style st, const char* question) {
 	int ret = 0;
     flipBuffers();
 	WHBLogFreetypeDraw();
-	sleep(0.2);
+	sleep(0.1);
     while(1) {	
         VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
 		for (int i = 0; i < 4; i++)
@@ -825,7 +825,7 @@ void restoreSavedata(Title* title, uint8_t slot, int8_t sdusers, int8_t allusers
         promptError("No backup found on selected slot.");
         return;
     }
-	sleep(0.3);
+	sleep(0.1);
     if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
     int slotb = getEmptySlot(title->highID, title->lowID);
     if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first to next empty slot?")) backupSavedata(title, slotb, allusers, common);

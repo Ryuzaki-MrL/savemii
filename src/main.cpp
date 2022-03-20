@@ -419,7 +419,6 @@ int main(void) {
     Title* wiiutitles = loadWiiUTitles(1);
     Title* wiititles = loadWiiTitles();
     int* versionList = (int*)malloc(0x100 * sizeof(int));
-    sleep(1);
     getAccountsWiiU();
 
     qsort(wiiutitles, titleswiiu, sizeof(Title), titleSort);
@@ -654,15 +653,13 @@ int main(void) {
             else if (cursor < 6) cursor++;
             else if ((cursor + scroll + 1) % entrycount) scroll++;
             else cursor = scroll = 0;
-            redraw = true;
-            usleep(100000);
+            sleep(0.1);
         } else if ((vpad_status.trigger & (VPAD_BUTTON_UP | VPAD_STICK_L_EMULATION_UP)) | (kpad_status.trigger & (WPAD_BUTTON_UP)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_UP | WPAD_CLASSIC_STICK_L_EMULATION_UP)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_UP | WPAD_PRO_STICK_L_EMULATION_UP))) {
             if (scroll > 0) cursor -= (cursor>6) ? 1 : 0 * (scroll--);
             else if (cursor > 0) cursor--;
             else if (entrycount > 14) scroll = entrycount - (cursor = 6) - 1;
             else cursor = entrycount - 1;
-            redraw = true;
-            usleep(100000);
+            sleep(0.1);
         }
 
         if ((vpad_status.trigger & (VPAD_BUTTON_LEFT | VPAD_STICK_L_EMULATION_LEFT)) | (kpad_status.trigger & (WPAD_BUTTON_LEFT)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_LEFT | WPAD_CLASSIC_STICK_L_EMULATION_LEFT)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_LEFT | WPAD_PRO_STICK_L_EMULATION_LEFT))) {
@@ -712,7 +709,7 @@ int main(void) {
                     }
                 }
             }
-            usleep(100000);
+            sleep(0.1);
         } else if ((vpad_status.trigger & (VPAD_BUTTON_RIGHT | VPAD_STICK_L_EMULATION_RIGHT)) | (kpad_status.trigger & (WPAD_BUTTON_RIGHT)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_RIGHT | WPAD_CLASSIC_STICK_L_EMULATION_RIGHT)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_RIGHT | WPAD_PRO_STICK_L_EMULATION_RIGHT))) {
             if (menu == 3) {
                 if (task == 5) {
@@ -760,7 +757,7 @@ int main(void) {
                     }
                 }
             }
-            usleep(100000);
+            sleep(0.1);
         }
 
         if ((vpad_status.trigger & VPAD_BUTTON_R) | (kpad_status.trigger & (WPAD_BUTTON_PLUS)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_R)) | (kpad_status.pro.trigger & (WPAD_PRO_TRIGGER_R))) {
@@ -785,7 +782,7 @@ int main(void) {
         if ((vpad_status.trigger & VPAD_BUTTON_A) | ((kpad_status.trigger & (WPAD_BUTTON_A)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A)))) {
             clearBuffers();
             WHBLogFreetypeDraw();
-            sleep(0.3);
+            sleep(0.1);
             if (menu < 3) {
                 if (menu == 0) {
                     mode = cursor;
@@ -800,7 +797,7 @@ int main(void) {
                 }
 
                 if (menu == 1) {
-                    sleep(0.3);
+                    sleep(0.1);
                     targ = cursor + scroll;
                     cursorb = cursor;
                     scrollb = scroll;
@@ -820,7 +817,7 @@ int main(void) {
                     if (titles[targ].highID==0 || titles[targ].lowID==0) continue;
                     if ((mode == 0) && (strcmp(titles[targ].shortName, "DONT TOUCH ME") == 0)) {
                         if (!promptConfirm(ST_ERROR, "CBHC save. Could be dangerous to modify. Continue?") || !promptConfirm(ST_WARNING, "Are you REALLY sure?")) {
-                            sleep(0.3);
+                            sleep(0.1);
                             continue;
                         }
                     }
@@ -828,13 +825,13 @@ int main(void) {
                     sprintf(path, "%s:/usr/title/000%x/%x/code/fw.img", (titles[targ].isTitleOnUSB == true) ? "usb" : "mlc", titles[targ].highID, titles[targ].lowID);
                     if ((mode == 0) && checkEntry(path)) {
                         if (!promptConfirm(ST_ERROR, "vWii saves are in the vWii section. Continue?")) {
-                            sleep(0.3);
+                            sleep(0.1);
                             continue;
                         }
                     }
                     if ((mode == 0) && (!titles[targ].saveInit)) {
                         if (!promptConfirm(ST_WARNING, "Recommended to run Game at least one time. Continue?") || !promptConfirm(ST_WARNING, "Are you REALLY sure?")) {
-                            sleep(0.3);
+                            sleep(0.1);
                             continue;
                         }
                     }
