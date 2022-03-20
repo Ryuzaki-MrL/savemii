@@ -4,15 +4,13 @@ char* doit(char *text)
 {
     char *out = NULL;
     cJSON *json = NULL;
+    cJSON *str;
 
     json = cJSON_Parse(text);
     if (!json)
-    {
-        printf("Error before: [%s]\n", cJSON_GetErrorPtr());
-    }
+        return "";
     else
     {
-        cJSON *str;
         str = cJSON_GetObjectItemCaseSensitive(json, "Date");
         out = strdup(str->valuestring);
         return out;
@@ -60,8 +58,8 @@ char* getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot)
     if(checkEntry(path)){
         char* info = dofile(path);
 	    return info;
-    }
-    return "";
+    } else
+          return "";
 }
 
 bool setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char* date)
@@ -92,5 +90,6 @@ bool setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char* date)
         
     fwrite(configString, strlen(configString), 1, fp);
         
+    fclose(fp);
     return true;
 }
