@@ -918,6 +918,7 @@ int main(void) {
     OSScreenShutdown();
     WHBLogFreetypeFree();
     WHBProcShutdown();
+    fatUnmount("sd");
     unmount_fs("slc");
     unmount_fs("mlc");
     unmount_fs("usb");
