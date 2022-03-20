@@ -541,7 +541,6 @@ int main(void) {
                         if (task == 1) {
                             if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
                                 entrycount++;
-                                console_print_pos(M_OFF, 15, "Date: %s", getSlotDate(titles[targ].highID, titles[targ].lowID, slot));
                                 console_print_pos(M_OFF, 7, "Select SD user to copy from:");
                                 if (sdusers == -1)
                                     console_print_pos(M_OFF, 8, "   < %s >", "all users");
@@ -569,8 +568,9 @@ int main(void) {
                                     console_print_pos(M_OFF, (task == 1) ? 11 : 8, "   < %s (%s) > (%s)", wiiuacc[allusers].miiName, wiiuacc[allusers].persistentID, hasAccountSave(&titles[targ], ((task == 0) || (task == 1) || (task == 5) ? false : true), ((task < 3) || (task == 5) ? false : true), wiiuacc[allusers].pID, slot, versionList ? versionList[slot] : 0) ? "Has Save" : "Empty");
                             }
                         }
-                        if(task == 0)
-                             console_print_pos(M_OFF, 15, "Date: %s", getSlotDate(titles[targ].highID, titles[targ].lowID, slot));
+                        if((task == 0) || (task == 1))
+                            if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
+                                console_print_pos(M_OFF, 15, "Date: %s", getSlotDate(titles[targ].highID, titles[targ].lowID, slot));
 
                         if (task == 5) {
                             entrycount++;
@@ -611,6 +611,8 @@ int main(void) {
                     } else if (mode == 1) {
                         entrycount = 1;
                         if (titles[targ].iconBuf) drawRGB5A3(650, 100, 1, titles[targ].iconBuf);
+                        if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
+                            console_print_pos(M_OFF, 15, "Date: %s", getSlotDate(titles[targ].highID, titles[targ].lowID, slot));
                     }
 
                     switch(task) {
