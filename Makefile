@@ -23,7 +23,7 @@ TARGET		:=	savemii
 BUILD		:=	build
 SOURCES		:=	src cJSON
 DATA		:=  
-INCLUDES	:=  src cJSON
+INCLUDES	:=  src cJSON include
 DEFS        :=  
 #-------------------------------------------------------------------------------
 # options for code generation
@@ -43,7 +43,7 @@ LIBS	:= -lfat -liosuhax -lwut -lfreetype -lpng -lz -lm -lbz2 -lfat
 # list of directories containing libraries, this must be the top level
 # containing include and lib
 #-------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(WUT_ROOT) $(WUT_ROOT)/usr
+LIBDIRS	:= $(PORTLIBS) $(WUT_ROOT) $(WUT_ROOT)/usr $(CURDIR)
 
 #-------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
