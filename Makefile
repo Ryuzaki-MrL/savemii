@@ -21,9 +21,9 @@ include $(DEVKITPRO)/wut/share/wut_rules
 #-------------------------------------------------------------------------------
 TARGET		:=	savemii
 BUILD		:=	build
-SOURCES		:=	src cJSON
+SOURCES		:=	src cJSON libfat
 DATA		:=  
-INCLUDES	:=  src cJSON include
+INCLUDES	:=  src cJSON include libfat/include
 DEFS        :=  
 #-------------------------------------------------------------------------------
 # options for code generation
@@ -37,13 +37,13 @@ CXXFLAGS	:= -std=gnu++20 -g -Wall -Wno-int-in-bool-context -Ofast -ffunction-sec
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lfat -liosuhax -lwut -lfreetype -lpng -lz -lm -lbz2
+LIBS	:= -liosuhax -lwut -lfreetype -lpng -lz -lm -lbz2 -lfat
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level
 # containing include and lib
 #-------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(WUT_ROOT) $(WUT_ROOT)/usr $(CURDIR)
+LIBDIRS	:= $(PORTLIBS) $(WUT_ROOT) $(WUT_ROOT)/usr $(CURDIR)/libfat
 
 #-------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -90,7 +90,7 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			-I$(CURDIR)/$(BUILD)  \
 			-I/opt/devkitpro/portlibs/ppc/include/freetype2/
 
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) 
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) -L$(CURDIR)/libfat/lib
 
 
 .PHONY: $(BUILD) clean all
