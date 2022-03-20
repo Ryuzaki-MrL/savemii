@@ -7,6 +7,7 @@ CMD git clone --recursive https://github.com/Crementif/libfat
 WORKDIR libfat 
 CMD make wiiu-release && make wiiu-install
 CMD tar -xf distribute/1.2.0/libfat-ogc-1.2.0.tar.bz2
-CMD cp -r $DEVKITPRO/wut/usr
+CMD cp -r include $DEVKITPRO/wut/usr
+CMD cp -r lib $DEVKITPRO/wut/usr
 
 WORKDIR ../project
