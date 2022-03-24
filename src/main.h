@@ -1,16 +1,10 @@
-#ifndef _MAIN_H_
-#define _MAIN_H_
+#include "fat.h"
+#include <malloc.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 
-/* Main */
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-//! C wrapper for our C++ functions
-int main(void);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+#include <coreinit/screen.h>
+#include <padscore/kpad.h>
+#include <vpad/input.h>
+#include <whb/proc.h>

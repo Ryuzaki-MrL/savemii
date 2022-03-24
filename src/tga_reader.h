@@ -24,10 +24,10 @@ extern "C" {
 #endif
 
 typedef struct _TGA_ORDER {
-	int redShift;
-	int greenShift;
-	int blueShift;
-	int alphaShift;
+    int redShift;
+    int greenShift;
+    int blueShift;
+    int alphaShift;
 } TGA_ORDER;
 
 extern const TGA_ORDER *TGA_READER_ARGB;

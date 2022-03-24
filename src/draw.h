@@ -1,8 +1,8 @@
 #ifndef DRAW_H
 #define DRAW_H
 
-#include "wiiu.h"
 #include "tga_reader.h"
+#include <coreinit/screen.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -28,14 +28,14 @@ void drawCircle(int xCen, int yCen, int radius, uint8_t r, uint8_t g, uint8_t b,
 void drawFillCircle(int xCen, int yCen, int radius, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 void drawCircleCircum(int cx, int cy, int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
-void drawPic(int x, int y, uint32_t w, uint32_t h, float scale, uint32_t* pixels);
-void drawTGA(int x, int y, float scale, uint8_t* fileContent);
-void drawRGB5A3(int x, int y, float scale, uint8_t* pixels);
-void drawBackgroundDRC(uint32_t w, uint32_t h, uint8_t* out);
-void drawBackgroundTV(uint32_t w, uint32_t h, uint8_t* out);
+void drawPic(int x, int y, uint32_t w, uint32_t h, float scale, uint32_t *pixels);
+void drawTGA(int x, int y, float scale, uint8_t *fileContent);
+void drawRGB5A3(int x, int y, float scale, uint8_t *pixels);
+void drawBackgroundDRC(uint32_t w, uint32_t h, uint8_t *out);
+void drawBackgroundTV(uint32_t w, uint32_t h, uint8_t *out);
 
 int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX);
 int ttfStringWidth(char *string, int8_t part);
-void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y);
+void draw_bitmap(FT_Bitmap *bitmap, FT_Int x, FT_Int y);
 
 #endif /* DRAW_H */

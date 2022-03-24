@@ -40,23 +40,23 @@ extern "C" {
 
 // When compiling for NDS, make sure NDS is defined
 #ifndef NDS
- #if defined ARM9 || defined ARM7
-  #define NDS
- #endif
+#if defined ARM9 || defined ARM7
+#define NDS
+#endif
 #endif
 
 #include <stdint.h>
 
-#if   defined (__wiiu__)
-#  include <iosuhax_disc_interface.h>
-#elif defined(__gamecube__) || defined (__wii__)
-#  include <ogc/disc_io.h>
+#if defined(__wiiu__)
+#include <iosuhax_disc_interface.h>
+#elif defined(__gamecube__) || defined(__wii__)
+#include <ogc/disc_io.h>
 #else
-#  ifdef NDS
-#    include <nds/disc_io.h>
-#  else
-#    include <disc_io.h>
-#  endif
+#ifdef NDS
+#include <nds/disc_io.h>
+#else
+#include <disc_io.h>
+#endif
 #endif
 
 
@@ -67,17 +67,17 @@ cacheSize: The number of pages to allocate for each inserted block-device
 setAsDefaultDevice: if true, make this the default device driver for file operations
 cacheSectorsPage: The cache sectors per page value
 */
-extern bool fatInitEx (uint32_t cacheSize, bool setAsDefaultDevice, uint32_t cacheSectorsPage);
+extern bool fatInitEx(uint32_t cacheSize, bool setAsDefaultDevice, uint32_t cacheSectorsPage);
 
 /*
 Calls fatInit cacheSectorsPage optimised for the host system.
 */
-extern bool fatInit (uint32_t cacheSize, bool setAsDefaultDevice);
+extern bool fatInit(uint32_t cacheSize, bool setAsDefaultDevice);
 
 /*
 Calls fatInit with setAsDefaultDevice = true and cacheSize optimised for the host system.
 */
-extern bool fatInitDefault (void);
+extern bool fatInitDefault(void);
 
 /*
 Mount the device pointed to by interface, and set up a devoptab entry for it as "name:".
@@ -85,7 +85,7 @@ You can then access the filesystem using "name:/".
 This will mount the active partition or the first valid partition on the disc,
 and will use a cache size optimized for the host system.
 */
-extern bool fatMountSimple (const char* name, const DISC_INTERFACE* interface);
+extern bool fatMountSimple(const char *name, const DISC_INTERFACE *interface);
 
 /*
 Mount the device pointed to by interface, and set up a devoptab entry for it as "name:".
@@ -95,32 +95,32 @@ the disc. Otherwise it will try to mount the partition starting at startSector.
 cacheSize specifies the number of pages to allocate for the cache.
 This will not startup the disc, so you need to call interface->startup(); first.
 */
-extern bool fatMount (const char* name, const DISC_INTERFACE* interface, sec_t startSector, uint32_t cacheSize, uint32_t SectorsPerPage);
+extern bool fatMount(const char *name, const DISC_INTERFACE *interface, sec_t startSector, uint32_t cacheSize, uint32_t SectorsPerPage);
 
 /*
 Unmount the partition specified by name.
 If there are open files, it will attempt to synchronise them to disc.
 */
-extern void fatUnmount (const char* name);
+extern void fatUnmount(const char *name);
 
 /*
 Get Volume Label
 */
-extern void fatGetVolumeLabel (const char* name, char *label);
+extern void fatGetVolumeLabel(const char *name, char *label);
 
 // File attributes
-#define ATTR_ARCHIVE	0x20			// Archive
-#define ATTR_DIRECTORY	0x10			// Directory
-#define ATTR_VOLUME		0x08			// Volume
-#define ATTR_SYSTEM		0x04			// System
-#define ATTR_HIDDEN		0x02			// Hidden
-#define ATTR_READONLY	0x01			// Read only
+#define ATTR_ARCHIVE   0x20 // Archive
+#define ATTR_DIRECTORY 0x10 // Directory
+#define ATTR_VOLUME    0x08 // Volume
+#define ATTR_SYSTEM    0x04 // System
+#define ATTR_HIDDEN    0x02 // Hidden
+#define ATTR_READONLY  0x01 // Read only
 
 /*
 Methods to modify DOS File Attributes
 */
-int	FAT_getAttr(const char *file);
-int	FAT_setAttr(const char *file, uint8_t attr );
+int FAT_getAttr(const char *file);
+int FAT_setAttr(const char *file, uint8_t attr);
 
 #define LIBFAT_FEOS_MULTICWD
 

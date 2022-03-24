@@ -2,8 +2,8 @@
 #include "draw.h"
 
 #define CONSOLE_FRAME_HEAP_TAG (0x0002B2B)
-#define NUM_LINES (16)
-#define LINE_LENGTH (128)
+#define NUM_LINES              (16)
+#define LINE_LENGTH            (128)
 
 char queueBuffer[NUM_LINES][LINE_LENGTH];
 uint32_t newLines = 0;
@@ -11,41 +11,41 @@ char renderedBuffer[NUM_LINES][LINE_LENGTH];
 
 bool freetypeHasForeground = false;
 
-uint8_t* frameBufferTVFrontPtr = NULL;
-uint8_t* frameBufferTVBackPtr = NULL;
-uint32_t frameBufferTVSize = 0;
-uint8_t* frameBufferDRCFrontPtr = NULL;
-uint8_t* frameBufferDRCBackPtr = NULL;
-uint32_t frameBufferDRCSize = 0;
-uint8_t* currTVFrameBuffer = NULL;
-uint8_t* currDRCFrameBuffer = NULL;
+uint8_t *frameBufferTVFrontPtr  = NULL;
+uint8_t *frameBufferTVBackPtr   = NULL;
+uint32_t frameBufferTVSize      = 0;
+uint8_t *frameBufferDRCFrontPtr = NULL;
+uint8_t *frameBufferDRCBackPtr  = NULL;
+uint32_t frameBufferDRCSize     = 0;
+uint8_t *currTVFrameBuffer      = NULL;
+uint8_t *currDRCFrameBuffer     = NULL;
 
-RGBAColor ttfColor = {0xFFFFFFFF};
-uint32_t fontColor = 0xFFFFFFFF;
+RGBAColor ttfColor       = {0xFFFFFFFF};
+uint32_t fontColor       = 0xFFFFFFFF;
 uint32_t backgroundColor = 0x0B5D5E00;
 FT_Library fontLibrary;
 FT_Face fontFace;
-uint8_t* fontBuffer;
+uint8_t *fontBuffer;
 FT_Pos cursorSpaceWidth = 0;
 
 void drawPixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    uint8_t opacity = a;
-    uint8_t backgroundOpacity = (255-opacity);
+    uint8_t opacity           = a;
+    uint8_t backgroundOpacity = (255 - opacity);
     {
-        uint32_t width = 1280;
-        uint32_t v = (x + y * width) * 4;
-        currTVFrameBuffer[v + 0] = (r * opacity + (backgroundOpacity * currTVFrameBuffer[v + 0]))/255;
-        currTVFrameBuffer[v + 1] = (g * opacity + (backgroundOpacity * currTVFrameBuffer[v + 1]))/255;
-        currTVFrameBuffer[v + 2] = (b * opacity + (backgroundOpacity * currTVFrameBuffer[v + 2]))/255;
+        uint32_t width           = 1280;
+        uint32_t v               = (x + y * width) * 4;
+        currTVFrameBuffer[v + 0] = (r * opacity + (backgroundOpacity * currTVFrameBuffer[v + 0])) / 255;
+        currTVFrameBuffer[v + 1] = (g * opacity + (backgroundOpacity * currTVFrameBuffer[v + 1])) / 255;
+        currTVFrameBuffer[v + 2] = (b * opacity + (backgroundOpacity * currTVFrameBuffer[v + 2])) / 255;
         currTVFrameBuffer[v + 3] = a;
     }
 
     {
-        uint32_t width = 896;
-        uint32_t v = (x + y * width) * 4;
-        currDRCFrameBuffer[v + 0] = (r * opacity + (backgroundOpacity * currDRCFrameBuffer[v + 0]))/255;
-        currDRCFrameBuffer[v + 1] = (g * opacity + (backgroundOpacity * currDRCFrameBuffer[v + 1]))/255;
-        currDRCFrameBuffer[v + 2] = (b * opacity + (backgroundOpacity * currDRCFrameBuffer[v + 2]))/255;
+        uint32_t width            = 896;
+        uint32_t v                = (x + y * width) * 4;
+        currDRCFrameBuffer[v + 0] = (r * opacity + (backgroundOpacity * currDRCFrameBuffer[v + 0])) / 255;
+        currDRCFrameBuffer[v + 1] = (g * opacity + (backgroundOpacity * currDRCFrameBuffer[v + 1])) / 255;
+        currDRCFrameBuffer[v + 2] = (b * opacity + (backgroundOpacity * currDRCFrameBuffer[v + 2])) / 255;
         currDRCFrameBuffer[v + 3] = a;
     }
 }
@@ -54,13 +54,13 @@ uint32_t initScreen() {
 
     MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
     if (frameBufferTVSize) {
-        frameBufferTVFrontPtr = (uint8_t*)MEMAllocFromFrmHeapEx(heap, frameBufferTVSize, 4);
-        frameBufferTVBackPtr = (uint8_t*)frameBufferTVFrontPtr + (1*(1280*720*4));
+        frameBufferTVFrontPtr = (uint8_t *) MEMAllocFromFrmHeapEx(heap, frameBufferTVSize, 4);
+        frameBufferTVBackPtr  = (uint8_t *) frameBufferTVFrontPtr + (1 * (1280 * 720 * 4));
     }
 
     if (frameBufferDRCSize) {
-        frameBufferDRCFrontPtr = (uint8_t*)MEMAllocFromFrmHeapEx(heap, frameBufferDRCSize, 4);
-        frameBufferDRCBackPtr = (uint8_t*)frameBufferDRCFrontPtr + (1*(896*480*4));
+        frameBufferDRCFrontPtr = (uint8_t *) MEMAllocFromFrmHeapEx(heap, frameBufferDRCSize, 4);
+        frameBufferDRCBackPtr  = (uint8_t *) frameBufferDRCFrontPtr + (1 * (896 * 480 * 4));
     }
 
     freetypeHasForeground = true;
@@ -81,7 +81,7 @@ uint32_t initScreen() {
 bool WHBLogFreetypeInit() {
     // Initialize screen
     OSScreenInit();
-    frameBufferTVSize = OSScreenGetBufferSizeEx(SCREEN_TV);
+    frameBufferTVSize  = OSScreenGetBufferSizeEx(SCREEN_TV);
     frameBufferDRCSize = OSScreenGetBufferSizeEx(SCREEN_DRC);
 
     initScreen();
@@ -95,7 +95,7 @@ bool WHBLogFreetypeInit() {
     }
 
     uint32_t fontSize;
-    OSGetSharedData(OS_SHAREDDATATYPE_FONT_STANDARD, 0, (void**)&fontBuffer, &fontSize);
+    OSGetSharedData(OS_SHAREDDATATYPE_FONT_STANDARD, 0, (void **) &fontBuffer, &fontSize);
 
     if ((result = FT_New_Memory_Face(fontLibrary, fontBuffer, fontSize, 0, &fontFace)) != 0) {
         return true;
@@ -117,145 +117,147 @@ void WHBLogFreetypeFree() {
 }
 
 int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) {
-	FT_GlyphSlot slot = fontFace->glyph;
-	FT_Error error;
-	int pen_x = x, pen_y = y;
-	FT_UInt previous_glyph;
+    FT_GlyphSlot slot = fontFace->glyph;
+    FT_Error error;
+    int pen_x = x, pen_y = y;
+    FT_UInt previous_glyph;
 
-    while(*string) {
-		uint32_t buf = *string++;
+    while (*string) {
+        uint32_t buf = *string++;
 
-		if ((buf >> 6) == 3) {
-			if ((buf & 0xF0) == 0xC0) {
-				uint8_t b1 = buf & 0xFF, b2 = *string++;
-				if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
-				buf = ((b1 & 0xF) << 6) | b2;
-			} else if ((buf & 0xF0) == 0xD0) {
-				uint8_t b1 = buf & 0xFF, b2 = *string++;
-				if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
-				buf = 0x400 | ((b1 & 0xF) << 6) | b2;
-			} else if ((buf & 0xF0) == 0xE0) {
-				uint8_t b1 = buf & 0xFF, b2 = *string++, b3 = *string++;
-				if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
-				if ((b3 & 0xC0) == 0x80) b3 &= 0x3F;
-				buf = ((b1 & 0xF) << 12) | (b2 << 6) | b3;
-			}
-		} else if (buf & 0x80) {
-			string++;
-			continue;
-		}
+        if ((buf >> 6) == 3) {
+            if ((buf & 0xF0) == 0xC0) {
+                uint8_t b1 = buf & 0xFF, b2 = *string++;
+                if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
+                buf = ((b1 & 0xF) << 6) | b2;
+            } else if ((buf & 0xF0) == 0xD0) {
+                uint8_t b1 = buf & 0xFF, b2 = *string++;
+                if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
+                buf = 0x400 | ((b1 & 0xF) << 6) | b2;
+            } else if ((buf & 0xF0) == 0xE0) {
+                uint8_t b1 = buf & 0xFF, b2 = *string++, b3 = *string++;
+                if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
+                if ((b3 & 0xC0) == 0x80) b3 &= 0x3F;
+                buf = ((b1 & 0xF) << 12) | (b2 << 6) | b3;
+            }
+        } else if (buf & 0x80) {
+            string++;
+            continue;
+        }
 
-		if (buf == '\n') {
-			pen_y += (fontFace->size->metrics.height >> 6);
-			if (ceroX) pen_x = 0;
-			else pen_x = x;
-			continue;
-		}
+        if (buf == '\n') {
+            pen_y += (fontFace->size->metrics.height >> 6);
+            if (ceroX) pen_x = 0;
+            else
+                pen_x = x;
+            continue;
+        }
 
 
         FT_UInt glyph_index;
-		glyph_index = FT_Get_Char_Index(fontFace, buf);
+        glyph_index = FT_Get_Char_Index(fontFace, buf);
 
-		if (FT_HAS_KERNING(fontFace)) {
-			FT_Vector vector;
-			FT_Get_Kerning(fontFace, previous_glyph, glyph_index, FT_KERNING_DEFAULT, &vector);
-			pen_x += (vector.x >> 6);
-		}
+        if (FT_HAS_KERNING(fontFace)) {
+            FT_Vector vector;
+            FT_Get_Kerning(fontFace, previous_glyph, glyph_index, FT_KERNING_DEFAULT, &vector);
+            pen_x += (vector.x >> 6);
+        }
 
-		error = FT_Load_Glyph(fontFace, glyph_index, FT_LOAD_DEFAULT);
-		if (error)
-			continue;
+        error = FT_Load_Glyph(fontFace, glyph_index, FT_LOAD_DEFAULT);
+        if (error)
+            continue;
 
-		error = FT_Render_Glyph(fontFace->glyph, FT_RENDER_MODE_NORMAL);
-		if (error)
-			continue;
+        error = FT_Render_Glyph(fontFace->glyph, FT_RENDER_MODE_NORMAL);
+        if (error)
+            continue;
 
-		if ((pen_x + (slot->advance.x >> 6)) > 853) {
-			if (wWrap) {
-				pen_y += (fontFace->size->metrics.height >> 6);
-				if (ceroX) pen_x = 0;
-				else pen_x = x;
-			} else {
-				return pen_x;
-			}
-		}
+        if ((pen_x + (slot->advance.x >> 6)) > 853) {
+            if (wWrap) {
+                pen_y += (fontFace->size->metrics.height >> 6);
+                if (ceroX) pen_x = 0;
+                else
+                    pen_x = x;
+            } else {
+                return pen_x;
+            }
+        }
 
-		draw_bitmap(&slot->bitmap, pen_x + slot->bitmap_left, (fontFace->height >> 6) + pen_y - slot->bitmap_top);
+        draw_bitmap(&slot->bitmap, pen_x + slot->bitmap_left, (fontFace->height >> 6) + pen_y - slot->bitmap_top);
 
-		pen_x += (slot->advance.x >> 6);
-		previous_glyph = glyph_index;
-	}
-	return pen_x;
+        pen_x += (slot->advance.x >> 6);
+        previous_glyph = glyph_index;
+    }
+    return pen_x;
 }
 
 int ttfStringWidth(char *string, int8_t part) {
-	FT_GlyphSlot slot = fontFace->glyph;
-	FT_Error error;
-	int pen_x = 0, max_x = 0, spart = 1;
-	FT_UInt previous_glyph;
+    FT_GlyphSlot slot = fontFace->glyph;
+    FT_Error error;
+    int pen_x = 0, max_x = 0, spart = 1;
+    FT_UInt previous_glyph;
 
-    while(*string) {
-		uint32_t buf = *string++;
-		if ((buf >> 6) == 3) {
-			if ((buf & 0xF0) == 0xC0) {
-				uint8_t b1 = buf & 0xFF, b2 = *string++;
-				if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
-				buf = ((b1 & 0xF) << 6) | b2;
-			} else if ((buf & 0xF0) == 0xD0) {
-				uint8_t b1 = buf & 0xFF, b2 = *string++;
-				if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
-				buf = 0x400 | ((b1 & 0xF) << 6) | b2;
-			} else if ((buf & 0xF0) == 0xE0) {
-				uint8_t b1 = buf & 0xFF, b2 = *string++, b3 = *string++;
-				if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
-				if ((b3 & 0xC0) == 0x80) b3 &= 0x3F;
-				buf = ((b1 & 0xF) << 12) | (b2 << 6) | b3;
-			}
-		} else if (buf & 0x80) {
-			string++;
-			continue;
-		}
+    while (*string) {
+        uint32_t buf = *string++;
+        if ((buf >> 6) == 3) {
+            if ((buf & 0xF0) == 0xC0) {
+                uint8_t b1 = buf & 0xFF, b2 = *string++;
+                if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
+                buf = ((b1 & 0xF) << 6) | b2;
+            } else if ((buf & 0xF0) == 0xD0) {
+                uint8_t b1 = buf & 0xFF, b2 = *string++;
+                if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
+                buf = 0x400 | ((b1 & 0xF) << 6) | b2;
+            } else if ((buf & 0xF0) == 0xE0) {
+                uint8_t b1 = buf & 0xFF, b2 = *string++, b3 = *string++;
+                if ((b2 & 0xC0) == 0x80) b2 &= 0x3F;
+                if ((b3 & 0xC0) == 0x80) b3 &= 0x3F;
+                buf = ((b1 & 0xF) << 12) | (b2 << 6) | b3;
+            }
+        } else if (buf & 0x80) {
+            string++;
+            continue;
+        }
 
         FT_UInt glyph_index;
-		glyph_index = FT_Get_Char_Index(fontFace, buf);
+        glyph_index = FT_Get_Char_Index(fontFace, buf);
 
-		if (FT_HAS_KERNING(fontFace)) {
-			FT_Vector vector;
-			FT_Get_Kerning(fontFace, previous_glyph, glyph_index, FT_KERNING_DEFAULT, &vector);
-			pen_x += (vector.x >> 6);
-		}
+        if (FT_HAS_KERNING(fontFace)) {
+            FT_Vector vector;
+            FT_Get_Kerning(fontFace, previous_glyph, glyph_index, FT_KERNING_DEFAULT, &vector);
+            pen_x += (vector.x >> 6);
+        }
 
-		if (buf == '\n') {
-			if (part != 0) {
-				if ((part > 0) && (spart == part)) return pen_x;
-				if (part == -2) max_x = max(pen_x, max_x);
-				pen_x = 0;
-				spart++;
-			}
-			continue;
-		}
+        if (buf == '\n') {
+            if (part != 0) {
+                if ((part > 0) && (spart == part)) return pen_x;
+                if (part == -2) max_x = max(pen_x, max_x);
+                pen_x = 0;
+                spart++;
+            }
+            continue;
+        }
 
-		error = FT_Load_Glyph(fontFace, glyph_index, FT_LOAD_BITMAP_METRICS_ONLY);
-		if (error)
-			continue;
+        error = FT_Load_Glyph(fontFace, glyph_index, FT_LOAD_BITMAP_METRICS_ONLY);
+        if (error)
+            continue;
 
-		pen_x += (slot->advance.x >> 6);
-		previous_glyph = glyph_index;
-	}
-	if (spart < part) pen_x = 0;
-	return max(pen_x, max_x);
+        pen_x += (slot->advance.x >> 6);
+        previous_glyph = glyph_index;
+    }
+    if (spart < part) pen_x = 0;
+    return max(pen_x, max_x);
 }
 
 void ttfFontColor32(uint32_t color) {
-	ttfColor.c = color;
+    ttfColor.c = color;
 }
 
 void ttfFontColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-	RGBAColor color = {.r = r, .g = g, .b = b, .a = a};
-	ttfFontColor32(color.c);
+    RGBAColor color = {.r = r, .g = g, .b = b, .a = a};
+    ttfFontColor32(color.c);
 }
 
 void WHBLogFreetypeDraw() {
-    currTVFrameBuffer = (currTVFrameBuffer == frameBufferTVFrontPtr) ? frameBufferTVBackPtr : frameBufferTVFrontPtr;
+    currTVFrameBuffer  = (currTVFrameBuffer == frameBufferTVFrontPtr) ? frameBufferTVBackPtr : frameBufferTVFrontPtr;
     currDRCFrameBuffer = (currDRCFrameBuffer == frameBufferDRCFrontPtr) ? frameBufferDRCBackPtr : frameBufferDRCFrontPtr;
 }

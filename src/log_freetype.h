@@ -1,10 +1,10 @@
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <stdbool.h>
 
-#include <coreinit/memheap.h>
 #include <coreinit/cache.h>
 #include <coreinit/memfrmheap.h>
+#include <coreinit/memheap.h>
 #include <coreinit/memory.h>
 #include <coreinit/screen.h>
 
