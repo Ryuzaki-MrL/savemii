@@ -498,13 +498,14 @@ int DumpDir(char *pPath, const char *tPath) { // Source: ft2sd
     mkdir(tPath, DEFFILEMODE);
     struct dirent *data = (dirent*)malloc(sizeof(dirent));
 
+    size_t len = strlen(pPath);
+
     while ((data = readdir(dir)) != NULL) {
         OSScreenClearBufferEx(SCREEN_TV, 0);
         OSScreenClearBufferEx(SCREEN_DRC, 0);
 
         if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0) continue;
 
-        int len = strlen(pPath);
         snprintf(pPath + len, PATH_MAX - len, "/%s", data->d_name);
         char *targetPath = (char *) malloc(PATH_MAX);
         snprintf(targetPath, PATH_MAX, "%s/%s", tPath, data->d_name);
@@ -513,6 +514,7 @@ int DumpDir(char *pPath, const char *tPath) { // Source: ft2sd
             mkdir(targetPath, DEFFILEMODE);
             if (DumpDir(pPath, targetPath) != 0) {
                 closedir(dir);
+                free(targetPath);
                 return -2;
             }
         } else {
@@ -521,6 +523,7 @@ int DumpDir(char *pPath, const char *tPath) { // Source: ft2sd
 
             if (DumpFile(pPath, targetPath) != 0) {
                 closedir(dir);
+                free(targetPath);
                 return -3;
             }
         }
