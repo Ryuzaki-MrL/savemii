@@ -47,7 +47,7 @@ extern "C" {
 
 #include <stdint.h>
 
-#if defined(__wiiu__)
+#if defined(__WIIU__)
 #include <iosuhax_disc_interface.h>
 #elif defined(__gamecube__) || defined(__wii__)
 #include <ogc/disc_io.h>

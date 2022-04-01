@@ -1,5 +1,9 @@
 #include "string.hpp"
 #include <nn/act/client_cpp.h>
+#include <coreinit/thread.h>
+#include <whb/log_cafe.h>
+#include <whb/log_udp.h>
+#include <whb/log.h>
 extern "C" {
 #include "savemng.h"
 }
@@ -413,6 +417,7 @@ void getAccountsSD(Title *title, uint8_t slot) {
 }
 
 int DumpFile(char *pPath, char *oPath) {
+    WHBLogPrint("In DumpFile");
     FILE *source = fopen(pPath, "rb");
     if (source == NULL)
         return -1;
@@ -425,12 +430,12 @@ int DumpFile(char *pPath, char *oPath) {
 
     char *buffer[3];
     for (int i = 0; i < 3; i++) {
-        buffer[i] = (char *) MEMAllocFromDefaultHeapEx(IO_MAX_FILE_BUFFER, 0x40);
+        buffer[i] = (char *) aligned_alloc(0x40, IO_MAX_FILE_BUFFER);
         if (buffer[i] == NULL) {
             fclose(source);
             fclose(dest);
             for (i--; i >= 0; i--)
-                MEMFreeToDefaultHeap(buffer[i]);
+                free(buffer[i]);
 
             return -1;
         }
@@ -441,12 +446,24 @@ int DumpFile(char *pPath, char *oPath) {
     struct stat st;
     if(stat(pPath, &st) < 0) return -1;
     int sizef          = st.st_size;
-    int sizew          = 0, size;
+    size_t sizew          = 0, size;
     uint32_t passedMs  = 1;
     uint64_t startTime = OSGetTime();
+    size_t bytesWritten = 0;
 
+    WHBLogPrintf("before fread");
     while ((size = fread(buffer[2], 1, IO_MAX_FILE_BUFFER, source)) > 0) {
-        fwrite(buffer[2], 1, size, dest);
+        bytesWritten = fwrite(buffer[2], 1, size, dest);
+        WHBLogPrint("alive");
+        if(bytesWritten < size) {
+            WHBLogPrint("error");
+            promptError("Write %d,%s", bytesWritten, oPath);
+            fclose(source);
+            fclose(dest);
+            for (int i = 0; i < 3; i++)
+                free(buffer[i]);
+            return -1;
+        }
         passedMs = (uint32_t) OSTicksToMilliseconds(OSGetTime() - startTime);
         if (passedMs == 0)
             passedMs = 1; // avoid 0 div
@@ -458,12 +475,17 @@ int DumpFile(char *pPath, char *oPath) {
         flipBuffers();
         WHBLogFreetypeDraw();
     }
+    WHBLogPrintf("after while");
     fclose(source);
+    WHBLogPrintf("after close source");
     fclose(dest);
-    for (int i = 0; i < 3; i++)
-        MEMFreeToDefaultHeap(buffer[i]);
+    WHBLogPrintf("after close dest");
+    for (int i = 0; i < 3; i++){
+        free(buffer[i]);
+        WHBLogPrintf("after close buffer %i", i); }
 
     IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA(oPath), 0x666);
+    WHBLogPrintf("after changemode");
 
     return 0;
 }
@@ -474,7 +496,7 @@ int DumpDir(char *pPath, const char *tPath) { // Source: ft2sd
         return -1;
 
     mkdir(tPath, DEFFILEMODE);
-    struct dirent *data;
+    struct dirent *data = (dirent*)malloc(sizeof(dirent));
 
     while ((data = readdir(dir)) != NULL) {
         OSScreenClearBufferEx(SCREEN_TV, 0);

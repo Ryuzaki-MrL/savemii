@@ -28,16 +28,16 @@ DEFS        :=
 #-------------------------------------------------------------------------------
 # options for code generation
 #-------------------------------------------------------------------------------
-CFLAGS	:=	-std=gnu2x -g -Wall -Ofast -ffunction-sections -fno-use-linker-plugin -fno-lto \
-			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__ -D__wiiu__
+CFLAGS	:=	-std=gnu2x -g -Wall -Ofast -ffunction-sections `freetype-config --cflags` \
+			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__
 
-CXXFLAGS	:= -std=gnu++20 -g -Wall -Wno-int-in-bool-context -Wno-format-overflow -Ofast -ffunction-sections -fpermissive -fno-use-linker-plugin -fno-lto \
-			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__ -D__wiiu__
+CXXFLAGS	:= -std=gnu++20 -g -Wall -Wno-int-in-bool-context -Wno-format-overflow -Ofast -ffunction-sections `freetype-config --cflags` \
+			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -liosuhax -lwut -lfreetype -lpng -lz -lm -lbz2 -lfat
+LIBS	:= -lstdc++ -lwut -lfat -liosuhax `freetype-config --libs`
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level

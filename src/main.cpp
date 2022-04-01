@@ -1,4 +1,7 @@
 #include "string.hpp"
+#include <whb/log_cafe.h>
+#include <whb/log_udp.h>
+#include <whb/log.h>
 
 extern "C" {
 #include "icon.h"
@@ -403,6 +406,11 @@ int main(void) {
     KPADInit();
     WPADEnableURCC(1);
     loadWiiUTitles(0);
+
+    WHBLogCafeInit();
+    WHBLogUdpInit();
+/*  WHBLogPrint and WHBLogPrintf add new line characters for you */
+    WHBLogPrint("Hello World! Logging initialised.");
 
     int res = IOSUHAX_Open(NULL);
     if (res < 0) {
