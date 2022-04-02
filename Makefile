@@ -37,7 +37,7 @@ CXXFLAGS	:= -std=gnu++20 -g -Wall -Wno-int-in-bool-context -Wno-format-overflow 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lfat -lwut -liosuhax `freetype-config --libs`
+LIBS	:= -lwut -liosuhax `freetype-config --libs`
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level

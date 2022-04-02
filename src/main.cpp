@@ -424,8 +424,7 @@ int main(void) {
         return 0;
     }
     setFSAFD(fsaFd);
-    fatInit(1024, false);
-    fatMountSimple("sd", &IOSUHAX_sdio_disc_interface);
+
     mount_fs("slc", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
     mount_fs("mlc", fsaFd, NULL, "/vol/storage_mlc01");
     mount_fs("usb", fsaFd, NULL, "/vol/storage_usb01");
@@ -946,7 +945,7 @@ int main(void) {
                     }
 
                     if ((task == 3) || (task == 4)) {
-                        char gamePath[PATH_SIZE];
+                        char gamePath[PATH_MAX];
                         memset(versionList, 0, 0x100 * sizeof(int));
                         if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode) != 0) continue;
                         getLoadiineSaveVersionList(versionList, gamePath);
@@ -1014,7 +1013,6 @@ int main(void) {
     OSScreenShutdown();
     WHBLogFreetypeFree();
     WHBProcShutdown();
-    fatUnmount("sd");
     unmount_fs("slc");
     unmount_fs("mlc");
     unmount_fs("usb");

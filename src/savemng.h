@@ -11,7 +11,6 @@
 #include <fcntl.h>
 #include <iosuhax.h>
 #include <iosuhax_devoptab.h>
-#include <iosuhax_disc_interface.h>
 #include <padscore/kpad.h>
 #include <stdio.h>
 #include <sys/dirent.h>
