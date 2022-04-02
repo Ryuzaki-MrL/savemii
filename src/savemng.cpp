@@ -428,9 +428,9 @@ int DumpFile(char *pPath, char *oPath) {
         return -1;
     }
 
-    char *buffer[3];
+    size_t *buffer[3];
     for (int i = 0; i < 3; i++) {
-        buffer[i] = (char *) aligned_alloc(0x40, IO_MAX_FILE_BUFFER);
+        buffer[i] = (size_t *) aligned_alloc(0x40, IO_MAX_FILE_BUFFER);
         if (buffer[i] == NULL) {
             fclose(source);
             fclose(dest);
@@ -441,8 +441,8 @@ int DumpFile(char *pPath, char *oPath) {
         }
     }
 
-    setvbuf(source, buffer[0], _IOFBF, IO_MAX_FILE_BUFFER);
-    setvbuf(dest, buffer[1], _IOFBF, IO_MAX_FILE_BUFFER);
+    //setvbuf(source, buffer[0], _IOFBF, IO_MAX_FILE_BUFFER);
+    //setvbuf(dest, buffer[1], _IOFBF, IO_MAX_FILE_BUFFER);
     struct stat st;
     if(stat(pPath, &st) < 0) return -1;
     int sizef          = st.st_size;
