@@ -1,5 +1,5 @@
-#include "log_freetype.h"
-#include "draw.h"
+#include "log_freetype.hpp"
+#include "draw.hpp"
 
 #define CONSOLE_FRAME_HEAP_TAG (0x0002B2B)
 #define NUM_LINES              (16)

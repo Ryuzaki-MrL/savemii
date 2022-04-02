@@ -1,14 +1,17 @@
 #include "string.hpp"
+#include "savemng.hpp"
+#include "json.hpp"
+#include "log_freetype.hpp"
+#include "main.hpp"
+#include <stdio.h>
+#include <string>
+#include <fstream>
 #include <whb/log_cafe.h>
 #include <whb/log_udp.h>
 #include <whb/log.h>
 
 extern "C" {
 #include "icon.h"
-#include "json.h"
-#include "log_freetype.h"
-#include "main.h"
-#include "savemng.h"
 }
 
 using namespace std;
@@ -33,7 +36,7 @@ int titleSort(const void *c1, const void *c2) {
             return ((Title *) c1)->listID - ((Title *) c2)->listID;
 
         case 1:
-            return strcmp(((Title *) c1)->shortName, ((Title *) c2)->shortName) * sorta;
+            return ((Title *) c1)->shortName.compare(((Title *) c2)->shortName) * sorta;
 
         case 2:
             if (((Title *) c1)->isTitleOnUSB == ((Title *) c2)->isTitleOnUSB)
@@ -50,7 +53,7 @@ int titleSort(const void *c1, const void *c2) {
             if (!((Title *) c1)->isTitleOnUSB && ((Title *) c2)->isTitleOnUSB)
                 return 1 * sorta;
 
-            return strcmp(((Title *) c1)->shortName, ((Title *) c2)->shortName) * sorta;
+            return ((Title *) c1)->shortName.compare(((Title *) c2)->shortName) * sorta;
 
         default:
             return 0;
@@ -63,13 +66,42 @@ void disclaimer() {
     console_print_pos(1, 15, "Everything you do with this software is your own responsibility");
 }
 
+int readInfoFromXML(Title *title, char* path) {
+    WHBLogPrintf("path: %s", path);
+
+    char *xmlBuf = NULL;
+    loadFile(path, (uint8_t **) &xmlBuf);
+
+    char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
+    title->productCode.copy(cptr, strcspn(cptr, "<"));
+    WHBLogPrintf("productCode: %s", title->productCode);
+
+    cptr = strchr(strstr(xmlBuf, "shortname_en"), '>') + 1;
+    if (strcspn(cptr, "<") == 0)
+        cptr = strchr(strstr(xmlBuf, "shortname_ja"), '>') + 1;
+    title->shortName.copy(cptr, strcspn(cptr, "<"));
+    WHBLogPrintf("shortName: %s", title->shortName);
+
+    cptr = strchr(strstr(xmlBuf, "longname_en"), '>') + 1;
+    if (strcspn(cptr, "<") == 0)
+        cptr = strchr(strstr(xmlBuf, "longname_ja"), '>') + 1;
+    title->longName.copy(cptr, strcspn(cptr, "<"));
+    WHBLogPrintf("longName: %s", title->longName);
+
+    free(xmlBuf);
+    
+    return 1;
+}
+
 Title *loadWiiUTitles(int run) {
+    WHBLogPrint("In loadWiiUTitles");
     static char *tList;
     static uint32_t receivedCount;
     const char *highIDs[2]           = {"00050000", "00050002"};
     const uint32_t highIDsNumeric[2] = {0x00050000, 0x00050002};
     // Source: haxchi installer
     if (run == 0) {
+        WHBLogPrint("run 0");
         int mcp_handle = MCP_Open();
         int count      = MCP_TitleCount(mcp_handle);
         int listSize   = count * 0x61;
@@ -80,6 +112,7 @@ Title *loadWiiUTitles(int run) {
         MCP_Close(mcp_handle);
         return NULL;
     }
+    WHBLogPrint("run 1");
 
     int usable = receivedCount, j = 0;
     Saves *savesl = (Saves *) malloc(receivedCount * sizeof(Saves));
@@ -174,41 +207,24 @@ Title *loadWiiUTitles(int run) {
             pos++;
         }
     }
+    WHBLogPrint("saves ok, before titles");
 
     Title *titles = (Title *) malloc(foundCount * sizeof(Title));
     if (!titles) {
         promptError("Out of memory.");
         return NULL;
     }
-
+    WHBLogPrint("before for loop");
     for (int i = 0; i < foundCount; i++) {
         uint32_t highID = saves[i].highID, lowID = saves[i].lowID;
         bool isTitleOnUSB = !saves[i].dev;
-
+        WHBLogPrint("before string path");
         char path[255];
         sprintf(path, "%s:/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc", saves[i].found ? "title" : "save", highID, lowID);
         titles[titleswiiu].saveInit = !saves[i].found;
 
-        char *xmlBuf = NULL;
-        if (loadFile(path, (uint8_t **) &xmlBuf) > 0) {
-            char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
-            memset(titles[titleswiiu].productCode, 0, sizeof(titles[titleswiiu].productCode));
-            strncpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<"));
-
-            cptr = strchr(strstr(xmlBuf, "shortname_en"), '>') + 1;
-            memset(titles[titleswiiu].shortName, 0, sizeof(titles[titleswiiu].shortName));
-            if (strcspn(cptr, "<") == 0)
-                cptr = strchr(strstr(xmlBuf, "shortname_ja"), '>') + 1;
-            strncpy(titles[titleswiiu].shortName, cptr, strcspn(cptr, "<"));
-
-            cptr = strchr(strstr(xmlBuf, "longname_en"), '>') + 1;
-            memset(titles[i].longName, 0, sizeof(titles[i].longName));
-            if (strcspn(cptr, "<") == 0)
-                cptr = strchr(strstr(xmlBuf, "longname_ja"), '>') + 1;
-            strncpy(titles[titleswiiu].longName, cptr, strcspn(cptr, "<"));
-
-            free(xmlBuf);
-        }
+        WHBLogPrint("before actual title init");
+        readInfoFromXML(&titles[titleswiiu], path);
 
         titles[titleswiiu].isTitleDupe = false;
         for (int i = 0; i < titleswiiu; i++) {
@@ -243,6 +259,7 @@ Title *loadWiiUTitles(int run) {
 }
 
 Title *loadWiiTitles() {
+    /*
     const char *highIDs[3]                = {"00010000", "00010001", "00010004"};
     bool found                            = false;
     static const uint32_t blacklist[7][2] = {
@@ -288,7 +305,7 @@ Title *loadWiiTitles() {
     }
 
     int i = 0;
-    for (int k = 0; k < 3; k++) {
+     for (int k = 0; k < 3; k++) {
         sprintf(pathW, "slc:/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW);
         if (dir != NULL) {
@@ -315,7 +332,7 @@ Title *loadWiiTitles() {
                     uint16_t *bnrBuf = (uint16_t *) malloc(0x80);
                     if (bnrBuf) {
                         fread(bnrBuf, 0x02, 0x20, file);
-                        memset(titles[i].shortName, 0, sizeof(titles[i].shortName));
+                        //memset(titles[i].shortName.c_str(), 0, sizeof(titles[i].shortName.c_str()));
                         for (int j = 0, k = 0; j < 0x20; j++) {
                             if (bnrBuf[j] < 0x80)
                                 titles[i].shortName[k++] = (char) bnrBuf[j];
@@ -332,7 +349,7 @@ Title *loadWiiTitles() {
                             }
                         }
 
-                        memset(titles[i].longName, 0, sizeof(titles[i].longName));
+                        //memset(titles[i].longName.c_str(), 0, sizeof(titles[i].longName.c_str()));
                         for (int j = 0x20, k = 0; j < 0x40; j++) {
                             if (bnrBuf[j] < 0x80)
                                 titles[i].longName[k++] = (char) bnrBuf[j];
@@ -354,8 +371,8 @@ Title *loadWiiTitles() {
                     }
                     fclose(file);
                 } else {
-                    sprintf(titles[i].shortName, "%s%s (No banner.bin)", highIDs[k], data->d_name);
-                    memset(titles[i].longName, 0, sizeof(titles[i].longName));
+                    string_format(titles[i].shortName, "%s%s (No banner.bin)", highIDs[k], data->d_name);
+                    //memset(titles[i].longName.c_str(), 0, sizeof(titles[i].longName.c_str()));
                     titles[i].saveInit = false;
                 }
 
@@ -363,7 +380,7 @@ Title *loadWiiTitles() {
                 titles[i].lowID  = strtoul(data->d_name, NULL, 16);
 
                 titles[i].listID = i;
-                memcpy(titles[i].productCode, &titles[i].lowID, 4);
+                titles[i].productCode.assign(to_string(titles[i].lowID));
                 for (int ii = 0; ii < 4; ii++) {
                     if (titles[i].productCode[ii] == 0) titles[i].productCode[ii] = '.';
                 }
@@ -386,8 +403,10 @@ Title *loadWiiTitles() {
             closedir(dir);
         }
     }
+    */
 
-    return titles;
+    //return titles;
+    return nullptr;
 }
 
 void unloadTitles(Title *titles, int count) {
@@ -488,8 +507,8 @@ int main(void) {
                             if (i + scroll < 0 || i + scroll >= count) break;
                             ttfFontColor32(0x00FF00FF);
                             if (!titles[i + scroll].saveInit) ttfFontColor32(0xFFFF00FF);
-                            if (strcmp(titles[i + scroll].shortName, "DONT TOUCH ME") == 0) ttfFontColor32(0xFF0000FF);
-                            if (strlen(titles[i + scroll].shortName)) console_print_pos(M_OFF, i + 2, "   %s %s%s%s", titles[i + scroll].shortName, titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i + scroll].isTitleDupe ? " [D]" : "", titles[i + scroll].saveInit ? "" : " [Not Init]");
+                            if (titles[i + scroll].shortName.compare("DONT TOUCH ME") == 0) ttfFontColor32(0xFF0000FF);
+                            if (titles[i + scroll].shortName.size()) console_print_pos(M_OFF, i + 2, "   %s %s%s%s", titles[i + scroll].shortName, titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""), titles[i + scroll].isTitleDupe ? " [D]" : "", titles[i + scroll].saveInit ? "" : " [Not Init]");
                             else
                                 console_print_pos(M_OFF, i + 2, "   %08lx%08lx", titles[i + scroll].highID, titles[i + scroll].lowID);
                             ttfFontColor32(0xFFFFFFFF);
@@ -898,23 +917,20 @@ int main(void) {
                         continue;
                     }
                     if (titles[targ].highID == 0 || titles[targ].lowID == 0) continue;
-                    if ((mode == 0) && (strcmp(titles[targ].shortName, "DONT TOUCH ME") == 0)) {
+                    if ((mode == 0) && (titles[targ].shortName.compare("DONT TOUCH ME") == 0)) {
                         if (!promptConfirm(ST_ERROR, "CBHC save. Could be dangerous to modify. Continue?") || !promptConfirm(ST_WARNING, "Are you REALLY sure?")) {
-                            sleep(0.1);
                             continue;
                         }
                     }
-                    char path[255];
-                    sprintf(path, "%s:/usr/title/000%x/%x/code/fw.img", (titles[targ].isTitleOnUSB == true) ? "usb" : "mlc", titles[targ].highID, titles[targ].lowID);
-                    if ((mode == 0) && checkEntry(path)) {
+                    string path;
+                    string_format(path, "%s:/usr/title/000%x/%x/code/fw.img", (titles[targ].isTitleOnUSB == true) ? "usb" : "mlc", titles[targ].highID, titles[targ].lowID);
+                    if ((mode == 0) && checkEntry(path.c_str())) {
                         if (!promptConfirm(ST_ERROR, "vWii saves are in the vWii section. Continue?")) {
-                            sleep(0.1);
                             continue;
                         }
                     }
                     if ((mode == 0) && (!titles[targ].saveInit)) {
                         if (!promptConfirm(ST_WARNING, "Recommended to run Game at least one time. Continue?") || !promptConfirm(ST_WARNING, "Are you REALLY sure?")) {
-                            sleep(0.1);
                             continue;
                         }
                     }
@@ -945,7 +961,7 @@ int main(void) {
                     }
 
                     if ((task == 3) || (task == 4)) {
-                        char gamePath[PATH_MAX];
+                        char gamePath[PATH_SIZE];
                         memset(versionList, 0, 0x100 * sizeof(int));
                         if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode) != 0) continue;
                         getLoadiineSaveVersionList(versionList, gamePath);

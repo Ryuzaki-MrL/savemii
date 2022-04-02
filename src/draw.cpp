@@ -1,5 +1,5 @@
-#include "draw.h"
-#include "log_freetype.h"
+#include "draw.hpp"
+#include "log_freetype.hpp"
 
 uint8_t *scrBuffer;
 bool cur_buf1;

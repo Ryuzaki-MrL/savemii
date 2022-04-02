@@ -1,13 +1,12 @@
 #include "string.hpp"
+#include "savemng.hpp"
 #include <nn/act/client_cpp.h>
 #include <malloc.h>
 #include <coreinit/thread.h>
 #include <whb/log_cafe.h>
 #include <whb/log_udp.h>
 #include <whb/log.h>
-extern "C" {
-#include "savemng.h"
-}
+
 using namespace std;
 
 #define IO_MAX_FILE_BUFFER (1024 * 1024) // 1 MB
@@ -592,15 +591,15 @@ void getUserID(char *out) { // Source: loadiine_gx2
     sprintf(out, "%08X", persistentID);
 }
 
-int getLoadiineGameSaveDir(char *out, const char *productCode) {
+int getLoadiineGameSaveDir(char *out, string productCode) {
     DIR *dir = opendir("/vol/external01/wiiu/saves");
 
     if (dir == NULL) return -1;
 
     struct dirent *data;
     while ((data = readdir(dir)) != NULL) {
-        if ((data->d_type & DT_DIR) && (strstr(data->d_name, productCode) != NULL)) {
-            sprintf(out, "/vol/external01/wiiu/saves/%s", data->d_name);
+        if ((data->d_type & DT_DIR) && (strstr(data->d_name, productCode.c_str()) != NULL)) {
+            string_format(out, "/vol/external01/wiiu/saves/%s", data->d_name);
             closedir(dir);
             return 0;
         }
@@ -760,8 +759,8 @@ void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_
     char dstPath[PATH_MAX];
     const char *path  = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
     const char *pathb = (isUSBb ? "usb:/usr/save" : "mlc:/usr/save");
-    sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, "user");
-    sprintf(dstPath, "%s/%08x/%08x/%s", pathb, highIDb, lowIDb, "user");
+    snprintf(srcPath, sizeof(srcPath), "%s/%08x/%08x/%s", path, highID, lowID, "user");
+    snprintf(dstPath, sizeof(dstPath), "%s/%08x/%08x/%s", pathb, highIDb, lowIDb, "user");
     createFolder(dstPath);
 
     if (allusers > -1) {
@@ -818,11 +817,11 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
     char srcPath[PATH_MAX];
     char dstPath[PATH_MAX];
     const char *path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
-    sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
+    snprintf(srcPath, sizeof(srcPath), "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
     if (isWii && (slot == 255)) {
-        sprintf(dstPath, "/vol/external01/savegames/%08x%08x", highID, lowID);
+        snprintf(dstPath, sizeof(dstPath), "/vol/external01/savegames/%08x%08x", highID, lowID);
     } else {
-        sprintf(dstPath, "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+        snprintf(dstPath, sizeof(dstPath), "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
     }
     createFolder(dstPath);
 
@@ -845,7 +844,7 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
     OSCalendarTime now;
     OSTicksToCalendarTime(OSGetTime(), &now);
     char date[255];
-    sprintf(date, "%02d/%02d/%d %02d:%02d", now.tm_mday, now.tm_mon, now.tm_year, now.tm_hour, now.tm_min);
+    snprintf(date, sizeof(date), "%02d/%02d/%d %02d:%02d", now.tm_mday, now.tm_mon, now.tm_year, now.tm_hour, now.tm_min);
     setSlotDate(title->highID, title->lowID, slot, date);
 }
 

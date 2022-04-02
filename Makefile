@@ -31,7 +31,7 @@ DEFS        :=
 CFLAGS	:=	-std=gnu2x -g -Wall -Ofast -ffunction-sections `freetype-config --cflags` \
 			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__
 
-CXXFLAGS	:= -std=gnu++20 -g -Wall -Wno-int-in-bool-context -Wno-format-overflow -Ofast -ffunction-sections `freetype-config --cflags` \
+CXXFLAGS	:= -std=gnu++20 -g -Wall -Wno-int-in-bool-context -Wno-format-overflow -Ofast -ffunction-sections -fpermissive `freetype-config --cflags` \
 			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__
 
 ASFLAGS	:=	-g $(ARCH)

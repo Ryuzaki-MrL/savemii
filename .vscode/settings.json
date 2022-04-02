@@ -7,7 +7,7 @@
         "string.h": "c",
         "fs_utils.h": "c",
         "lib_easy.h": "c",
-        "savemng.h": "c",
+        "savemng.hpp": "c",
         "memory.h": "c",
         "memory": "c",
         "malloc.h": "c",
