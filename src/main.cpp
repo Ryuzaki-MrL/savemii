@@ -424,7 +424,7 @@ int main(void) {
         return 0;
     }
     setFSAFD(fsaFd);
-    fatInit(1024 * 1024, true);
+    fatInit(1024, false);
     fatMountSimple("sd", &IOSUHAX_sdio_disc_interface);
     mount_fs("slc", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
     mount_fs("mlc", fsaFd, NULL, "/vol/storage_mlc01");
