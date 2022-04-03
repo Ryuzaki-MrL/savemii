@@ -69,10 +69,8 @@ void disclaimer() {
 int readInfoFromXML(Title *title, char* path) {
     WHBLogPrintf("path: %s", path);
 
-    char* xmlBuf = NULL;
-    loadFile(path, (uint8_t **) &xmlBuf);
-    string xmlFile(xmlBuf);
-    std::string line = "";
+    std::ifstream xmlFile(path);
+    std::string line;
     std::string shortTitleJapan = "";
     std::string longTitleJapan = "";
 
