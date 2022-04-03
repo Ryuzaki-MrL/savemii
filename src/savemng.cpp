@@ -417,13 +417,15 @@ void getAccountsSD(Title *title, uint8_t slot) {
     }
 }
 
-int DumpFile(char *pPath, char *oPath) {
+int DumpFile(string pPath, string oPath) {
     WHBLogPrint("In DumpFile");
-    FILE *source = fopen(pPath, "rb");
+    WHBLogPrintf("pPath: %s", pPath.c_str());
+    WHBLogPrintf("oPath: %s", oPath.c_str());
+    FILE *source = fopen(pPath.c_str(), "rb");
     if (source == NULL)
         return -1;
 
-    FILE *dest = fopen(oPath, "wb");
+    FILE *dest = fopen(oPath.c_str(), "wb");
     if (dest == NULL) {
         fclose(source);
         return -1;
@@ -445,7 +447,7 @@ int DumpFile(char *pPath, char *oPath) {
     setvbuf(source, buffer[0], _IOFBF, IO_MAX_FILE_BUFFER);
     setvbuf(dest, buffer[1], _IOFBF, IO_MAX_FILE_BUFFER);
     struct stat st;
-    if(stat(pPath, &st) < 0) return -1;
+    if(stat(pPath.c_str(), &st) < 0) return -1;
     int sizef          = st.st_size;
     size_t sizew          = 0, size;
     uint32_t passedMs  = 1;
@@ -459,7 +461,7 @@ int DumpFile(char *pPath, char *oPath) {
         WHBLogPrint("alive");
         if(bytesWritten < size) {
             WHBLogPrint("error");
-            promptError("Write %d,%s", bytesWritten, oPath);
+            promptError("Write %d,%s", bytesWritten, oPath.c_str());
             fclose(source);
             fclose(dest);
             for (int i = 0; i < 3; i++)
@@ -472,7 +474,7 @@ int DumpFile(char *pPath, char *oPath) {
         OSScreenClearBufferEx(SCREEN_TV, 0);
         OSScreenClearBufferEx(SCREEN_DRC, 0);
         sizew += size;
-        show_file_operation(basename(pPath), pPath, oPath);
+        show_file_operation(basename(pPath.c_str()), pPath.c_str(), oPath.c_str());
         console_print_pos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", sizew, sizef, (uint32_t) (((uint64_t) sizew * 1000) / ((uint64_t) 1024 * passedMs)));
         flipBuffers();
         WHBLogFreetypeDraw();
@@ -486,21 +488,19 @@ int DumpFile(char *pPath, char *oPath) {
         free(buffer[i]);
         WHBLogPrintf("after close buffer %i", i); }
 
-    IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA(oPath), 0x666);
+    IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA(oPath.c_str()), 0x666);
     WHBLogPrintf("after changemode");
 
     return 0;
 }
 
-int DumpDir(char *pPath, const char *tPath) { // Source: ft2sd
-    DIR *dir = opendir(pPath);
+int DumpDir(string pPath, string tPath) { // Source: ft2sd
+    DIR *dir = opendir(pPath.c_str());
     if (dir == NULL)
         return -1;
 
-    mkdir(tPath, DEFFILEMODE);
+    mkdir(tPath.c_str(), DEFFILEMODE);
     struct dirent *data = (dirent*)malloc(sizeof(dirent));
-
-    size_t len = strlen(pPath);
 
     while ((data = readdir(dir)) != NULL) {
         OSScreenClearBufferEx(SCREEN_TV, 0);
@@ -508,30 +508,23 @@ int DumpDir(char *pPath, const char *tPath) { // Source: ft2sd
 
         if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0) continue;
 
-        snprintf(pPath + len, PATH_MAX - len, "/%s", data->d_name);
-        char *targetPath = (char *) malloc(PATH_MAX);
-        snprintf(targetPath, PATH_MAX, "%s/%s", tPath, data->d_name);
+        string targetPath = string_format("%s/%s", tPath.c_str(), data->d_name);
 
         if (data->d_type & DT_DIR) {
-            mkdir(targetPath, DEFFILEMODE);
-            if (DumpDir(pPath, targetPath) != 0) {
+            mkdir(targetPath.c_str(), DEFFILEMODE);
+            if (DumpDir(pPath + string_format("/%s", data->d_name), targetPath) != 0) {
                 closedir(dir);
-                free(targetPath);
                 return -2;
             }
         } else {
             p1 = data->d_name;
-            show_file_operation(data->d_name, pPath, targetPath);
+            show_file_operation(data->d_name, (pPath + string_format("/%s", data->d_name)).c_str(), targetPath.c_str());
 
-            if (DumpFile(pPath, targetPath) != 0) {
+            if (DumpFile(pPath + string_format("/%s", data->d_name), targetPath) != 0) {
                 closedir(dir);
-                free(targetPath);
                 return -3;
             }
         }
-
-        free(targetPath);
-        pPath[len] = 0;
     }
 
     closedir(dir);
@@ -829,7 +822,7 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
         if (common) {
             srcPath.append("/common");
             dstPath.append("/common");
-            if (DumpDir(srcPath.c_str(), dstPath.c_str()) != 0) promptError("Common save not found.");
+            if (DumpDir(srcPath, dstPath) != 0) promptError("Common save not found.");
         }
         srcPath.append(string_format("/%s", wiiuacc[allusers].persistentID));
         dstPath.append(string_format("/%s", wiiuacc[allusers].persistentID));
@@ -840,7 +833,7 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
     }
     WHBLogPrintf("srcPath: %s", srcPath.c_str());
     WHBLogPrintf("dstPath: %s", dstPath.c_str());
-    if (DumpDir(srcPath.c_str(), dstPath.c_str()) != 0) promptError("Backup failed. DO NOT restore from this slot.");
+    if (DumpDir(srcPath, dstPath) != 0) promptError("Backup failed. DO NOT restore from this slot.");
     OSCalendarTime now;
     OSTicksToCalendarTime(OSGetTime(), &now);
     char date[255];

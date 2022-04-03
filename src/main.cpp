@@ -861,7 +861,6 @@ int main(void) {
         if ((vpad_status.trigger & VPAD_BUTTON_A) | ((kpad_status.trigger & (WPAD_BUTTON_A)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A)))) {
             clearBuffers();
             WHBLogFreetypeDraw();
-            sleep(0.1);
             if (menu < 3) {
                 if (menu == 0) {
                     mode = cursor;
