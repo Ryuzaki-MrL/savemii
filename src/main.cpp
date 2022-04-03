@@ -84,38 +84,9 @@ int readInfoFromXML(Title *title, char* path) {
         if (!foundProductCode && line.find("product_code") != std::string::npos) {
             title->productCode = line.substr(line.find(">")+1, (line.find_last_of("<"))-(line.find_first_of(">")+1));
             foundProductCode = true;
-        } else if (!foundShortTitle && line.find("shortname_en") != std::string::npos) {
-            title->shortName = line.substr(line.find(">")+1, (line.find_last_of("<"))-(line.find_first_of(">")+1));
-            trim(title->shortName);
-            decodeXMLEscapeLine(title->shortName);
-            if (!title->shortName.empty()) foundShortTitle = true;
-        } else if (!foundJapaneseShortTitle && line.find("shortname_ja") != std::string::npos) {
-            shortTitleJapan = line.substr(line.find(">")+1, (line.find_last_of("<"))-(line.find_first_of(">")+1));
-            trim(shortTitleJapan);
-            decodeXMLEscapeLine(shortTitleJapan);
-            if (!shortTitleJapan.empty()) foundJapaneseShortTitle = true;
-        } else if (!foundShortTitle && line.find("longname_en") != std::string::npos) {
-            title->longName = line.substr(line.find(">")+1, (line.find_last_of("<"))-(line.find_first_of(">")+1));
-            trim(title->longName);
-            decodeXMLEscapeLine(title->longName);
-            if (!title->longName.empty()) foundLongTitle = true;
-        } else if (!foundJapaneseShortTitle && line.find("longname_ja") != std::string::npos) {
-            longTitleJapan = line.substr(line.find(">")+1, (line.find_last_of("<"))-(line.find_first_of(">")+1));
-            trim(longTitleJapan);
-            decodeXMLEscapeLine(longTitleJapan);
-            if (!longTitleJapan.empty()) foundJapaneseLongTitle = true;
+            WHBLogPrintf("productCode: %s", title->productCode);
         }
-        if (foundShortTitle && foundLongTitle && foundJapaneseShortTitle && foundJapaneseLongTitle && foundProductCode) break;
-    }
-    if ((foundShortTitle || foundJapaneseShortTitle) && foundProductCode) {
-        // Finish up information
-        if (!foundShortTitle) {
-            title->shortName = shortTitleJapan;
-        }
-        if (!foundLongTitle) {
-            title->longName = longTitleJapan;
-        }
-        return 0;
+        if (foundProductCode) break;
     }
     
     return 1;
