@@ -72,8 +72,6 @@ int readInfoFromXML(Title *title, char* path) {
     char* xmlBuf = NULL;
     loadFile(path, (uint8_t **) &xmlBuf);
     string xmlFile(xmlBuf);
-    std::istringstream input;
-    input.str(xmlFile);
     std::string line = "";
     std::string shortTitleJapan = "";
     std::string longTitleJapan = "";
@@ -84,7 +82,7 @@ int readInfoFromXML(Title *title, char* path) {
     bool foundJapaneseLongTitle = !longTitleJapan.empty();
     bool foundProductCode = !title->productCode.empty();
 
-    while(getline(input, line)) {
+    while(getline(xmlFile, line)) {
         if (!foundProductCode && line.find("product_code") != std::string::npos) {
             title->productCode = line.substr(line.find(">")+1, (line.find_last_of("<"))-(line.find_first_of(">")+1));
             foundProductCode = true;
