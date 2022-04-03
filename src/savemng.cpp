@@ -815,33 +815,32 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
     if (!isSlotEmpty(title->highID, title->lowID, slot) && !promptConfirm(ST_WARNING, "Backup found on this slot. Overwrite it?")) return;
     uint32_t highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    char srcPath[PATH_MAX];
-    char dstPath[PATH_MAX];
-    const char *path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
-    sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
+    string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
+    string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
+    string dstPath;
     if (isWii && (slot == 255)) {
-        sprintf(dstPath, "/vol/external01/savegames/%08x%08x", highID, lowID);
+        dstPath = string_format("/vol/external01/savegames/%08x%08x", highID, lowID);
     } else {
-        sprintf(dstPath, "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+        dstPath = string_format("/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
     }
-    createFolder(dstPath);
+    createFolder(dstPath.c_str());
 
     if ((allusers > -1) && !isWii) {
-        uint32_t srcOffset = strlen(srcPath);
-        uint32_t dstOffset = strlen(dstPath);
         if (common) {
-            strcpy(srcPath + srcOffset, "/common");
-            strcpy(dstPath + dstOffset, "/common");
-            if (DumpDir(srcPath, dstPath) != 0) promptError("Common save not found.");
+            srcPath.append("/common");
+            dstPath.append("/common");
+            if (DumpDir(srcPath.c_str(), dstPath.c_str()) != 0) promptError("Common save not found.");
         }
-        sprintf(srcPath + srcOffset, "/%s", wiiuacc[allusers].persistentID);
-        sprintf(dstPath + dstOffset, "/%s", wiiuacc[allusers].persistentID);
-        if (checkEntry(srcPath) == 0) {
+        srcPath.append(string_format("/%s", wiiuacc[allusers].persistentID));
+        dstPath.append(string_format("/%s", wiiuacc[allusers].persistentID));
+        if (checkEntry(srcPath.c_str()) == 0) {
             promptError("No save found for this user.");
             return;
         }
     }
-    if (DumpDir(srcPath, dstPath) != 0) promptError("Backup failed. DO NOT restore from this slot.");
+    WHBLogPrintf("srcPath: %s", srcPath.c_str());
+    WHBLogPrintf("dstPath: %s", dstPath.c_str());
+    if (DumpDir(srcPath.c_str(), dstPath.c_str()) != 0) promptError("Backup failed. DO NOT restore from this slot.");
     OSCalendarTime now;
     OSTicksToCalendarTime(OSGetTime(), &now);
     char date[255];
@@ -855,7 +854,6 @@ void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers
         promptError("No backup found on selected slot.");
         return;
     }
-    sleep(0.1);
     if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
     int slotb = getEmptySlot(title->highID, title->lowID);
     if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first to next empty slot?")) backupSavedata(title, slotb, allusers, common);
