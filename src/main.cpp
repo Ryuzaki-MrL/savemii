@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <whb/log_cafe.h>
 #include <whb/log_udp.h>
 #include <whb/log.h>
