@@ -1,6 +1,5 @@
 #include "string.hpp"
 #include <nn/act/client_cpp.h>
-#include <malloc.h>
 #include <coreinit/thread.h>
 #include <whb/log_cafe.h>
 #include <whb/log_udp.h>
@@ -390,7 +389,7 @@ void getAccountsSD(Title *title, uint8_t slot) {
     if (sdacc) free(sdacc);
 
     char path[255];
-    sprintf(path, "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+    sprintf(path, "sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
     DIR *dir = opendir(path);
     if (dir != NULL) {
         struct dirent *data;
@@ -455,9 +454,8 @@ int DumpFile(string pPath, string oPath) {
     size_t bytesWritten = 0;
 
     WHBLogPrintf("before fread");
-    while ((size = fread(buffer[2], 1, IO_MAX_FILE_BUFFER, source)) > 0) {
-        WHBLogPrint("after fread");
-        bytesWritten = fwrite(buffer[2], 1, size, dest);
+    while ((size = fread(buffer[2], sizeof(char), IO_MAX_FILE_BUFFER, source)) > 0) {
+        bytesWritten = fwrite(buffer[2], sizeof(char), size, dest);
         WHBLogPrint("alive");
         if(bytesWritten < size) {
             WHBLogPrint("error");
@@ -549,7 +547,7 @@ int DeleteDir(char *pPath) {
         snprintf(pPath + len, PATH_MAX - len, "/%s", data->d_name);
 
         if (data->d_type & DT_DIR) {
-            char origPath[PATH_MAX];
+            char origPath[PATH_SIZE];
             sprintf(origPath, "%s", pPath);
             DeleteDir(pPath);
 
@@ -586,14 +584,14 @@ void getUserID(char *out) { // Source: loadiine_gx2
 }
 
 int getLoadiineGameSaveDir(char *out, const char *productCode) {
-    DIR *dir = opendir("/vol/external01/wiiu/saves");
+    DIR *dir = opendir("sd:/wiiu/saves");
 
     if (dir == NULL) return -1;
 
     struct dirent *data;
     while ((data = readdir(dir)) != NULL) {
         if ((data->d_type & DT_DIR) && (strstr(data->d_name, productCode) != NULL)) {
-            sprintf(out, "/vol/external01/wiiu/saves/%s", data->d_name);
+            sprintf(out, "sd:/wiiu/saves/%s", data->d_name);
             closedir(dir);
             return 0;
         }
@@ -648,11 +646,11 @@ int getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID) 
 }
 
 bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) {
-    char path[PATH_MAX];
+    char path[PATH_SIZE];
     if (((highID & 0xFFFFFFF0) == 0x00010000) && (slot == 255)) {
-        sprintf(path, "/vol/external01/savegames/%08x%08x", highID, lowID);
+        sprintf(path, "sd:/savegames/%08x%08x", highID, lowID);
     } else {
-        sprintf(path, "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+        sprintf(path, "sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
     }
     int ret = checkEntry(path);
     if (ret <= 0) return 1;
@@ -672,7 +670,7 @@ bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t s
     bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
     if (highID == 0 || lowID == 0) return false;
 
-    char srcPath[PATH_MAX];
+    char srcPath[PATH_SIZE];
     if (!isWii) {
         if (!inSD) {
             const char *path = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
@@ -684,7 +682,7 @@ bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t s
                 sprintf(srcPath, "%s/%08x/%08x/%s/%08X", path, highID, lowID, "user", user);
         } else {
             if (!iine)
-                sprintf(srcPath, "/vol/external01/wiiu/backups/%08x%08x/%u/%08X", highID, lowID, slot, user);
+                sprintf(srcPath, "sd:/wiiu/backups/%08x%08x/%u/%08X", highID, lowID, slot, user);
             else {
                 if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) return false;
                 if (version) sprintf(srcPath + strlen(srcPath), "/v%u", version);
@@ -702,7 +700,7 @@ bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t s
         if (!inSD) {
             sprintf(srcPath, "slc:/title/%08x/%08x/data", highID, lowID);
         } else {
-            sprintf(srcPath, "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+            sprintf(srcPath, "sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
         }
     }
     if (checkEntry(srcPath) == 2)
@@ -716,13 +714,13 @@ bool hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version
     bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
     if (isWii) return false;
 
-    char srcPath[PATH_MAX];
+    char srcPath[PATH_SIZE];
     if (!inSD) {
         const char *path = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
         sprintf(srcPath, "%s/%08x/%08x/%s/common", path, highID, lowID, "user");
     } else {
         if (!iine)
-            sprintf(srcPath, "/vol/external01/wiiu/backups/%08x%08x/%u/common", highID, lowID, slot);
+            sprintf(srcPath, "sd:/wiiu/backups/%08x%08x/%u/common", highID, lowID, slot);
         else {
             if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) return false;
             if (version) sprintf(srcPath + strlen(srcPath), "/v%u", version);
@@ -749,8 +747,8 @@ void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_
         promptError("Backup done. Now copying Savedata.");
     }
 
-    char srcPath[PATH_MAX];
-    char dstPath[PATH_MAX];
+    char srcPath[PATH_SIZE];
+    char dstPath[PATH_SIZE];
     const char *path  = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
     const char *pathb = (isUSBb ? "usb:/usr/save" : "mlc:/usr/save");
     sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, "user");
@@ -792,11 +790,11 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
 
         uint32_t highID = titles[i].highID, lowID = titles[i].lowID;
         bool isUSB = titles[i].isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-        char srcPath[PATH_MAX];
-        char dstPath[PATH_MAX];
+        char srcPath[PATH_SIZE];
+        char dstPath[PATH_SIZE];
         const char *path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
         sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
-        sprintf(dstPath, "/vol/external01/wiiu/backups/batch/%s/%08x%08x", datetime, highID, lowID);
+        sprintf(dstPath, "sd:/wiiu/backups/batch/%s/%08x%08x", datetime, highID, lowID);
 
         createFolder(dstPath);
         if (DumpDir(srcPath, dstPath) != 0) promptError("Backup failed.");
@@ -812,9 +810,9 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
     string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
     string dstPath;
     if (isWii && (slot == 255)) {
-        dstPath = string_format("/vol/external01/savegames/%08x%08x", highID, lowID);
+        dstPath = string_format("sd:/savegames/%08x%08x", highID, lowID);
     } else {
-        dstPath = string_format("/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+        dstPath = string_format("sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
     }
     createFolder(dstPath.c_str());
 
@@ -852,13 +850,13 @@ void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers
     if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first to next empty slot?")) backupSavedata(title, slotb, allusers, common);
     uint32_t highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    char srcPath[PATH_MAX];
-    char dstPath[PATH_MAX];
+    char srcPath[PATH_SIZE];
+    char dstPath[PATH_SIZE];
     const char *path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
     if (isWii && (slot == 255)) {
-        sprintf(srcPath, "/vol/external01/savegames/%08x%08x", highID, lowID);
+        sprintf(srcPath, "sd:/savegames/%08x%08x", highID, lowID);
     } else {
-        sprintf(srcPath, "/vol/external01/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+        sprintf(srcPath, "sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
     }
     sprintf(dstPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
     createFolder(dstPath);
@@ -885,8 +883,8 @@ void wipeSavedata(Title *title, int8_t allusers, bool common) {
     if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first?")) backupSavedata(title, slotb, allusers, common);
     uint32_t highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    char srcPath[PATH_MAX];
-    char origPath[PATH_MAX];
+    char srcPath[PATH_SIZE];
+    char origPath[PATH_SIZE];
     const char *path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
     sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
     if ((allusers > -1) && !isWii) {
@@ -914,8 +912,8 @@ void importFromLoadiine(Title *title, bool common, int version) {
     if (slotb >= 0 && promptConfirm(ST_YES_NO, "Backup current savedata first?")) backupSavedata(title, slotb, 0, common);
     uint32_t highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
-    char srcPath[PATH_MAX];
-    char dstPath[PATH_MAX];
+    char srcPath[PATH_SIZE];
+    char dstPath[PATH_SIZE];
     if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) return;
     if (version) sprintf(srcPath + strlen(srcPath), "/v%i", version);
     char usrPath[16];
@@ -943,8 +941,8 @@ void exportToLoadiine(Title *title, bool common, int version) {
     if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
     uint32_t highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
-    char srcPath[PATH_MAX];
-    char dstPath[PATH_MAX];
+    char srcPath[PATH_SIZE];
+    char dstPath[PATH_SIZE];
     if (getLoadiineGameSaveDir(dstPath, title->productCode) != 0) return;
     if (version) sprintf(dstPath + strlen(dstPath), "/v%u", version);
     char usrPath[16];

@@ -1,3 +1,4 @@
+#include "fat.h"
 #include <malloc.h>
 #include <stdarg.h>
 #include <stdlib.h>
