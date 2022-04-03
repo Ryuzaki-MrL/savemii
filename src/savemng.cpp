@@ -429,7 +429,7 @@ int DumpFile(string pPath, string oPath) {
         fclose(source);
         return -1;
     }
-
+/*
     char *buffer[3];
     for (int i = 0; i < 3; i++) {
         buffer[i] = (char *) aligned_alloc(0x40, IO_MAX_FILE_BUFFER);
@@ -445,6 +445,8 @@ int DumpFile(string pPath, string oPath) {
 
     setvbuf(source, buffer[0], _IOFBF, IO_MAX_FILE_BUFFER);
     setvbuf(dest, buffer[1], _IOFBF, IO_MAX_FILE_BUFFER);
+    */
+    char* buffer = new char[IO_MAX_FILE_BUFFER];
     struct stat st;
     if(stat(pPath.c_str(), &st) < 0) return -1;
     int sizef          = st.st_size;
@@ -454,16 +456,15 @@ int DumpFile(string pPath, string oPath) {
     size_t bytesWritten = 0;
 
     WHBLogPrintf("before fread");
-    while ((size = fread(buffer[2], sizeof(char), IO_MAX_FILE_BUFFER, source)) > 0) {
-        bytesWritten = fwrite(buffer[2], sizeof(char), size, dest);
+    while ((size = fread(buffer, sizeof(char), IO_MAX_FILE_BUFFER, source)) > 0) {
+        bytesWritten = fwrite(buffer, sizeof(char), size, dest);
         WHBLogPrint("alive");
         if(bytesWritten < size) {
             WHBLogPrint("error");
             promptError("Write %d,%s", bytesWritten, oPath.c_str());
             fclose(source);
             fclose(dest);
-            for (int i = 0; i < 3; i++)
-                free(buffer[i]);
+            delete[] buffer;
             return -1;
         }
         passedMs = (uint32_t) OSTicksToMilliseconds(OSGetTime() - startTime);
@@ -482,9 +483,7 @@ int DumpFile(string pPath, string oPath) {
     WHBLogPrintf("after close source");
     fclose(dest);
     WHBLogPrintf("after close dest");
-    for (int i = 0; i < 3; i++){
-        free(buffer[i]);
-        WHBLogPrintf("after close buffer %i", i); }
+    delete[] buffer;
 
     IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA(oPath.c_str()), 0x666);
     WHBLogPrintf("after changemode");
