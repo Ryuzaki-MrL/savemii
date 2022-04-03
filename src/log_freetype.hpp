@@ -11,8 +11,8 @@
 #include <freetype2/ft2build.h>
 #include FT_FREETYPE_H
 
-#ifndef max1
-#define max1(a, b) (((a) > (b)) ? (a) : (b))
+#ifndef max
+#define max(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
 // Initialization functions
