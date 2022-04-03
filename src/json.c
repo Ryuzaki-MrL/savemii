@@ -1,4 +1,4 @@
-#include "json.hpp"
+#include "json.h"
 
 char *doit(char *text) {
     char *out   = NULL;
@@ -47,9 +47,9 @@ long getFilesize(FILE *fp) {
     return res;
 }
 
-string getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
+char *getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
     char path[PATH_MAX];
-    string_format(path, "/vol/external01/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
+    sprintf(path, "/vol/external01/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
     if (checkEntry(path)) {
         char *info = dofile(path);
         return info;
@@ -57,15 +57,15 @@ string getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
         return "";
 }
 
-bool setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, string date) {
+bool setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date) {
     char path[PATH_MAX];
-    string_format(path, "/vol/external01/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
+    sprintf(path, "/vol/external01/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
 
     cJSON *config = cJSON_CreateObject();
     if (config == NULL)
         return false;
 
-    cJSON *entry = cJSON_CreateString(date.c_str());
+    cJSON *entry = cJSON_CreateString(date);
     if (entry == NULL) {
         cJSON_Delete(config);
         return false;

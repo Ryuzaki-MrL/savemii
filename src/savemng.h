@@ -3,14 +3,13 @@
 
 #define __STDC_WANT_LIB_EXT2__ 1
 
-#include "draw.hpp"
-#include "json.hpp"
-#include "log_freetype.hpp"
+#include "draw.h"
+#include "json.h"
+#include "log_freetype.h"
 #include <coreinit/mcp.h>
 #include <coreinit/memdefaultheap.h>
 #include <fcntl.h>
 #include <iosuhax.h>
-#include <iosuhax_disc_interface.h>
 #include <iosuhax_devoptab.h>
 #include <padscore/kpad.h>
 #include <stdio.h>
@@ -29,9 +28,9 @@ typedef struct {
     uint32_t highID;
     uint32_t lowID;
     uint16_t listID;
-    string shortName;
-    string longName;
-    string productCode;
+    char shortName[256];
+    char longName[512];
+    char productCode[5];
     bool saveInit;
     bool isTitleOnUSB;
     bool isTitleDupe;
@@ -73,7 +72,7 @@ void getAccountsWiiU();
 void getAccountsSD(Title *title, uint8_t slot);
 bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t slot, int version);
 
-int getLoadiineGameSaveDir(char *out, string productCode);
+int getLoadiineGameSaveDir(char *out, const char *productCode);
 int getLoadiineSaveVersionList(int *out, const char *gamePath);
 int getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID);
 

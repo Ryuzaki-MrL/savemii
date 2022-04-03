@@ -1,5 +1,5 @@
-#include "log_freetype.hpp"
-#include "draw.hpp"
+#include "log_freetype.h"
+#include "draw.h"
 
 #define CONSOLE_FRAME_HEAP_TAG (0x0002B2B)
 #define NUM_LINES              (16)
@@ -230,7 +230,7 @@ int ttfStringWidth(char *string, int8_t part) {
         if (buf == '\n') {
             if (part != 0) {
                 if ((part > 0) && (spart == part)) return pen_x;
-                if (part == -2) max_x = max(pen_x, max_x);
+                if (part == -2) max_x = max1(pen_x, max_x);
                 pen_x = 0;
                 spart++;
             }
@@ -245,7 +245,7 @@ int ttfStringWidth(char *string, int8_t part) {
         previous_glyph = glyph_index;
     }
     if (spart < part) pen_x = 0;
-    return max(pen_x, max_x);
+    return max1(pen_x, max_x);
 }
 
 void ttfFontColor32(uint32_t color) {
