@@ -1,8 +1,5 @@
 #include "string.hpp"
 #include <nn/act/client_cpp.h>
-#include <whb/log_cafe.h>
-#include <whb/log_udp.h>
-#include <whb/log.h>
 extern "C" {
 #include "savemng.h"
 }
