@@ -8,6 +8,7 @@
 #include "log_freetype.h"
 #include <coreinit/mcp.h>
 #include <coreinit/memdefaultheap.h>
+#include <coreinit/thread.h>
 #include <fcntl.h>
 #include <iosuhax.h>
 #include <iosuhax_devoptab.h>

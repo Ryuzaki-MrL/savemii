@@ -1,7 +1,4 @@
 #include "string.hpp"
-#include <whb/log_cafe.h>
-#include <whb/log_udp.h>
-#include <whb/log.h>
 
 extern "C" {
 #include "icon.h"
@@ -407,11 +404,6 @@ int main(void) {
     WPADEnableURCC(1);
     loadWiiUTitles(0);
 
-    WHBLogCafeInit();
-    WHBLogUdpInit();
-/*  WHBLogPrint and WHBLogPrintf add new line characters for you */
-    WHBLogPrint("Hello World! Logging initialised.");
-
     int res = IOSUHAX_Open(NULL);
     if (res < 0) {
         promptError("IOSUHAX_Open failed.");
@@ -423,8 +415,9 @@ int main(void) {
         promptError("IOSUHAX_FSA_Open failed.");
         return 0;
     }
+
     setFSAFD(fsaFd);
-    fatInit(1024, false);
+
     fatMountSimple("sd", &IOSUHAX_sdio_disc_interface);
     mount_fs("slc", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
     mount_fs("mlc", fsaFd, NULL, "/vol/storage_mlc01");

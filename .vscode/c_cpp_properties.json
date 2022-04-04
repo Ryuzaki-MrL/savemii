@@ -3,12 +3,18 @@
         {
             "name": "Linux",
             "includePath": [
-                "${default}"
+                "${default}",
+                "/opt/",
+                "/opt/devkitpro/wut/include",
+                "/opt/devkitpro/portlibs/ppc/include",
+                "/opt/devkitpro/portlibs/ppc/include/freetype2",
+                "${workspaceFolder}/**",
+                "/opt/devkitpro/wut/usr/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "gnu17",
-            "cppStandard": "gnu++17",
+            "cppStandard": "gnu++20",
             "intelliSenseMode": "linux-gcc-x64"
         }
     ],

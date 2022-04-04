@@ -1,6 +1,5 @@
 #include "string.hpp"
 #include <nn/act/client_cpp.h>
-#include <coreinit/thread.h>
 #include <whb/log_cafe.h>
 #include <whb/log_udp.h>
 #include <whb/log.h>
@@ -150,31 +149,27 @@ int folderEmpty(const char *fPath) {
 }
 
 int createFolder(const char *fPath) { //Adapted from mkdir_p made by JonathonReinhart
-    const size_t len = strlen(fPath);
-    char _path[PATH_MAX];
+    string _path;
     char *p;
     int found = 0;
 
-    if (len > sizeof(_path) - 1) {
-        return -1;
-    }
-    strcpy(_path, fPath);
+    _path.assign(fPath);
 
-    for (p = _path + 1; *p; p++) {
+    for (p = (char*)_path.c_str() + 1; *p; p++) {
         if (*p == '/') {
             found++;
             if (found > 2) {
                 *p = '\0';
-                if (checkEntry(_path) == 0) {
-                    if (mkdir(_path, DEFFILEMODE) == -1) return -1;
+                if (checkEntry(_path.c_str()) == 0) {
+                    if (mkdir(_path.c_str(), DEFFILEMODE) == -1) return -1;
                 }
                 *p = '/';
             }
         }
     }
 
-    if (checkEntry(_path) == 0) {
-        if (mkdir(_path, DEFFILEMODE) == -1) return -1;
+    if (checkEntry(_path.c_str()) == 0) {
+        if (mkdir(_path.c_str(), DEFFILEMODE) == -1) return -1;
     }
 
     return 0;
@@ -212,8 +207,8 @@ void console_print_pos(int x, int y, const char *format, ...) { // Source: ftpii
 
     va_list va;
     va_start(va, format);
-    vasprintf(&tmp, format, va);
-    ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
+    if ((vasprintf(&tmp, format, va) >= 0) && tmp)
+        ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
     va_end(va);
     if (tmp) free(tmp);
 }
@@ -245,9 +240,9 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
                     q[l1] = o;
                     l1--;
                 }
-                char buf[255];
-                strcpy(buf, p);
-                sprintf(p, "\n%s", buf);
+                string buf;
+                buf.assign(p);
+                p = (char*)string_format("\n%s", buf.c_str()).c_str();
                 p++;
                 len = 69;
             }
@@ -261,9 +256,8 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
 void console_print_pos_va(int x, int y, const char *format, va_list va) { // Source: ftpiiu
     char *tmp = NULL;
 
-    if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
+    if ((vasprintf(&tmp, format, va) >= 0) && tmp)
         ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
-    }
     if (tmp) free(tmp);
 }
 
@@ -302,7 +296,6 @@ bool promptConfirm(Style st, const char *question) {
     int ret = 0;
     flipBuffers();
     WHBLogFreetypeDraw();
-    sleep(0.1);
     while (1) {
         VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
         for (int i = 0; i < 4; i++) {
@@ -417,9 +410,6 @@ void getAccountsSD(Title *title, uint8_t slot) {
 }
 
 int DumpFile(string pPath, string oPath) {
-    WHBLogPrint("In DumpFile");
-    WHBLogPrintf("pPath: %s", pPath.c_str());
-    WHBLogPrintf("oPath: %s", oPath.c_str());
     FILE *source = fopen(pPath.c_str(), "rb");
     if (source == NULL)
         return -1;
@@ -429,7 +419,7 @@ int DumpFile(string pPath, string oPath) {
         fclose(source);
         return -1;
     }
-/*
+
     char *buffer[3];
     for (int i = 0; i < 3; i++) {
         buffer[i] = (char *) aligned_alloc(0x40, IO_MAX_FILE_BUFFER);
@@ -445,26 +435,20 @@ int DumpFile(string pPath, string oPath) {
 
     setvbuf(source, buffer[0], _IOFBF, IO_MAX_FILE_BUFFER);
     setvbuf(dest, buffer[1], _IOFBF, IO_MAX_FILE_BUFFER);
-    */
-    char* buffer = new char[IO_MAX_FILE_BUFFER];
     struct stat st;
     if(stat(pPath.c_str(), &st) < 0) return -1;
-    int sizef          = st.st_size;
-    size_t sizew          = 0, size;
+    int sizef          = st.st_size, sizew = 0, size = 0, bytesWritten = 0;
     uint32_t passedMs  = 1;
     uint64_t startTime = OSGetTime();
-    size_t bytesWritten = 0;
 
-    WHBLogPrintf("before fread");
-    while ((size = fread(buffer, sizeof(char), IO_MAX_FILE_BUFFER, source)) > 0) {
-        bytesWritten = fwrite(buffer, sizeof(char), size, dest);
-        WHBLogPrint("alive");
+    while ((size = fread(buffer[2], 1, IO_MAX_FILE_BUFFER, source)) > 0) {
+        bytesWritten = fwrite(buffer[2], 1, size, dest);
         if(bytesWritten < size) {
-            WHBLogPrint("error");
             promptError("Write %d,%s", bytesWritten, oPath.c_str());
             fclose(source);
             fclose(dest);
-            delete[] buffer;
+            for (int i = 0; i < 3; i++)
+                free(buffer[i]);
             return -1;
         }
         passedMs = (uint32_t) OSTicksToMilliseconds(OSGetTime() - startTime);
@@ -478,15 +462,12 @@ int DumpFile(string pPath, string oPath) {
         flipBuffers();
         WHBLogFreetypeDraw();
     }
-    WHBLogPrintf("after while");
     fclose(source);
-    WHBLogPrintf("after close source");
     fclose(dest);
-    WHBLogPrintf("after close dest");
-    delete[] buffer;
+    for (int i = 0; i < 3; i++)
+        free(buffer[i]);
 
-    IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA(oPath.c_str()), 0x666);
-    WHBLogPrintf("after changemode");
+    IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA((char*)oPath.c_str()), 0x666);
 
     return 0;
 }
@@ -746,27 +727,21 @@ void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_
         promptError("Backup done. Now copying Savedata.");
     }
 
-    char srcPath[PATH_SIZE];
-    char dstPath[PATH_SIZE];
+    string srcPath;
+    string dstPath;
     const char *path  = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
     const char *pathb = (isUSBb ? "usb:/usr/save" : "mlc:/usr/save");
-    sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, "user");
-    sprintf(dstPath, "%s/%08x/%08x/%s", pathb, highIDb, lowIDb, "user");
-    createFolder(dstPath);
+    srcPath = string_format("%s/%08x/%08x/%s", path, highID, lowID, "user");
+    dstPath = string_format("%s/%08x/%08x/%s", pathb, highIDb, lowIDb, "user");
+    createFolder(dstPath.c_str());
 
     if (allusers > -1) {
-        uint32_t srcOffset = strlen(srcPath);
-        uint32_t dstOffset = strlen(dstPath);
         if (common) {
-            strcpy(srcPath + srcOffset, "/common");
-            strcpy(dstPath + dstOffset, "/common");
-            if (DumpDir(srcPath, dstPath) != 0) promptError("Common save not found.");
+            if (DumpDir(srcPath + "/common", dstPath + "/common") != 0) promptError("Common save not found.");
         }
-        sprintf(srcPath + srcOffset, "/%s", wiiuacc[allusers].persistentID);
-        sprintf(dstPath + dstOffset, "/%s", wiiuacc[allusers_d].persistentID);
     }
 
-    if (DumpDir(srcPath, dstPath) != 0) promptError("Copy failed.");
+    if (DumpDir(srcPath + string_format("/%s", wiiuacc[allusers].persistentID), dstPath + string_format("/%s", wiiuacc[allusers_d].persistentID)) != 0) promptError("Copy failed.");
 }
 
 void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
@@ -828,8 +803,6 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
             return;
         }
     }
-    WHBLogPrintf("srcPath: %s", srcPath.c_str());
-    WHBLogPrintf("dstPath: %s", dstPath.c_str());
     if (DumpDir(srcPath, dstPath) != 0) promptError("Backup failed. DO NOT restore from this slot.");
     OSCalendarTime now;
     OSTicksToCalendarTime(OSGetTime(), &now);

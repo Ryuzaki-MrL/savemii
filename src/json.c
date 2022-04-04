@@ -35,6 +35,7 @@ char *dofile(char *filename) {
     fclose(f);
 
     char *stuff = doit(data);
+    free(data);
     return stuff;
 }
 
