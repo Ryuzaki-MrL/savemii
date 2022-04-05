@@ -1,3 +1,6 @@
+#ifndef _JSON_H
+#define _JSON_H
+
 #include "cJSON.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -7,3 +10,5 @@
 char *getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot);
 
 bool setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date);
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef _LOG_FREETYPE_H
+#define _LOG_FREETYPE_H
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -29,3 +32,5 @@ void ttfFontColor32(uint32_t color);
 void ttfFontColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
 void WHBLogFreetypeDraw();
+
+#endif

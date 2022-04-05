@@ -1,8 +1,8 @@
 #include "json.h"
 
 char *doit(char *text) {
-    char *out = NULL;
-    cJSON *json = NULL;
+    char *out = nullptr;
+    cJSON *json = nullptr;
     cJSON *str;
 
     json = cJSON_Parse(text);
@@ -17,9 +17,9 @@ char *doit(char *text) {
 
 /* Read a file, parse, render back, etc. */
 char *dofile(char *filename) {
-    FILE *f = NULL;
+    FILE *f = nullptr;
     long len = 0;
-    char *data = NULL;
+    char *data = nullptr;
 
     /* open in read binary mode */
     f = fopen(filename, "rb");
@@ -63,11 +63,11 @@ bool setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date) {
     sprintf(path, "sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
 
     cJSON *config = cJSON_CreateObject();
-    if (config == NULL)
+    if (config == nullptr)
         return false;
 
     cJSON *entry = cJSON_CreateString(date);
-    if (entry == NULL) {
+    if (entry == nullptr) {
         cJSON_Delete(config);
         return false;
     }
@@ -75,11 +75,11 @@ bool setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date) {
 
     char *configString = cJSON_Print(config);
     cJSON_Delete(config);
-    if (configString == NULL)
+    if (configString == nullptr)
         return false;
 
     FILE *fp = fopen(path, "wb");
-    if (fp == NULL)
+    if (fp == nullptr)
         return false;
 
     fwrite(configString, strlen(configString), 1, fp);

@@ -56,7 +56,7 @@ int FSAR(int result) {
 int32_t loadFile(const char *fPath, uint8_t **buf) {
     int ret = 0;
     FILE *file = fopen(fPath, "rb");
-    if (file != NULL) {
+    if (file != nullptr) {
         struct stat st;
         stat(fPath, &st);
         int size = st.st_size;
@@ -76,7 +76,7 @@ int32_t loadFile(const char *fPath, uint8_t **buf) {
 int32_t loadFilePart(const char *fPath, uint32_t start, uint32_t size, uint8_t **buf) {
     int ret = 0;
     FILE *file = fopen(fPath, "rb");
-    if (file != NULL) {
+    if (file != nullptr) {
         struct stat st;
         stat(fPath, &st);
         if ((start + size) > st.st_size) {
@@ -132,12 +132,12 @@ int checkEntry(const char *fPath) {
 
 int folderEmpty(const char *fPath) {
     DIR *dir = opendir(fPath);
-    if (dir == NULL)
+    if (dir == nullptr)
         return -1;
 
     int c = 0;
     struct dirent *data;
-    while ((data = readdir(dir)) != NULL) {
+    while ((data = readdir(dir)) != nullptr) {
         if (++c > 2)
             break;
     }
@@ -174,7 +174,7 @@ int createFolder(const char *fPath) { //Adapted from mkdir_p made by JonathonRei
 }
 
 void console_print_pos_aligned(int y, uint16_t offset, uint8_t align, const char *format, ...) {
-    char *tmp = NULL;
+    char *tmp = nullptr;
     int x = 0;
 
     va_list va;
@@ -201,7 +201,7 @@ void console_print_pos_aligned(int y, uint16_t offset, uint8_t align, const char
 }
 
 void console_print_pos(int x, int y, const char *format, ...) { // Source: ftpiiu
-    char *tmp = NULL;
+    char *tmp = nullptr;
 
     va_list va;
     va_start(va, format);
@@ -212,7 +212,7 @@ void console_print_pos(int x, int y, const char *format, ...) { // Source: ftpii
 }
 
 void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ...) { // Source: ftpiiu
-    char *tmp = NULL;
+    char *tmp = nullptr;
     uint32_t len = (66 - x);
 
     va_list va;
@@ -221,7 +221,7 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
 
         if ((uint32_t)(ttfStringWidth(tmp, -1) / 12) > len) {
             char *p = tmp;
-            if (strrchr(p, '\n') != NULL) p = strrchr(p, '\n') + 1;
+            if (strrchr(p, '\n') != nullptr) p = strrchr(p, '\n') + 1;
             while ((uint32_t)(ttfStringWidth(p, -1) / 12) > len) {
                 char *q = p;
                 int l1 = strlen(q);
@@ -229,7 +229,7 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
                     char o = q[l1];
                     q[l1] = '\0';
                     if ((uint32_t)(ttfStringWidth(p, -1) / 12) <= len) {
-                        if (strrchr(p, cdiv) != NULL) p = strrchr(p, cdiv) + 1;
+                        if (strrchr(p, cdiv) != nullptr) p = strrchr(p, cdiv) + 1;
                         else
                             p = q + l1;
                         q[l1] = o;
@@ -252,7 +252,7 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
 }
 
 void console_print_pos_va(int x, int y, const char *format, va_list va) { // Source: ftpiiu
-    char *tmp = NULL;
+    char *tmp = nullptr;
 
     if ((vasprintf(&tmp, format, va) >= 0) && tmp)
         ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
@@ -294,7 +294,7 @@ bool promptConfirm(Style st, const char *question) {
     int ret = 0;
     flipBuffers();
     WHBLogFreetypeDraw();
-    while (1) {
+    while (true) {
         VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
         for (int i = 0; i < 4; i++) {
             WPADExtensionType controllerType;
@@ -326,7 +326,7 @@ void promptError(const char *message, ...) {
     va_start(va, message);
     OSScreenClearBufferEx(SCREEN_TV, 0x7F000000);
     OSScreenClearBufferEx(SCREEN_DRC, 0x7F000000);
-    char *tmp = NULL;
+    char *tmp = nullptr;
     if ((vasprintf(&tmp, message, va) >= 0) && tmp) {
         int x = 31 - (ttfStringWidth(tmp, -2) / 24), y = 8;
         x = (x < -4 ? -4 : x);
@@ -384,9 +384,9 @@ void getAccountsSD(Title *title, uint8_t slot) {
     char path[255];
     sprintf(path, "sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
     DIR *dir = opendir(path);
-    if (dir != NULL) {
+    if (dir != nullptr) {
         struct dirent *data;
-        while ((data = readdir(dir)) != NULL) {
+        while ((data = readdir(dir)) != nullptr) {
             if (data->d_name[0] == '.' || strncmp(data->d_name, "common", 6) == 0) continue;
             sdaccn++;
         }
@@ -395,13 +395,13 @@ void getAccountsSD(Title *title, uint8_t slot) {
 
     sdacc = (Account *) malloc(sdaccn * sizeof(Account));
     dir = opendir(path);
-    if (dir != NULL) {
+    if (dir != nullptr) {
         struct dirent *data;
         int i = 0;
-        while ((data = readdir(dir)) != NULL) {
+        while ((data = readdir(dir)) != nullptr) {
             if (data->d_name[0] == '.' || strncmp(data->d_name, "common", 6) == 0) continue;
             sprintf(sdacc[i].persistentID, "%s", data->d_name);
-            sdacc[i].pID = strtoul(data->d_name, NULL, 16);
+            sdacc[i].pID = strtoul(data->d_name, nullptr, 16);
             sdacc[i].slot = i;
             i++;
         }
@@ -411,11 +411,11 @@ void getAccountsSD(Title *title, uint8_t slot) {
 
 int DumpFile(string pPath, string oPath) {
     FILE *source = fopen(pPath.c_str(), "rb");
-    if (source == NULL)
+    if (source == nullptr)
         return -1;
 
     FILE *dest = fopen(oPath.c_str(), "wb");
-    if (dest == NULL) {
+    if (dest == nullptr) {
         fclose(source);
         return -1;
     }
@@ -423,7 +423,7 @@ int DumpFile(string pPath, string oPath) {
     char *buffer[3];
     for (int i = 0; i < 3; i++) {
         buffer[i] = (char *) aligned_alloc(0x40, IO_MAX_FILE_BUFFER);
-        if (buffer[i] == NULL) {
+        if (buffer[i] == nullptr) {
             fclose(source);
             fclose(dest);
             for (i--; i >= 0; i--)
@@ -475,13 +475,13 @@ int DumpFile(string pPath, string oPath) {
 
 int DumpDir(string pPath, string tPath) { // Source: ft2sd
     DIR *dir = opendir(pPath.c_str());
-    if (dir == NULL)
+    if (dir == nullptr)
         return -1;
 
     mkdir(tPath.c_str(), DEFFILEMODE);
     struct dirent *data = (dirent *) malloc(sizeof(dirent));
 
-    while ((data = readdir(dir)) != NULL) {
+    while ((data = readdir(dir)) != nullptr) {
         OSScreenClearBufferEx(SCREEN_TV, 0);
         OSScreenClearBufferEx(SCREEN_DRC, 0);
 
@@ -513,12 +513,12 @@ int DumpDir(string pPath, string tPath) { // Source: ft2sd
 
 int DeleteDir(char *pPath) {
     DIR *dir = opendir(pPath);
-    if (dir == NULL)
+    if (dir == nullptr)
         return -1;
 
     struct dirent *data;
 
-    while ((data = readdir(dir)) != NULL) {
+    while ((data = readdir(dir)) != nullptr) {
         OSScreenClearBufferEx(SCREEN_TV, 0);
         OSScreenClearBufferEx(SCREEN_DRC, 0);
 
@@ -567,11 +567,11 @@ void getUserID(char *out) { // Source: loadiine_gx2
 int getLoadiineGameSaveDir(char *out, const char *productCode) {
     DIR *dir = opendir("sd:/wiiu/saves");
 
-    if (dir == NULL) return -1;
+    if (dir == nullptr) return -1;
 
     struct dirent *data;
-    while ((data = readdir(dir)) != NULL) {
-        if ((data->d_type & DT_DIR) && (strstr(data->d_name, productCode) != NULL)) {
+    while ((data = readdir(dir)) != nullptr) {
+        if ((data->d_type & DT_DIR) && (strstr(data->d_name, productCode) != nullptr)) {
             sprintf(out, "sd:/wiiu/saves/%s", data->d_name);
             closedir(dir);
             return 0;
@@ -586,16 +586,16 @@ int getLoadiineGameSaveDir(char *out, const char *productCode) {
 int getLoadiineSaveVersionList(int *out, const char *gamePath) {
     DIR *dir = opendir(gamePath);
 
-    if (dir == NULL) {
+    if (dir == nullptr) {
         promptError("Loadiine game folder not found.");
         return -1;
     }
 
     int i = 0;
     struct dirent *data;
-    while (i < 255 && (data = readdir(dir)) != NULL) {
-        if ((data->d_type & DT_DIR) && (strchr(data->d_name, 'v') != NULL)) {
-            out[++i] = strtol((data->d_name) + 1, NULL, 10);
+    while (i < 255 && (data = readdir(dir)) != nullptr) {
+        if ((data->d_type & DT_DIR) && (strchr(data->d_name, 'v') != nullptr)) {
+            out[++i] = strtol((data->d_name) + 1, nullptr, 10);
         }
     }
 
@@ -606,13 +606,13 @@ int getLoadiineSaveVersionList(int *out, const char *gamePath) {
 int getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID) {
     DIR *dir = opendir(fullSavePath);
 
-    if (dir == NULL) {
+    if (dir == nullptr) {
         promptError("Failed to open Loadiine game save directory.");
         return -1;
     }
 
     struct dirent *data;
-    while ((data = readdir(dir)) != NULL) {
+    while ((data = readdir(dir)) != nullptr) {
         if ((data->d_type & DT_DIR) && (strstr(data->d_name, userID))) {
             sprintf(out, "%s/%s", fullSavePath, data->d_name);
             closedir(dir);
@@ -634,9 +634,9 @@ bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) {
         sprintf(path, "sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
     }
     int ret = checkEntry(path);
-    if (ret <= 0) return 1;
+    if (ret <= 0) return true;
     else
-        return 0;
+        return false;
 }
 
 int getEmptySlot(uint32_t highID, uint32_t lowID) {

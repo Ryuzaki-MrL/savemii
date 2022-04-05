@@ -2,10 +2,8 @@
 #include <string>
 #include <stdarg.h>
 #include <stdexcept>
-
-extern "C" {
 #include "savemng.h"
-}
+
 using namespace std;
 
 char *replace_str(char *str, char *orig, char *rep);

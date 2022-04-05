@@ -214,7 +214,7 @@ void drawRGB5A3(int x, int y, float scale, uint8_t *fileContent) {
 }
 
 void drawBackgroundDRC(uint32_t w, uint32_t h, uint8_t *out) {
-    uint32_t *screen2 = NULL;
+    uint32_t *screen2 = nullptr;
     int otherBuff1 = drcBufferSize / 2;
 
     if (cur_buf1) screen2 = (uint32_t *) scrBuffer + tvBufferSize + otherBuff1;

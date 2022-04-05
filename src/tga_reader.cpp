@@ -79,7 +79,7 @@ int *tgaRead(const unsigned char *buffer, const TGA_ORDER *order) {
     int depth = buffer[16] & 0xFF;
     int descriptor = buffer[17] & 0xFF;
 
-    int *pixels = NULL;
+    int *pixels = nullptr;
 
     // data
     switch (type) {
@@ -155,7 +155,7 @@ static unsigned char *decodeRLE(int width, int height, int depth, const unsigned
 static int *createPixelsFromColormap(int width, int height, int depth, const unsigned char *bytes, int offset,
                                      const unsigned char *palette, int colormapOrigin, int descriptor,
                                      const TGA_ORDER *order) {
-    int *pixels = NULL;
+    int *pixels = nullptr;
     int rs = order->redShift;
     int gs = order->greenShift;
     int bs = order->blueShift;
@@ -330,7 +330,7 @@ static int *createPixelsFromColormap(int width, int height, int depth, const uns
 static int *
 createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
                     const TGA_ORDER *order) {
-    int *pixels = NULL;
+    int *pixels = nullptr;
     int rs = order->redShift;
     int gs = order->greenShift;
     int bs = order->blueShift;
@@ -467,7 +467,7 @@ createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes
 static int *
 createPixelsFromGrayscale(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
                           const TGA_ORDER *order) {
-    int *pixels = NULL;
+    int *pixels = nullptr;
     int rs = order->redShift;
     int gs = order->greenShift;
     int bs = order->blueShift;

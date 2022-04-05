@@ -16,6 +16,6 @@ char *replace_str(char *str, char *orig, char *rep) {
 }
 
 bool StartsWith(const char *a, const char *b) {
-    if (strncmp(a, b, strlen(b)) == 0) return 1;
-    return 0;
+    if (strncmp(a, b, strlen(b)) == 0) return true;
+    return false;
 }

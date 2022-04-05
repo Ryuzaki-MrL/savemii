@@ -11,14 +11,14 @@ char renderedBuffer[NUM_LINES][LINE_LENGTH];
 
 bool freetypeHasForeground = false;
 
-uint8_t *frameBufferTVFrontPtr = NULL;
-uint8_t *frameBufferTVBackPtr = NULL;
+uint8_t *frameBufferTVFrontPtr = nullptr;
+uint8_t *frameBufferTVBackPtr = nullptr;
 uint32_t frameBufferTVSize = 0;
-uint8_t *frameBufferDRCFrontPtr = NULL;
-uint8_t *frameBufferDRCBackPtr = NULL;
+uint8_t *frameBufferDRCFrontPtr = nullptr;
+uint8_t *frameBufferDRCBackPtr = nullptr;
 uint32_t frameBufferDRCSize = 0;
-uint8_t *currTVFrameBuffer = NULL;
-uint8_t *currDRCFrameBuffer = NULL;
+uint8_t *currTVFrameBuffer = nullptr;
+uint8_t *currDRCFrameBuffer = nullptr;
 
 RGBAColor ttfColor = {0xFFFFFFFF};
 uint32_t fontColor = 0xFFFFFFFF;

@@ -1,12 +1,9 @@
 #include "string.hpp"
-
-extern "C" {
 #include "icon.h"
 #include "json.h"
 #include "log_freetype.h"
 #include "main.h"
 #include "savemng.h"
-}
 
 using namespace std;
 
@@ -17,7 +14,7 @@ using namespace std;
 
 uint8_t slot = 0;
 int8_t allusers = -1, allusers_d = -1, sdusers = -1;
-bool common = 1;
+bool common = true;
 int menu = 0, mode = 0, task = 0, targ = 0, tsort = 1, sorta = 1;
 int cursor = 0, scroll = 0;
 int cursorb = 0, cursort = 0, scrollb = 0;
@@ -75,14 +72,14 @@ Title *loadWiiUTitles(int run) {
         receivedCount = count;
         MCP_TitleList(mcp_handle, &receivedCount, (MCPTitleListType *) tList, listSize);
         MCP_Close(mcp_handle);
-        return NULL;
+        return nullptr;
     }
 
     int usable = receivedCount, j = 0;
     Saves *savesl = (Saves *) malloc(receivedCount * sizeof(Saves));
     if (!savesl) {
         promptError("Out of memory.");
-        return NULL;
+        return nullptr;
     }
     for (uint32_t i = 0; i < receivedCount; i++) {
         char *element = tList + (i * 0x61);
@@ -104,9 +101,9 @@ Title *loadWiiUTitles(int run) {
             char path[255];
             sprintf(path, "%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
             DIR *dir = opendir(path);
-            if (dir != NULL) {
+            if (dir != nullptr) {
                 struct dirent *data;
-                while ((data = readdir(dir)) != NULL) {
+                while ((data = readdir(dir)) != nullptr) {
                     if (data->d_name[0] == '.')
                         continue;
 
@@ -117,7 +114,7 @@ Title *loadWiiUTitles(int run) {
                         if (checkEntry(path) == 1) {
                             for (int i = 0; i < usable; i++) {
                                 if ((savesl[i].highID == (0x00050000 | 0x00050002)) &&
-                                    (strtoul(data->d_name, NULL, 16) == savesl[i].lowID)) {
+                                    (strtoul(data->d_name, nullptr, 16) == savesl[i].lowID)) {
                                     savesl[i].found = true;
                                     tNoSave--;
                                     break;
@@ -136,7 +133,7 @@ Title *loadWiiUTitles(int run) {
     Saves *saves = (Saves *) malloc((foundCount + tNoSave) * sizeof(Saves));
     if (!saves) {
         promptError("Out of memory.");
-        return NULL;
+        return nullptr;
     }
 
     for (uint8_t a = 0; a < 2; a++) {
@@ -144,9 +141,9 @@ Title *loadWiiUTitles(int run) {
             char path[255];
             sprintf(path, "%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
             DIR *dir = opendir(path);
-            if (dir != NULL) {
+            if (dir != nullptr) {
                 struct dirent *data;
-                while ((data = readdir(dir)) != NULL) {
+                while ((data = readdir(dir)) != nullptr) {
                     if (data->d_name[0] == '.')
                         continue;
 
@@ -154,7 +151,7 @@ Title *loadWiiUTitles(int run) {
                             data->d_name);
                     if (checkEntry(path) == 1) {
                         saves[pos].highID = highIDsNumeric[a];
-                        saves[pos].lowID = strtoul(data->d_name, NULL, 16);
+                        saves[pos].lowID = strtoul(data->d_name, nullptr, 16);
                         saves[pos].dev = i;
                         saves[pos].found = false;
                         pos++;
@@ -178,7 +175,7 @@ Title *loadWiiUTitles(int run) {
     Title *titles = (Title *) malloc(foundCount * sizeof(Title));
     if (!titles) {
         promptError("Out of memory.");
-        return NULL;
+        return nullptr;
     }
 
     for (int i = 0; i < foundCount; i++) {
@@ -190,7 +187,7 @@ Title *loadWiiUTitles(int run) {
                 saves[i].found ? "title" : "save", highID, lowID);
         titles[titleswiiu].saveInit = !saves[i].found;
 
-        char *xmlBuf = NULL;
+        char *xmlBuf = nullptr;
         if (loadFile(path, (uint8_t * *) & xmlBuf) > 0) {
             char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
             memset(titles[titleswiiu].productCode, 0, sizeof(titles[titleswiiu].productCode));
@@ -225,7 +222,7 @@ Title *loadWiiUTitles(int run) {
         titles[titleswiiu].lowID = lowID;
         titles[titleswiiu].isTitleOnUSB = isTitleOnUSB;
         titles[titleswiiu].listID = titleswiiu;
-        if (loadTitleIcon(&titles[titleswiiu]) < 0) titles[titleswiiu].iconBuf = NULL;
+        if (loadTitleIcon(&titles[titleswiiu]) < 0) titles[titleswiiu].iconBuf = nullptr;
         titleswiiu++;
 
         OSScreenClearBufferEx(SCREEN_TV, 0);
@@ -259,12 +256,12 @@ Title *loadWiiTitles() {
     for (int k = 0; k < 3; k++) {
         sprintf(pathW, "slc:/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW);
-        if (dir != NULL) {
+        if (dir != nullptr) {
             struct dirent *data;
-            while ((data = readdir(dir)) != NULL) {
+            while ((data = readdir(dir)) != nullptr) {
                 for (int ii = 0; ii < 7; ii++) {
-                    if (blacklist[ii][0] == strtoul(highIDs[k], NULL, 16)) {
-                        if (blacklist[ii][1] == strtoul(data->d_name, NULL, 16)) {
+                    if (blacklist[ii][0] == strtoul(highIDs[k], nullptr, 16)) {
+                        if (blacklist[ii][1] == strtoul(data->d_name, nullptr, 16)) {
                             found = true;
                             break;
                         }
@@ -280,24 +277,24 @@ Title *loadWiiTitles() {
             closedir(dir);
         }
     }
-    if (titlesvwii == 0) return NULL;
+    if (titlesvwii == 0) return nullptr;
 
     Title *titles = (Title *) malloc(titlesvwii * sizeof(Title));
     if (!titles) {
         promptError("Out of memory.");
-        return NULL;
+        return nullptr;
     }
 
     int i = 0;
     for (int k = 0; k < 3; k++) {
         sprintf(pathW, "slc:/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW);
-        if (dir != NULL) {
+        if (dir != nullptr) {
             struct dirent *data;
-            while ((data = readdir(dir)) != NULL) {
+            while ((data = readdir(dir)) != nullptr) {
                 for (int ii = 0; ii < 7; ii++) {
-                    if (blacklist[ii][0] == strtoul(highIDs[k], NULL, 16)) {
-                        if (blacklist[ii][1] == strtoul(data->d_name, NULL, 16)) {
+                    if (blacklist[ii][0] == strtoul(highIDs[k], nullptr, 16)) {
+                        if (blacklist[ii][1] == strtoul(data->d_name, nullptr, 16)) {
                             found = true;
                             break;
                         }
@@ -311,7 +308,7 @@ Title *loadWiiTitles() {
                 char path[256];
                 sprintf(path, "slc:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
                 FILE *file = fopen(path, "rb");
-                if (file != NULL) {
+                if (file != nullptr) {
                     fseek(file, 0x20, SEEK_SET);
                     uint16_t *bnrBuf = (uint16_t *) malloc(0x80);
                     if (bnrBuf) {
@@ -360,8 +357,8 @@ Title *loadWiiTitles() {
                     titles[i].saveInit = false;
                 }
 
-                titles[i].highID = strtoul(highIDs[k], NULL, 16);
-                titles[i].lowID = strtoul(data->d_name, NULL, 16);
+                titles[i].highID = strtoul(highIDs[k], nullptr, 16);
+                titles[i].lowID = strtoul(data->d_name, nullptr, 16);
 
                 titles[i].listID = i;
                 memcpy(titles[i].productCode, &titles[i].lowID, 4);
@@ -372,7 +369,7 @@ Title *loadWiiTitles() {
                 titles[i].isTitleOnUSB = false;
                 titles[i].isTitleDupe = false;
                 titles[i].dupeID = 0;
-                if (!titles[i].saveInit || (loadTitleIcon(&titles[i]) < 0)) titles[i].iconBuf = NULL;
+                if (!titles[i].saveInit || (loadTitleIcon(&titles[i]) < 0)) titles[i].iconBuf = nullptr;
                 i++;
 
                 OSScreenClearBufferEx(SCREEN_TV, 0);
@@ -436,8 +433,8 @@ int main(void) {
     qsort(wiiutitles, titleswiiu, sizeof(Title), titleSort);
     qsort(wiititles, titlesvwii, sizeof(Title), titleSort);
 
-    uint8_t *tgaBufDRC = NULL;
-    uint8_t *tgaBufTV = NULL;
+    uint8_t *tgaBufDRC = nullptr;
+    uint8_t *tgaBufTV = nullptr;
     uint32_t wDRC = 0, hDRC = 0, wTV = 0, hTV = 0;
     KPADStatus kpad_status;
     VPADStatus vpad_status;
@@ -955,10 +952,10 @@ int main(void) {
                                 backupAllSave(wiititles, titlesvwii, &dateTime);
                                 break;
                             case 1:
-                                backupAllSave(wiiutitles, titleswiiu, NULL);
+                                backupAllSave(wiiutitles, titleswiiu, nullptr);
                                 break;
                             case 2:
-                                backupAllSave(wiititles, titlesvwii, NULL);
+                                backupAllSave(wiititles, titlesvwii, nullptr);
                                 break;
                         }
                         continue;
