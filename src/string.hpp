@@ -6,16 +6,14 @@
 
 using namespace std;
 
-auto replace_str(char *str, char *orig, char *rep) -> char *;
-
-auto StartsWith(const char *a, const char *b) -> bool;
+bool replace(string &str, const string &from, const string &to);
 
 template<typename... Args>
-auto string_format(const std::string &format, Args... args) -> std::string {
-    int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
-    if (size_s <= 0) { throw std::runtime_error("Error during formatting."); }
+auto string_format(const string &format, Args... args) -> string {
+    int size_s = snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
+    if (size_s <= 0) { throw runtime_error("Error during formatting."); }
     auto size = static_cast<size_t>(size_s);
-    std::unique_ptr<char[]> buf(new char[size]);
-    std::snprintf(buf.get(), size, format.c_str(), args...);
-    return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
+    unique_ptr<char[]> buf(new char[size]);
+    snprintf(buf.get(), size, format.c_str(), args...);
+    return string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
 }

@@ -19,17 +19,17 @@ VPADReadError vpad_error;
 
 KPADStatus kpad[4], kpad_status;
 
-static char *newlibToFSA(char *path) {
+static string newlibToFSA(string path) {
     if (path[3] == ':') {
         switch (path[0]) {
             case 'u':
-                path = replace_str(path, (char *) "usb:", (char *) "/vol/storage_usb01");
+                replace(path, "usb:", "/vol/storage_usb01");
                 break;
             case 'm':
-                path = replace_str(path, (char *) "mlc:", (char *) "/vol/storage_mlc01");
+                replace(path, "mlc:", "/vol/storage_mlc01");
                 break;
             case 's':
-                path = replace_str(path, (char *) "slc:", (char *) "/vol/storage_slccmpt01");
+                replace(path, "slc:", "/vol/storage_slccmpt01");
                 break;
         }
     }
@@ -40,7 +40,7 @@ void setFSAFD(int fd) {
     fsaFd = fd;
 }
 
-void show_file_operation(const char *file_name, const char *file_src, const char *file_dest) {
+void show_file_operation(string file_name, string file_src, string file_dest) {
     console_print_pos(-2, 0, "Copying file: %s", file_name);
     console_print_pos_multiline(-2, 2, '/', "From: %s", file_src);
     console_print_pos_multiline(-2, 8, '/', "To: %s", file_dest);
@@ -107,21 +107,21 @@ int32_t loadTitleIcon(Title *title) {
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    char path[256];
+    string path;
 
     if (isWii) {
         if (title->saveInit) {
-            sprintf(path, "slc:/title/%08x/%08x/data/banner.bin", highID, lowID);
-            return loadFilePart(path, 0xA0, 24576, &title->iconBuf);
+            path = string_format("slc:/title/%08x/%08x/data/banner.bin", highID, lowID);
+            return loadFilePart(path.c_str(), 0xA0, 24576, &title->iconBuf);
         }
     } else {
         if (title->saveInit) {
-            sprintf(path, "%s:/usr/save/%08x/%08x/meta/iconTex.tga", isUSB ? "usb" : "mlc", highID, lowID);
+            path = string_format("%s:/usr/save/%08x/%08x/meta/iconTex.tga", isUSB ? "usb" : "mlc", highID, lowID);
         } else {
-            sprintf(path, "%s:/usr/title/%08x/%08x/meta/iconTex.tga", isUSB ? "usb" : "mlc", highID, lowID);
+            path = string_format("%s:/usr/title/%08x/%08x/meta/iconTex.tga", isUSB ? "usb" : "mlc", highID, lowID);
         }
 
-        return loadFile(path, &title->iconBuf);
+        return loadFile(path.c_str(), &title->iconBuf);
     }
     return -23;
 }
@@ -518,7 +518,7 @@ int DumpFile(string pPath, string oPath) {
         free(buffer[i]);
     }
 
-    IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA((char *) oPath.c_str()), 0x666);
+    IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA(oPath).c_str(), 0x666);
 
     return 0;
 }
@@ -530,7 +530,7 @@ int DumpDir(string pPath, string tPath) { // Source: ft2sd
     }
 
     mkdir(tPath.c_str(), DEFFILEMODE);
-    struct dirent *data = (dirent *) malloc(sizeof(dirent));
+    auto *data = (dirent *) malloc(sizeof(dirent));
 
     while ((data = readdir(dir)) != nullptr) {
         OSScreenClearBufferEx(SCREEN_TV, 0);

@@ -82,7 +82,7 @@ Title *loadWiiUTitles(int run) {
 
     int usable = receivedCount;
     int j = 0;
-    Saves *savesl = (Saves *) malloc(receivedCount * sizeof(Saves));
+    auto *savesl = (Saves *) malloc(receivedCount * sizeof(Saves));
     if (savesl == nullptr) {
         promptError("Out of memory.");
         return nullptr;
@@ -139,7 +139,7 @@ Title *loadWiiUTitles(int run) {
     }
 
     foundCount += tNoSave;
-    Saves *saves = (Saves *) malloc((foundCount + tNoSave) * sizeof(Saves));
+    auto *saves = (Saves *) malloc((foundCount + tNoSave) * sizeof(Saves));
     if (saves == nullptr) {
         promptError("Out of memory.");
         return nullptr;
@@ -182,7 +182,7 @@ Title *loadWiiUTitles(int run) {
         }
     }
 
-    Title *titles = (Title *) malloc(foundCount * sizeof(Title));
+    auto *titles = (Title *) malloc(foundCount * sizeof(Title));
     if (titles == nullptr) {
         promptError("Out of memory.");
         return nullptr;
@@ -296,7 +296,7 @@ Title *loadWiiTitles() {
         return nullptr;
     }
 
-    Title *titles = (Title *) malloc(titlesvwii * sizeof(Title));
+    auto *titles = (Title *) malloc(titlesvwii * sizeof(Title));
     if (titles == nullptr) {
         promptError("Out of memory.");
         return nullptr;
@@ -327,7 +327,7 @@ Title *loadWiiTitles() {
                 FILE *file = fopen(path, "rb");
                 if (file != nullptr) {
                     fseek(file, 0x20, SEEK_SET);
-                    uint16_t *bnrBuf = (uint16_t *) malloc(0x80);
+                    auto *bnrBuf = (uint16_t *) malloc(0x80);
                     if (bnrBuf != nullptr) {
                         fread(bnrBuf, 0x02, 0x20, file);
                         memset(titles[i].shortName, 0, sizeof(titles[i].shortName));

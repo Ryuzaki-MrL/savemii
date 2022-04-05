@@ -1,21 +1,9 @@
 #include "string.hpp"
 
-auto replace_str(char *str, char *orig, char *rep) -> char * {
-    static char buffer[4096];
-    char *p;
-
-    if ((p = strstr(str, orig)) == nullptr) { // Is 'orig' even in 'str'?
-        return str;
-    }
-
-    strncpy(buffer, str, p - str); // Copy characters from 'str' start to 'orig' st$
-    buffer[p - str] = '\0';
-
-    sprintf(buffer + (p - str), "%s%s", rep, p + strlen(orig));
-
-    return buffer;
-}
-
-auto StartsWith(const char *a, const char *b) -> bool {
-    return strncmp(a, b, strlen(b)) == 0;
+bool replace(string &str, const string &from, const string &to) {
+    size_t start_pos = str.find(from);
+    if (start_pos == string::npos)
+        return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
 }

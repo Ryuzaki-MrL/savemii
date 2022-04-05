@@ -15,9 +15,12 @@
 #include <iosuhax.h>
 #include <iosuhax_devoptab.h>
 #include <padscore/kpad.h>
+#include <string>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <vpad/input.h>
+
+using namespace std;
 
 #define PATH_SIZE 0x400
 
@@ -115,7 +118,7 @@ int32_t loadFilePart(const char *fPath, uint32_t start, uint32_t size, uint8_t *
 
 int32_t loadTitleIcon(Title *title);
 
-void show_file_operation(const char *file_name, const char *file_src, const char *file_dest);
+void show_file_operation(string file_name, string file_src, string file_dest);
 
 void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ...);
 
