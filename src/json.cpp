@@ -7,11 +7,11 @@ auto doit(char *text) -> char * {
 
     json = cJSON_Parse(text);
     if (json == nullptr) {
-        return (char*)"";
-    }         str = cJSON_GetObjectItemCaseSensitive(json, "Date");
-        out = strdup(str->valuestring);
-        return out;
-   
+        return (char *) "";
+    }
+    str = cJSON_GetObjectItemCaseSensitive(json, "Date");
+    out = strdup(str->valuestring);
+    return out;
 }
 
 /* Read a file, parse, render back, etc. */
@@ -53,7 +53,8 @@ auto getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) -> char * {
     if (checkEntry(path) != 0) {
         char *info = dofile(path);
         return info;
-    }         return (char*)"";
+    }
+    return (char *) "";
 }
 
 auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date) -> bool {
@@ -63,7 +64,7 @@ auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date) -> b
     cJSON *config = cJSON_CreateObject();
     if (config == nullptr) {
         return false;
-}
+    }
 
     cJSON *entry = cJSON_CreateString(date);
     if (entry == nullptr) {
@@ -76,12 +77,12 @@ auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date) -> b
     cJSON_Delete(config);
     if (configString == nullptr) {
         return false;
-}
+    }
 
     FILE *fp = fopen(path, "wb");
     if (fp == nullptr) {
         return false;
-}
+    }
 
     fwrite(configString, strlen(configString), 1, fp);
 

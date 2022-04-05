@@ -49,8 +49,8 @@ void show_file_operation(const char *file_name, const char *file_src, const char
 int FSAR(int result) {
     if ((result & 0xFFFF0000) == 0xFFFC0000) {
         return (result & 0xFFFF) | 0xFFFF0000;
-    } 
-        return result;
+    }
+    return result;
 }
 
 int32_t loadFile(const char *fPath, uint8_t **buf) {
@@ -67,7 +67,7 @@ int32_t loadFile(const char *fPath, uint8_t **buf) {
                 ret = size;
             } else {
                 free(*buf);
-}
+            }
         }
         fclose(file);
     }
@@ -95,7 +95,7 @@ int32_t loadFilePart(const char *fPath, uint32_t start, uint32_t size, uint8_t *
                 ret = size;
             } else {
                 free(*buf);
-}
+            }
         }
         fclose(file);
     }
@@ -119,7 +119,7 @@ int32_t loadTitleIcon(Title *title) {
             sprintf(path, "%s:/usr/save/%08x/%08x/meta/iconTex.tga", isUSB ? "usb" : "mlc", highID, lowID);
         } else {
             sprintf(path, "%s:/usr/title/%08x/%08x/meta/iconTex.tga", isUSB ? "usb" : "mlc", highID, lowID);
-}
+        }
 
         return loadFile(path, &title->iconBuf);
     }
@@ -130,10 +130,11 @@ int checkEntry(const char *fPath) {
     struct stat st;
     if (stat(fPath, &st) == -1) {
         return 0;
-}
+    }
 
-    if (S_ISDIR(st.st_mode)) { return 2;
-}
+    if (S_ISDIR(st.st_mode)) {
+        return 2;
+    }
     return 1;
 }
 
@@ -141,14 +142,14 @@ int folderEmpty(const char *fPath) {
     DIR *dir = opendir(fPath);
     if (dir == nullptr) {
         return -1;
-}
+    }
 
     int c = 0;
     struct dirent *data;
     while ((data = readdir(dir)) != nullptr) {
         if (++c > 2) {
             break;
-}
+        }
     }
 
     closedir(dir);
@@ -168,8 +169,9 @@ int createFolder(const char *fPath) { //Adapted from mkdir_p made by JonathonRei
             if (found > 2) {
                 *p = '\0';
                 if (checkEntry(_path.c_str()) == 0) {
-                    if (mkdir(_path.c_str(), DEFFILEMODE) == -1) { return -1;
-}
+                    if (mkdir(_path.c_str(), DEFFILEMODE) == -1) {
+                        return -1;
+                    }
                 }
                 *p = '/';
             }
@@ -177,8 +179,9 @@ int createFolder(const char *fPath) { //Adapted from mkdir_p made by JonathonRei
     }
 
     if (checkEntry(_path.c_str()) == 0) {
-        if (mkdir(_path.c_str(), DEFFILEMODE) == -1) { return -1;
-}
+        if (mkdir(_path.c_str(), DEFFILEMODE) == -1) {
+            return -1;
+        }
     }
 
     return 0;
@@ -208,8 +211,9 @@ void console_print_pos_aligned(int y, uint16_t offset, uint8_t align, const char
         ttfPrintString(x, (y + 1) * 24, tmp, false, false);
     }
     va_end(va);
-    if (tmp != nullptr) { free(tmp);
-}
+    if (tmp != nullptr) {
+        free(tmp);
+    }
 }
 
 void console_print_pos(int x, int y, const char *format, ...) { // Source: ftpiiu
@@ -219,10 +223,11 @@ void console_print_pos(int x, int y, const char *format, ...) { // Source: ftpii
     va_start(va, format);
     if ((vasprintf(&tmp, format, va) >= 0) && (tmp != nullptr)) {
         ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
-}
+    }
     va_end(va);
-    if (tmp != nullptr) { free(tmp);
-}
+    if (tmp != nullptr) {
+        free(tmp);
+    }
 }
 
 void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ...) { // Source: ftpiiu
@@ -233,21 +238,23 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
     va_start(va, format);
     if ((vasprintf(&tmp, format, va) >= 0) && (tmp != nullptr)) {
 
-        if ((uint32_t)(ttfStringWidth(tmp, -1) / 12) > len) {
+        if ((uint32_t) (ttfStringWidth(tmp, -1) / 12) > len) {
             char *p = tmp;
-            if (strrchr(p, '\n') != nullptr) { p = strrchr(p, '\n') + 1;
-}
-            while ((uint32_t)(ttfStringWidth(p, -1) / 12) > len) {
+            if (strrchr(p, '\n') != nullptr) {
+                p = strrchr(p, '\n') + 1;
+            }
+            while ((uint32_t) (ttfStringWidth(p, -1) / 12) > len) {
                 char *q = p;
                 int l1 = strlen(q);
                 for (int i = l1; i > 0; i--) {
                     char o = q[l1];
                     q[l1] = '\0';
-                    if ((uint32_t)(ttfStringWidth(p, -1) / 12) <= len) {
-                        if (strrchr(p, cdiv) != nullptr) { p = strrchr(p, cdiv) + 1;
+                    if ((uint32_t) (ttfStringWidth(p, -1) / 12) <= len) {
+                        if (strrchr(p, cdiv) != nullptr) {
+                            p = strrchr(p, cdiv) + 1;
                         } else {
                             p = q + l1;
-}
+                        }
                         q[l1] = o;
                         break;
                     }
@@ -264,8 +271,9 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
         ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, true, true);
     }
     va_end(va);
-    if (tmp != nullptr) { free(tmp);
-}
+    if (tmp != nullptr) {
+        free(tmp);
+    }
 }
 
 void console_print_pos_va(int x, int y, const char *format, va_list va) { // Source: ftpiiu
@@ -273,9 +281,10 @@ void console_print_pos_va(int x, int y, const char *format, va_list va) { // Sou
 
     if ((vasprintf(&tmp, format, va) >= 0) && (tmp != nullptr)) {
         ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
-}
-    if (tmp != nullptr) { free(tmp);
-}
+    }
+    if (tmp != nullptr) {
+        free(tmp);
+    }
 }
 
 bool promptConfirm(Style st, const char *question) {
@@ -320,7 +329,7 @@ bool promptConfirm(Style st, const char *question) {
             // check if the controller is connected
             if (WPADProbe((WPADChan) i, &controllerType) != 0) {
                 continue;
-}
+            }
 
             KPADRead((WPADChan) i, &(kpad[i]), 1);
             kpad_status = kpad[i];
@@ -353,8 +362,9 @@ void promptError(const char *message, ...) {
         x = (x < -4 ? -4 : x);
         ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, true, false);
     }
-    if (tmp != nullptr) { free(tmp);
-}
+    if (tmp != nullptr) {
+        free(tmp);
+    }
     flipBuffers();
     WHBLogFreetypeDraw();
     va_end(va);
@@ -403,8 +413,9 @@ void getAccountsSD(Title *title, uint8_t slot) {
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
     sdaccn = 0;
-    if (sdacc != nullptr) { free(sdacc);
-}
+    if (sdacc != nullptr) {
+        free(sdacc);
+    }
 
     char path[255];
     sprintf(path, "sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
@@ -412,8 +423,9 @@ void getAccountsSD(Title *title, uint8_t slot) {
     if (dir != nullptr) {
         struct dirent *data;
         while ((data = readdir(dir)) != nullptr) {
-            if (data->d_name[0] == '.' || strncmp(data->d_name, "common", 6) == 0) { continue;
-}
+            if (data->d_name[0] == '.' || strncmp(data->d_name, "common", 6) == 0) {
+                continue;
+            }
             sdaccn++;
         }
         closedir(dir);
@@ -425,8 +437,9 @@ void getAccountsSD(Title *title, uint8_t slot) {
         struct dirent *data;
         int i = 0;
         while ((data = readdir(dir)) != nullptr) {
-            if (data->d_name[0] == '.' || strncmp(data->d_name, "common", 6) == 0) { continue;
-}
+            if (data->d_name[0] == '.' || strncmp(data->d_name, "common", 6) == 0) {
+                continue;
+            }
             sprintf(sdacc[i].persistentID, "%s", data->d_name);
             sdacc[i].pID = strtoul(data->d_name, nullptr, 16);
             sdacc[i].slot = i;
@@ -440,7 +453,7 @@ int DumpFile(string pPath, string oPath) {
     FILE *source = fopen(pPath.c_str(), "rb");
     if (source == nullptr) {
         return -1;
-}
+    }
 
     FILE *dest = fopen(oPath.c_str(), "wb");
     if (dest == nullptr) {
@@ -456,7 +469,7 @@ int DumpFile(string pPath, string oPath) {
             fclose(dest);
             for (i--; i >= 0; i--) {
                 free(buffer[i]);
-}
+            }
 
             return -1;
         }
@@ -465,8 +478,9 @@ int DumpFile(string pPath, string oPath) {
     setvbuf(source, buffer[0], _IOFBF, IO_MAX_FILE_BUFFER);
     setvbuf(dest, buffer[1], _IOFBF, IO_MAX_FILE_BUFFER);
     struct stat st;
-    if (stat(pPath.c_str(), &st) < 0) { return -1;
-}
+    if (stat(pPath.c_str(), &st) < 0) {
+        return -1;
+    }
     int sizef = st.st_size;
     int sizew = 0;
     int size = 0;
@@ -482,19 +496,19 @@ int DumpFile(string pPath, string oPath) {
             fclose(dest);
             for (int i = 0; i < 3; i++) {
                 free(buffer[i]);
-}
+            }
             return -1;
         }
         passedMs = (uint32_t) OSTicksToMilliseconds(OSGetTime() - startTime);
         if (passedMs == 0) {
             passedMs = 1; // avoid 0 div
-}
+        }
         OSScreenClearBufferEx(SCREEN_TV, 0);
         OSScreenClearBufferEx(SCREEN_DRC, 0);
         sizew += size;
         show_file_operation(basename(pPath.c_str()), pPath.c_str(), oPath.c_str());
         console_print_pos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", sizew, sizef,
-                          (uint32_t)(((uint64_t) sizew * 1000) / ((uint64_t) 1024 * passedMs)));
+                          (uint32_t) (((uint64_t) sizew * 1000) / ((uint64_t) 1024 * passedMs)));
         flipBuffers();
         WHBLogFreetypeDraw();
     }
@@ -502,7 +516,7 @@ int DumpFile(string pPath, string oPath) {
     fclose(dest);
     for (int i = 0; i < 3; i++) {
         free(buffer[i]);
-}
+    }
 
     IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA((char *) oPath.c_str()), 0x666);
 
@@ -513,7 +527,7 @@ int DumpDir(string pPath, string tPath) { // Source: ft2sd
     DIR *dir = opendir(pPath.c_str());
     if (dir == nullptr) {
         return -1;
-}
+    }
 
     mkdir(tPath.c_str(), DEFFILEMODE);
     struct dirent *data = (dirent *) malloc(sizeof(dirent));
@@ -522,8 +536,9 @@ int DumpDir(string pPath, string tPath) { // Source: ft2sd
         OSScreenClearBufferEx(SCREEN_TV, 0);
         OSScreenClearBufferEx(SCREEN_DRC, 0);
 
-        if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0) { continue;
-}
+        if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0) {
+            continue;
+        }
 
         string targetPath = string_format("%s/%s", tPath.c_str(), data->d_name);
 
@@ -553,7 +568,7 @@ int DeleteDir(char *pPath) {
     DIR *dir = opendir(pPath);
     if (dir == nullptr) {
         return -1;
-}
+    }
 
     struct dirent *data;
 
@@ -561,8 +576,9 @@ int DeleteDir(char *pPath) {
         OSScreenClearBufferEx(SCREEN_TV, 0);
         OSScreenClearBufferEx(SCREEN_DRC, 0);
 
-        if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0) { continue;
-}
+        if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0) {
+            continue;
+        }
 
         int len = strlen(pPath);
         snprintf(pPath + len, PATH_MAX - len, "/%s", data->d_name);
@@ -577,13 +593,15 @@ int DeleteDir(char *pPath) {
 
             console_print_pos(-2, 0, "Deleting folder %s", data->d_name);
             console_print_pos_multiline(-2, 2, '/', "From: \n%s", origPath);
-            if (unlink(origPath) == -1) { promptError("Failed to delete folder %s\n%s", origPath, strerror(errno));
-}
+            if (unlink(origPath) == -1) {
+                promptError("Failed to delete folder %s\n%s", origPath, strerror(errno));
+            }
         } else {
             console_print_pos(-2, 0, "Deleting file %s", data->d_name);
             console_print_pos_multiline(-2, 2, '/', "From: \n%s", pPath);
-            if (unlink(pPath) == -1) { promptError("Failed to delete file %s\n%s", pPath, strerror(errno));
-}
+            if (unlink(pPath) == -1) {
+                promptError("Failed to delete file %s\n%s", pPath, strerror(errno));
+            }
         }
 
         flipBuffers();
@@ -609,8 +627,9 @@ void getUserID(char *out) { // Source: loadiine_gx2
 int getLoadiineGameSaveDir(char *out, const char *productCode) {
     DIR *dir = opendir("sd:/wiiu/saves");
 
-    if (dir == nullptr) { return -1;
-}
+    if (dir == nullptr) {
+        return -1;
+    }
 
     struct dirent *data;
     while ((data = readdir(dir)) != nullptr) {
@@ -665,8 +684,9 @@ int getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID) 
 
     sprintf(out, "%s/u", fullSavePath);
     closedir(dir);
-    if (checkEntry(out) <= 0) { return -1;
-}
+    if (checkEntry(out) <= 0) {
+        return -1;
+    }
     return 0;
 }
 
@@ -683,8 +703,9 @@ bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) {
 
 int getEmptySlot(uint32_t highID, uint32_t lowID) {
     for (int i = 0; i < 256; i++) {
-        if (isSlotEmpty(highID, lowID, i)) { return i;
-}
+        if (isSlotEmpty(highID, lowID, i)) {
+            return i;
+        }
     }
     return -1;
 }
@@ -694,8 +715,9 @@ bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t s
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    if (highID == 0 || lowID == 0) { return false;
-}
+    if (highID == 0 || lowID == 0) {
+        return false;
+    }
 
     char srcPath[PATH_SIZE];
     if (!isWii) {
@@ -707,15 +729,17 @@ bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t s
                 sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, "user");
             } else {
                 sprintf(srcPath, "%s/%08x/%08x/%s/%08X", path, highID, lowID, "user", user);
-}
+            }
         } else {
             if (!iine) {
                 sprintf(srcPath, "sd:/wiiu/backups/%08x%08x/%u/%08X", highID, lowID, slot, user);
             } else {
-                if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) { return false;
-}
-                if (version != 0) { sprintf(srcPath + strlen(srcPath), "/v%u", version);
-}
+                if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) {
+                    return false;
+                }
+                if (version != 0) {
+                    sprintf(srcPath + strlen(srcPath), "/v%u", version);
+                }
                 if (user == 0) {
                     uint32_t srcOffset = strlen(srcPath);
                     strcpy(srcPath + srcOffset, "/c\0");
@@ -736,8 +760,8 @@ bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t s
     if (checkEntry(srcPath) == 2) {
         if (folderEmpty(srcPath) == 0) {
             return true;
-}
-}
+        }
+    }
     return false;
 }
 
@@ -746,8 +770,9 @@ bool hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    if (isWii) { return false;
-}
+    if (isWii) {
+        return false;
+    }
 
     char srcPath[PATH_SIZE];
     if (!inSD) {
@@ -757,18 +782,21 @@ bool hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version
         if (!iine) {
             sprintf(srcPath, "sd:/wiiu/backups/%08x%08x/%u/common", highID, lowID, slot);
         } else {
-            if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) { return false;
-}
-            if (version != 0) { sprintf(srcPath + strlen(srcPath), "/v%u", version);
-}
+            if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) {
+                return false;
+            }
+            if (version != 0) {
+                sprintf(srcPath + strlen(srcPath), "/v%u", version);
+            }
             uint32_t srcOffset = strlen(srcPath);
             strcpy(srcPath + srcOffset, "/c\0");
         }
     }
     if (checkEntry(srcPath) == 2) {
-        if (folderEmpty(srcPath) == 0) { return true;
-}
-}
+        if (folderEmpty(srcPath) == 0) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -781,8 +809,9 @@ void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_
     uint32_t lowIDb = titleb->lowID;
     bool isUSBb = titleb->isTitleOnUSB;
 
-    if (!promptConfirm(ST_WARNING, "Are you sure?")) { return;
-}
+    if (!promptConfirm(ST_WARNING, "Are you sure?")) {
+        return;
+    }
     int slotb = getEmptySlot(titleb->highID, titleb->lowID);
     if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first to next empty slot?")) {
         backupSavedata(titleb, slotb, allusers, common);
@@ -799,15 +828,16 @@ void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_
 
     if (allusers > -1) {
         if (common) {
-            if (DumpDir(srcPath + "/common", dstPath + "/common") != 0) { promptError("Common save not found.");
-}
+            if (DumpDir(srcPath + "/common", dstPath + "/common") != 0) {
+                promptError("Common save not found.");
+            }
         }
     }
 
     if (DumpDir(srcPath + string_format("/%s", wiiuacc[allusers].persistentID),
                 dstPath + string_format("/%s", wiiuacc[allusers_d].persistentID)) != 0) {
         promptError("Copy failed.");
-}
+    }
 }
 
 void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
@@ -827,8 +857,9 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
     sprintf(datetime, "%04d-%02d-%02dT%02d%02d%02d", dateTime.tm_year, dateTime.tm_mon, dateTime.tm_mday,
             dateTime.tm_hour, dateTime.tm_min, dateTime.tm_sec);
     for (int i = 0; i < count; i++) {
-        if (titles[i].highID == 0 || titles[i].lowID == 0 || !titles[i].saveInit) { continue;
-}
+        if (titles[i].highID == 0 || titles[i].lowID == 0 || !titles[i].saveInit) {
+            continue;
+        }
 
         uint32_t highID = titles[i].highID;
         uint32_t lowID = titles[i].lowID;
@@ -841,8 +872,9 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
         sprintf(dstPath, "sd:/wiiu/backups/batch/%s/%08x%08x", datetime, highID, lowID);
 
         createFolder(dstPath);
-        if (DumpDir(srcPath, dstPath) != 0) { promptError("Backup failed.");
-}
+        if (DumpDir(srcPath, dstPath) != 0) {
+            promptError("Backup failed.");
+        }
     }
 }
 
@@ -851,7 +883,7 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
     if (!isSlotEmpty(title->highID, title->lowID, slot) &&
         !promptConfirm(ST_WARNING, "Backup found on this slot. Overwrite it?")) {
         return;
-}
+    }
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
@@ -870,8 +902,9 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
         if (common) {
             srcPath.append("/common");
             dstPath.append("/common");
-            if (DumpDir(srcPath, dstPath) != 0) { promptError("Common save not found.");
-}
+            if (DumpDir(srcPath, dstPath) != 0) {
+                promptError("Common save not found.");
+            }
         }
         srcPath.append(string_format("/%s", wiiuacc[allusers].persistentID));
         dstPath.append(string_format("/%s", wiiuacc[allusers].persistentID));
@@ -880,8 +913,9 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
             return;
         }
     }
-    if (DumpDir(srcPath, dstPath) != 0) { promptError("Backup failed. DO NOT restore from this slot.");
-}
+    if (DumpDir(srcPath, dstPath) != 0) {
+        promptError("Backup failed. DO NOT restore from this slot.");
+    }
     OSCalendarTime now;
     OSTicksToCalendarTime(OSGetTime(), &now);
     char date[255];
@@ -895,12 +929,13 @@ void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers
         promptError("No backup found on selected slot.");
         return;
     }
-    if (!promptConfirm(ST_WARNING, "Are you sure?")) { return;
-}
+    if (!promptConfirm(ST_WARNING, "Are you sure?")) {
+        return;
+    }
     int slotb = getEmptySlot(title->highID, title->lowID);
     if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first to next empty slot?")) {
         backupSavedata(title, slotb, allusers, common);
-}
+    }
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
@@ -922,25 +957,28 @@ void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers
         if (common) {
             strcpy(srcPath + srcOffset, "/common");
             strcpy(dstPath + dstOffset, "/common");
-            if (DumpDir(srcPath, dstPath) != 0) { promptError("Common save not found.");
-}
+            if (DumpDir(srcPath, dstPath) != 0) {
+                promptError("Common save not found.");
+            }
         }
         sprintf(srcPath + srcOffset, "/%s", sdacc[sdusers].persistentID);
         sprintf(dstPath + dstOffset, "/%s", wiiuacc[allusers].persistentID);
     }
 
-    if (DumpDir(srcPath, dstPath) != 0) { promptError("Restore failed.");
-}
+    if (DumpDir(srcPath, dstPath) != 0) {
+        promptError("Restore failed.");
+    }
 }
 
 void wipeSavedata(Title *title, int8_t allusers, bool common) {
 
-    if (!promptConfirm(ST_WARNING, "Are you sure?") || !promptConfirm(ST_WARNING, "Hm, are you REALLY sure?")) { return;
-}
+    if (!promptConfirm(ST_WARNING, "Are you sure?") || !promptConfirm(ST_WARNING, "Hm, are you REALLY sure?")) {
+        return;
+    }
     int slotb = getEmptySlot(title->highID, title->lowID);
     if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first?")) {
         backupSavedata(title, slotb, allusers, common);
-}
+    }
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
@@ -954,40 +992,47 @@ void wipeSavedata(Title *title, int8_t allusers, bool common) {
         if (common) {
             strcpy(srcPath + offset, "/common");
             sprintf(origPath, "%s", srcPath);
-            if (DeleteDir(srcPath) != 0) { promptError("Common save not found.");
-}
-            if (unlink(origPath) == -1) { promptError("Failed to delete common folder.\n%s", strerror(errno));
-}
+            if (DeleteDir(srcPath) != 0) {
+                promptError("Common save not found.");
+            }
+            if (unlink(origPath) == -1) {
+                promptError("Failed to delete common folder.\n%s", strerror(errno));
+            }
         }
         sprintf(srcPath + offset, "/%s", wiiuacc[allusers].persistentID);
         sprintf(origPath, "%s", srcPath);
     }
 
-    if (DeleteDir(srcPath) != 0) { promptError("Failed to delete savefile.");
-}
+    if (DeleteDir(srcPath) != 0) {
+        promptError("Failed to delete savefile.");
+    }
     if ((allusers > -1) && !isWii) {
-        if (unlink(origPath) == -1) { promptError("Failed to delete user folder.\n%s", strerror(errno));
-}
+        if (unlink(origPath) == -1) {
+            promptError("Failed to delete user folder.\n%s", strerror(errno));
+        }
     }
 }
 
 void importFromLoadiine(Title *title, bool common, int version) {
 
-    if (!promptConfirm(ST_WARNING, "Are you sure?")) { return;
-}
+    if (!promptConfirm(ST_WARNING, "Are you sure?")) {
+        return;
+    }
     int slotb = getEmptySlot(title->highID, title->lowID);
     if (slotb >= 0 && promptConfirm(ST_YES_NO, "Backup current savedata first?")) {
         backupSavedata(title, slotb, 0, common);
-}
+    }
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     char srcPath[PATH_SIZE];
     char dstPath[PATH_SIZE];
-    if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) { return;
-}
-    if (version != 0) { sprintf(srcPath + strlen(srcPath), "/v%i", version);
-}
+    if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) {
+        return;
+    }
+    if (version != 0) {
+        sprintf(srcPath + strlen(srcPath), "/v%i", version);
+    }
     char usrPath[16];
     getUserID(usrPath);
     uint32_t srcOffset = strlen(srcPath);
@@ -998,31 +1043,36 @@ void importFromLoadiine(Title *title, bool common, int version) {
     sprintf(dstPath + dstOffset, "/%s", usrPath);
     promptError(srcPath);
     promptError(dstPath);
-    if (DumpDir(srcPath, dstPath) != 0) { promptError("Failed to import savedata from loadiine.");
-}
+    if (DumpDir(srcPath, dstPath) != 0) {
+        promptError("Failed to import savedata from loadiine.");
+    }
     if (common) {
         strcpy(srcPath + srcOffset, "/c\0");
         strcpy(dstPath + dstOffset, "/common\0");
         promptError(srcPath);
         promptError(dstPath);
-        if (DumpDir(srcPath, dstPath) != 0) { promptError("Common save not found.");
-}
+        if (DumpDir(srcPath, dstPath) != 0) {
+            promptError("Common save not found.");
+        }
     }
 }
 
 void exportToLoadiine(Title *title, bool common, int version) {
 
-    if (!promptConfirm(ST_WARNING, "Are you sure?")) { return;
-}
+    if (!promptConfirm(ST_WARNING, "Are you sure?")) {
+        return;
+    }
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     char srcPath[PATH_SIZE];
     char dstPath[PATH_SIZE];
-    if (getLoadiineGameSaveDir(dstPath, title->productCode) != 0) { return;
-}
-    if (version != 0) { sprintf(dstPath + strlen(dstPath), "/v%u", version);
-}
+    if (getLoadiineGameSaveDir(dstPath, title->productCode) != 0) {
+        return;
+    }
+    if (version != 0) {
+        sprintf(dstPath + strlen(dstPath), "/v%u", version);
+    }
     char usrPath[16];
     getUserID(usrPath);
     uint32_t dstOffset = strlen(dstPath);
@@ -1033,14 +1083,16 @@ void exportToLoadiine(Title *title, bool common, int version) {
     createFolder(dstPath);
     promptError(srcPath);
     promptError(dstPath);
-    if (DumpDir(srcPath, dstPath) != 0) { promptError("Failed to export savedata to loadiine.");
-}
+    if (DumpDir(srcPath, dstPath) != 0) {
+        promptError("Failed to export savedata to loadiine.");
+    }
     if (common) {
         strcpy(dstPath + dstOffset, "/c\0");
         strcpy(srcPath + srcOffset, "/common\0");
         promptError(srcPath);
         promptError(dstPath);
-        if (DumpDir(srcPath, dstPath) != 0) { promptError("Common save not found.");
-}
+        if (DumpDir(srcPath, dstPath) != 0) {
+            promptError("Common save not found.");
+        }
     }
 }

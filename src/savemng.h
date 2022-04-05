@@ -9,12 +9,12 @@
 #include <coreinit/mcp.h>
 #include <coreinit/memdefaultheap.h>
 #include <coreinit/thread.h>
+#include <cstdio>
+#include <dirent.h>
 #include <fcntl.h>
 #include <iosuhax.h>
 #include <iosuhax_devoptab.h>
 #include <padscore/kpad.h>
-#include <cstdio>
-#include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <vpad/input.h>

@@ -1,8 +1,8 @@
 #include "fat.h"
-#include <malloc.h>
 #include <cstdarg>
 #include <cstdlib>
 #include <cstring>
+#include <malloc.h>
 
 #include <coreinit/screen.h>
 #include <padscore/kpad.h>

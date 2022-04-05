@@ -48,20 +48,24 @@ void drawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b, u
     int y;
     if (x1 == x2) {
         if (y1 < y2) {
-            for (y = y1; y <= y2; y++) { drawPixel(x1, y, r, g, b, a);
-}
+            for (y = y1; y <= y2; y++) {
+                drawPixel(x1, y, r, g, b, a);
+            }
         } else {
-            for (y = y2; y <= y1; y++) { drawPixel(x1, y, r, g, b, a);
-}
-}
+            for (y = y2; y <= y1; y++) {
+                drawPixel(x1, y, r, g, b, a);
+            }
+        }
     } else {
         if (x1 < x2) {
-            for (x = x1; x <= x2; x++) { drawPixel(x, y1, r, g, b, a);
-}
+            for (x = x1; x <= x2; x++) {
+                drawPixel(x, y1, r, g, b, a);
+            }
         } else {
-            for (x = x2; x <= x1; x++) { drawPixel(x, y1, r, g, b, a);
-}
-}
+            for (x = x2; x <= x1; x++) {
+                drawPixel(x, y1, r, g, b, a);
+            }
+        }
     }
 }
 
@@ -127,8 +131,8 @@ void drawFillCircle(int xCen, int yCen, int radius, uint8_t r, uint8_t g, uint8_
         for (x = -radius; x <= radius; x++) {
             if (x * x + y * y <= radius * radius + radius * .8f) {
                 drawPixel(xCen + x, yCen + y, r, g, b, a);
-}
-}
+            }
+        }
     }
 }
 
@@ -198,8 +202,9 @@ void drawRGB5A3(int x, int y, float scale, uint8_t *fileContent) {
     uint32_t nw = w;
     uint32_t nh = h;
 
-    if (scale <= 0) { scale = 1;
-}
+    if (scale <= 0) {
+        scale = 1;
+    }
     nw = w * scale;
     nh = h * scale;
 
@@ -220,19 +225,22 @@ void drawRGB5A3(int x, int y, float scale, uint8_t *fileContent) {
                     } else {
                         color.c = (((pixels[npos] & 0xF00) * 0x11) << 16) | (((pixels[npos] & 0xF0) * 0x11) << 12) |
                                   (((pixels[npos] & 0xF) * 0x11) << 8) | (((pixels[npos] & 0x7000) >> 12) * 0x24);
-}
+                    }
                     drawPixel32(si, sj, color);
                 }
             }
         }
     }
     if (scale > 0.5) {
-        if ((x > 0) && (y > 0)) { drawRect(x - 1, y - 1, x + nw, y + nh, 255, 255, 255, 128);
-}
-        if ((x > 1) && (y > 1)) { drawRect(x - 2, y - 2, x + nw + 1, y + nh + 1, 255, 255, 255, 128);
-}
-        if ((x > 2) && (y > 2)) { drawRect(x - 3, y - 3, x + nw + 2, y + nh + 2, 255, 255, 255, 128);
-}
+        if ((x > 0) && (y > 0)) {
+            drawRect(x - 1, y - 1, x + nw, y + nh, 255, 255, 255, 128);
+        }
+        if ((x > 1) && (y > 1)) {
+            drawRect(x - 2, y - 2, x + nw + 1, y + nh + 1, 255, 255, 255, 128);
+        }
+        if ((x > 2) && (y > 2)) {
+            drawRect(x - 3, y - 3, x + nw + 2, y + nh + 2, 255, 255, 255, 128);
+        }
     }
 }
 
@@ -240,10 +248,11 @@ void drawBackgroundDRC(uint32_t w, uint32_t h, uint8_t *out) {
     uint32_t *screen2 = nullptr;
     int otherBuff1 = drcBufferSize / 2;
 
-    if (cur_buf1) { screen2 = (uint32_t *) scrBuffer + tvBufferSize + otherBuff1;
+    if (cur_buf1) {
+        screen2 = (uint32_t *) scrBuffer + tvBufferSize + otherBuff1;
     } else {
         screen2 = (uint32_t *) scrBuffer + tvBufferSize;
-}
+    }
     memcpy(screen2, out, w * h * 4);
 }
 
@@ -251,8 +260,9 @@ void drawBackgroundTV(uint32_t w, uint32_t h, uint8_t *out) {
     auto *screen1 = (uint32_t *) scrBuffer;
     int otherBuff0 = tvBufferSize / 2;
 
-    if (cur_buf1) { screen1 = (uint32_t *) scrBuffer + otherBuff0;
-}
+    if (cur_buf1) {
+        screen1 = (uint32_t *) scrBuffer + otherBuff0;
+    }
     memcpy(screen1, out, w * h * 4);
 }
 
@@ -270,7 +280,7 @@ void draw_bitmap(FT_Bitmap *bitmap, FT_Int x, FT_Int y) {
                     uint8_t col = bitmap->buffer[q * bitmap->pitch + p];
                     if (col == 0) continue;
                     float opacity = col / 255.0;
-                    drawPixel(i, j, fcolor.r, fcolor.g, fcolor.b, (uint8_t)(fcolor.a * opacity));
+                    drawPixel(i, j, fcolor.r, fcolor.g, fcolor.b, (uint8_t) (fcolor.a * opacity));
                 }
             }
             break;

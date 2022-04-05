@@ -6,7 +6,7 @@ auto replace_str(char *str, char *orig, char *rep) -> char * {
 
     if ((p = strstr(str, orig)) == nullptr) { // Is 'orig' even in 'str'?
         return str;
-}
+    }
 
     strncpy(buffer, str, p - str); // Copy characters from 'str' start to 'orig' st$
     buffer[p - str] = '\0';

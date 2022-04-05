@@ -1,9 +1,9 @@
-#include "string.hpp"
+#include "main.h"
 #include "icon.h"
 #include "json.h"
 #include "log_freetype.h"
-#include "main.h"
 #include "savemng.h"
+#include "string.hpp"
 
 using namespace std;
 
@@ -32,22 +32,22 @@ int titleSort(const void *c1, const void *c2) {
         case 2:
             if (((Title *) c1)->isTitleOnUSB == ((Title *) c2)->isTitleOnUSB) {
                 return 0;
-}
+            }
             if (((Title *) c1)->isTitleOnUSB) {
                 return -1 * sorta;
-}
+            }
             if (((Title *) c2)->isTitleOnUSB) {
                 return 1 * sorta;
-}
+            }
             return 0;
 
         case 3:
             if (((Title *) c1)->isTitleOnUSB && !((Title *) c2)->isTitleOnUSB) {
                 return -1 * sorta;
-}
+            }
             if (!((Title *) c1)->isTitleOnUSB && ((Title *) c2)->isTitleOnUSB) {
                 return 1 * sorta;
-}
+            }
 
             return strcmp(((Title *) c1)->shortName, ((Title *) c2)->shortName) * sorta;
 
@@ -89,12 +89,12 @@ Title *loadWiiUTitles(int run) {
     }
     for (uint32_t i = 0; i < receivedCount; i++) {
         char *element = tList + (i * 0x61);
-        savesl[j].highID = *(uint32_t * )(element);
+        savesl[j].highID = *(uint32_t *) (element);
         if (savesl[j].highID != (0x00050000 | 0x00050002)) {
             usable--;
             continue;
         }
-        savesl[j].lowID = *(uint32_t * )(element + 4);
+        savesl[j].lowID = *(uint32_t *) (element + 4);
         savesl[j].dev = static_cast<uint8_t>(!(memcmp(element + 0x56, "usb", 4) == 0));
         savesl[j].found = false;
         j++;
@@ -114,7 +114,7 @@ Title *loadWiiUTitles(int run) {
                 while ((data = readdir(dir)) != nullptr) {
                     if (data->d_name[0] == '.') {
                         continue;
-}
+                    }
 
                     sprintf(path, "%s:/usr/save/%s/%s/user", (i == 0) ? "usb" : "mlc", highIDs[a], data->d_name);
                     if (checkEntry(path) == 2) {
@@ -155,7 +155,7 @@ Title *loadWiiUTitles(int run) {
                 while ((data = readdir(dir)) != nullptr) {
                     if (data->d_name[0] == '.') {
                         continue;
-}
+                    }
 
                     sprintf(path, "%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
                             data->d_name);
@@ -199,7 +199,7 @@ Title *loadWiiUTitles(int run) {
         titles[titleswiiu].saveInit = !saves[i].found;
 
         char *xmlBuf = nullptr;
-        if (loadFile(path, (uint8_t * *) & xmlBuf) > 0) {
+        if (loadFile(path, (uint8_t **) &xmlBuf) > 0) {
             char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
             memset(titles[titleswiiu].productCode, 0, sizeof(titles[titleswiiu].productCode));
             strncpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<"));
@@ -208,14 +208,14 @@ Title *loadWiiUTitles(int run) {
             memset(titles[titleswiiu].shortName, 0, sizeof(titles[titleswiiu].shortName));
             if (strcspn(cptr, "<") == 0) {
                 cptr = strchr(strstr(xmlBuf, "shortname_ja"), '>') + 1;
-}
+            }
             strncpy(titles[titleswiiu].shortName, cptr, strcspn(cptr, "<"));
 
             cptr = strchr(strstr(xmlBuf, "longname_en"), '>') + 1;
             memset(titles[i].longName, 0, sizeof(titles[i].longName));
             if (strcspn(cptr, "<") == 0) {
                 cptr = strchr(strstr(xmlBuf, "longname_ja"), '>') + 1;
-}
+            }
             strncpy(titles[titleswiiu].longName, cptr, strcspn(cptr, "<"));
 
             free(xmlBuf);
@@ -235,8 +235,9 @@ Title *loadWiiUTitles(int run) {
         titles[titleswiiu].lowID = lowID;
         titles[titleswiiu].isTitleOnUSB = isTitleOnUSB;
         titles[titleswiiu].listID = titleswiiu;
-        if (loadTitleIcon(&titles[titleswiiu]) < 0) { titles[titleswiiu].iconBuf = nullptr;
-}
+        if (loadTitleIcon(&titles[titleswiiu]) < 0) {
+            titles[titleswiiu].iconBuf = nullptr;
+        }
         titleswiiu++;
 
         OSScreenClearBufferEx(SCREEN_TV, 0);
@@ -291,8 +292,9 @@ Title *loadWiiTitles() {
             closedir(dir);
         }
     }
-    if (titlesvwii == 0) { return nullptr;
-}
+    if (titlesvwii == 0) {
+        return nullptr;
+    }
 
     Title *titles = (Title *) malloc(titlesvwii * sizeof(Title));
     if (titles == nullptr) {
@@ -378,15 +380,17 @@ Title *loadWiiTitles() {
                 titles[i].listID = i;
                 memcpy(titles[i].productCode, &titles[i].lowID, 4);
                 for (int ii = 0; ii < 4; ii++) {
-                    if (titles[i].productCode[ii] == 0) { titles[i].productCode[ii] = '.';
-}
+                    if (titles[i].productCode[ii] == 0) {
+                        titles[i].productCode[ii] = '.';
+                    }
                 }
                 titles[i].productCode[4] = 0;
                 titles[i].isTitleOnUSB = false;
                 titles[i].isTitleDupe = false;
                 titles[i].dupeID = 0;
-                if (!titles[i].saveInit || (loadTitleIcon(&titles[i]) < 0)) { titles[i].iconBuf = nullptr;
-}
+                if (!titles[i].saveInit || (loadTitleIcon(&titles[i]) < 0)) {
+                    titles[i].iconBuf = nullptr;
+                }
                 i++;
 
                 OSScreenClearBufferEx(SCREEN_TV, 0);
@@ -407,11 +411,13 @@ Title *loadWiiTitles() {
 
 void unloadTitles(Title *titles, int count) {
     for (int i = 0; i < count; i++) {
-        if (titles[i].iconBuf != nullptr) { free(titles[i].iconBuf);
-}
+        if (titles[i].iconBuf != nullptr) {
+            free(titles[i].iconBuf);
+        }
     }
-    if (titles != nullptr) { free(titles);
-}
+    if (titles != nullptr) {
+        free(titles);
+    }
 }
 
 /* Entry point */
@@ -491,8 +497,7 @@ int main(void) {
                     console_print_pos(M_OFF, 4, "   Batch Backup");
                     console_print_pos(M_OFF, 2 + cursor, "\u2192");
                     console_print_pos_aligned(17, 4, 2, "\ue000: Select Mode");
-                }
-                    break;
+                } break;
                 case 1: { // Select Title
                     if (mode == 2) {
                         entrycount = 3;
@@ -509,33 +514,35 @@ int main(void) {
                                           (tsort > 0) ? ((sorta == 1) ? "\u2193 \ue083" : "\u2191 \ue083") : "");
                         entrycount = count;
                         for (int i = 0; i < 14; i++) {
-                            if (i + scroll < 0 || i + scroll >= count) { break;
-}
+                            if (i + scroll < 0 || i + scroll >= count) {
+                                break;
+                            }
                             ttfFontColor32(0x00FF00FF);
-                            if (!titles[i + scroll].saveInit) { ttfFontColor32(0xFFFF00FF);
-}
-                            if (strcmp(titles[i + scroll].shortName, "DONT TOUCH ME") == 0) { ttfFontColor32(0xFF0000FF);
-}
+                            if (!titles[i + scroll].saveInit) {
+                                ttfFontColor32(0xFFFF00FF);
+                            }
+                            if (strcmp(titles[i + scroll].shortName, "DONT TOUCH ME") == 0) {
+                                ttfFontColor32(0xFF0000FF);
+                            }
                             if (strlen(titles[i + scroll].shortName) != 0u) {
                                 console_print_pos(M_OFF, i + 2, "   %s %s%s%s", titles[i + scroll].shortName,
-                                                  titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)"
-                                                                                                           : ""),
+                                                  titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""),
                                                   titles[i + scroll].isTitleDupe ? " [D]" : "",
                                                   titles[i + scroll].saveInit ? "" : " [Not Init]");
                             } else {
                                 console_print_pos(M_OFF, i + 2, "   %08lx%08lx", titles[i + scroll].highID,
                                                   titles[i + scroll].lowID);
-}
+                            }
                             ttfFontColor32(0xFFFFFFFF);
                             if (mode == 0) {
                                 if (titles[i + scroll].iconBuf != nullptr) {
                                     drawTGA((M_OFF + 4) * 12 - 2, (i + 3) * 24, 0.18, titles[i + scroll].iconBuf);
-}
+                                }
                             } else if (mode == 1) {
                                 if (titles[i + scroll].iconBuf != nullptr) {
                                     drawRGB5A3((M_OFF + 2) * 12 - 2, (i + 3) * 24 + 3, 0.25,
                                                titles[i + scroll].iconBuf);
-}
+                                }
                             }
                         }
                         if (mode == 0) {
@@ -545,8 +552,7 @@ int main(void) {
                         }
                         console_print_pos_aligned(17, 4, 2, "\ue000: Select Game  \ue001: Back");
                     }
-                }
-                    break;
+                } break;
                 case 2: { // Select Task
                     entrycount = 3 + 2 * static_cast<int>(mode == 0) + 1 * static_cast<int>((mode == 0) && (titles[targ].isTitleDupe));
                     console_print_pos(M_OFF, 2, "   [%08X-%08X] [%s]", titles[targ].highID, titles[targ].lowID,
@@ -562,16 +568,17 @@ int main(void) {
                             console_print_pos(M_OFF, 10, "   Copy Savedata to Title in %s",
                                               titles[targ].isTitleOnUSB ? "NAND" : "USB");
                         }
-                        if (titles[targ].iconBuf != nullptr) { drawTGA(660, 80, 1, titles[targ].iconBuf);
-}
+                        if (titles[targ].iconBuf != nullptr) {
+                            drawTGA(660, 80, 1, titles[targ].iconBuf);
+                        }
                     } else if (mode == 1) {
-                        if (titles[targ].iconBuf != nullptr) { drawRGB5A3(650, 80, 1, titles[targ].iconBuf);
-}
+                        if (titles[targ].iconBuf != nullptr) {
+                            drawRGB5A3(650, 80, 1, titles[targ].iconBuf);
+                        }
                     }
                     console_print_pos(M_OFF, 2 + 3 + cursor, "\u2192");
                     console_print_pos_aligned(17, 4, 2, "\ue000: Select Task  \ue001: Back");
-                }
-                    break;
+                } break;
                 case 3: { // Select Options
                     entrycount = 3;
                     console_print_pos(M_OFF, 2, "[%08X-%08X] %s", titles[targ].highID, titles[targ].lowID,
@@ -611,8 +618,10 @@ int main(void) {
                                 } else {
                                     console_print_pos(M_OFF, 8, "   < %s > (%s)", sdacc[sdusers].persistentID,
                                                       hasAccountSave(&titles[targ], true, false, sdacc[sdusers].pID,
-                                                                     slot, 0) ? "Has Save" : "Empty");
-}
+                                                                     slot, 0)
+                                                              ? "Has Save"
+                                                              : "Empty");
+                                }
                             }
                         }
 
@@ -624,8 +633,10 @@ int main(void) {
                                 console_print_pos(M_OFF, 8, "   < %s (%s) > (%s)", wiiuacc[allusers].miiName,
                                                   wiiuacc[allusers].persistentID,
                                                   hasAccountSave(&titles[targ], false, false, wiiuacc[allusers].pID,
-                                                                 slot, 0) ? "Has Save" : "Empty");
-}
+                                                                 slot, 0)
+                                                          ? "Has Save"
+                                                          : "Empty");
+                            }
                         }
 
                         if ((task == 0) || (task == 1) || (task == 5)) {
@@ -643,17 +654,18 @@ int main(void) {
                                                                      (!((task == 0) || (task == 1) || (task == 5))),
                                                                      (!((task < 3) || (task == 5))),
                                                                      wiiuacc[allusers].pID, slot,
-                                                                     versionList != nullptr ? versionList[slot] : 0) ? "Has Save"
-                                                                                                          : "Empty");
-}
+                                                                     versionList != nullptr ? versionList[slot] : 0)
+                                                              ? "Has Save"
+                                                              : "Empty");
+                                }
                             }
                         }
                         if ((task == 0) || (task == 1)) {
                             if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
                                 console_print_pos(M_OFF, 15, "Date: %s",
                                                   getSlotDate(titles[targ].highID, titles[targ].lowID, slot));
-}
-}
+                            }
+                        }
 
                         if (task == 5) {
                             entrycount++;
@@ -664,8 +676,10 @@ int main(void) {
                                 console_print_pos(M_OFF, 11, "   < %s (%s) > (%s)", wiiuacc[allusers_d].miiName,
                                                   wiiuacc[allusers_d].persistentID,
                                                   hasAccountSave(&titles[titles[targ].dupeID], false, false,
-                                                                 wiiuacc[allusers_d].pID, 0, 0) ? "Has Save" : "Empty");
-}
+                                                                 wiiuacc[allusers_d].pID, 0, 0)
+                                                          ? "Has Save"
+                                                          : "Empty");
+                            }
                         }
 
                         if ((task != 3) && (task != 4)) {
@@ -700,16 +714,18 @@ int main(void) {
                         }
 
                         console_print_pos(M_OFF, 5 + cursor * 3, "\u2192");
-                        if (titles[targ].iconBuf != nullptr) { drawTGA(660, 100, 1, titles[targ].iconBuf);
-}
+                        if (titles[targ].iconBuf != nullptr) {
+                            drawTGA(660, 100, 1, titles[targ].iconBuf);
+                        }
                     } else if (mode == 1) {
                         entrycount = 1;
-                        if (titles[targ].iconBuf != nullptr) { drawRGB5A3(650, 100, 1, titles[targ].iconBuf);
-}
+                        if (titles[targ].iconBuf != nullptr) {
+                            drawRGB5A3(650, 100, 1, titles[targ].iconBuf);
+                        }
                         if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
                             console_print_pos(M_OFF, 15, "Date: %s",
                                               getSlotDate(titles[targ].highID, titles[targ].lowID, slot));
-}
+                        }
                     }
 
                     switch (task) {
@@ -732,8 +748,7 @@ int main(void) {
                             console_print_pos_aligned(17, 4, 2, "\ue000: Copy  \ue001: Back");
                             break;
                     }
-                }
-                    break;
+                } break;
             }
             console_print_pos(0, 16, "----------------------------------------------------------------------------");
             console_print_pos(0, 17, "Press \ue044 to exit.");
@@ -758,32 +773,34 @@ int main(void) {
 
         if (vpad_status.trigger | kpad_status.trigger | kpad_status.classic.trigger | kpad_status.pro.trigger) {
             redraw = true;
-}
+        }
 
         if ((vpad_status.trigger & (VPAD_BUTTON_DOWN | VPAD_STICK_L_EMULATION_DOWN)) |
             (kpad_status.trigger & (WPAD_BUTTON_DOWN)) |
             (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_DOWN | WPAD_CLASSIC_STICK_L_EMULATION_DOWN)) |
             (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_DOWN | WPAD_PRO_STICK_L_EMULATION_DOWN))) {
-            if (entrycount <= 14) { cursor = (cursor + 1) % entrycount;
+            if (entrycount <= 14) {
+                cursor = (cursor + 1) % entrycount;
             } else if (cursor < 6) {
                 cursor++;
             } else if (((cursor + scroll + 1) % entrycount) != 0) {
                 scroll++;
             } else {
                 cursor = scroll = 0;
-}
+            }
         } else if ((vpad_status.trigger & (VPAD_BUTTON_UP | VPAD_STICK_L_EMULATION_UP)) |
                    (kpad_status.trigger & (WPAD_BUTTON_UP)) |
                    (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_UP | WPAD_CLASSIC_STICK_L_EMULATION_UP)) |
                    (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_UP | WPAD_PRO_STICK_L_EMULATION_UP))) {
-            if (scroll > 0) { cursor -= (cursor > 6) ? 1 : 0 * (scroll--);
+            if (scroll > 0) {
+                cursor -= (cursor > 6) ? 1 : 0 * (scroll--);
             } else if (cursor > 0) {
                 cursor--;
             } else if (entrycount > 14) {
                 scroll = entrycount - (cursor = 6) - 1;
             } else {
                 cursor = entrycount - 1;
-}
+            }
         }
 
         if ((vpad_status.trigger & (VPAD_BUTTON_LEFT | VPAD_STICK_L_EMULATION_LEFT)) |
@@ -953,8 +970,9 @@ int main(void) {
                 qsort(titles, count, sizeof(Title), titleSort);
             } else if (menu == 2) {
                 targ--;
-                if (targ < 0) { targ = count - 1;
-}
+                if (targ < 0) {
+                    targ = count - 1;
+                }
             }
         }
 
@@ -997,8 +1015,9 @@ int main(void) {
                         }
                         continue;
                     }
-                    if (titles[targ].highID == 0 || titles[targ].lowID == 0) { continue;
-}
+                    if (titles[targ].highID == 0 || titles[targ].lowID == 0) {
+                        continue;
+                    }
                     if ((mode == 0) && (strcmp(titles[targ].shortName, "DONT TOUCH ME") == 0)) {
                         if (!promptConfirm(ST_ERROR, "CBHC save. Could be dangerous to modify. Continue?") ||
                             !promptConfirm(ST_WARNING, "Are you REALLY sure?")) {
@@ -1049,8 +1068,9 @@ int main(void) {
                     if ((task == 3) || (task == 4)) {
                         char gamePath[PATH_SIZE];
                         memset(versionList, 0, 0x100 * sizeof(int));
-                        if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode) != 0) { continue;
-}
+                        if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode) != 0) {
+                            continue;
+                        }
                         getLoadiineSaveVersionList(versionList, gamePath);
                         if (task == 4) {
                             if (!titles[targ].saveInit) {
@@ -1098,7 +1118,8 @@ int main(void) {
             }
         } else if (((vpad_status.trigger & VPAD_BUTTON_B) |
                     ((kpad_status.trigger & WPAD_BUTTON_B) | (kpad_status.classic.trigger & WPAD_CLASSIC_BUTTON_B) |
-                     (kpad_status.pro.trigger & WPAD_PRO_BUTTON_B))) && menu > 0) {
+                     (kpad_status.pro.trigger & WPAD_PRO_BUTTON_B))) &&
+                   menu > 0) {
             clearBuffers();
             WHBLogFreetypeDraw();
             menu--;
@@ -1107,8 +1128,9 @@ int main(void) {
                 cursor = cursorb;
                 scroll = scrollb;
             }
-            if (menu == 2) { cursor = cursort;
-}
+            if (menu == 2) {
+                cursor = cursort;
+            }
         }
     }
 

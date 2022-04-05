@@ -130,23 +130,27 @@ auto ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) -> int {
             if ((buf & 0xF0) == 0xC0) {
                 uint8_t b1 = buf & 0xFF;
                 uint8_t b2 = *string++;
-                if ((b2 & 0xC0) == 0x80) { b2 &= 0x3F;
-}
+                if ((b2 & 0xC0) == 0x80) {
+                    b2 &= 0x3F;
+                }
                 buf = ((b1 & 0xF) << 6) | b2;
             } else if ((buf & 0xF0) == 0xD0) {
                 uint8_t b1 = buf & 0xFF;
                 uint8_t b2 = *string++;
-                if ((b2 & 0xC0) == 0x80) { b2 &= 0x3F;
-}
+                if ((b2 & 0xC0) == 0x80) {
+                    b2 &= 0x3F;
+                }
                 buf = 0x400 | ((b1 & 0xF) << 6) | b2;
             } else if ((buf & 0xF0) == 0xE0) {
                 uint8_t b1 = buf & 0xFF;
                 uint8_t b2 = *string++;
                 uint8_t b3 = *string++;
-                if ((b2 & 0xC0) == 0x80) { b2 &= 0x3F;
-}
-                if ((b3 & 0xC0) == 0x80) { b3 &= 0x3F;
-}
+                if ((b2 & 0xC0) == 0x80) {
+                    b2 &= 0x3F;
+                }
+                if ((b3 & 0xC0) == 0x80) {
+                    b3 &= 0x3F;
+                }
                 buf = ((b1 & 0xF) << 12) | (b2 << 6) | b3;
             }
         } else if ((buf & 0x80) != 0u) {
@@ -156,10 +160,11 @@ auto ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) -> int {
 
         if (buf == '\n') {
             pen_y += (fontFace->size->metrics.height >> 6);
-            if (ceroX) { pen_x = 0;
+            if (ceroX) {
+                pen_x = 0;
             } else {
                 pen_x = x;
-}
+            }
             continue;
         }
 
@@ -176,20 +181,21 @@ auto ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) -> int {
         error = FT_Load_Glyph(fontFace, glyph_index, FT_LOAD_DEFAULT);
         if (error) {
             continue;
-}
+        }
 
         error = FT_Render_Glyph(fontFace->glyph, FT_RENDER_MODE_NORMAL);
         if (error) {
             continue;
-}
+        }
 
         if ((pen_x + (slot->advance.x >> 6)) > 853) {
             if (wWrap) {
                 pen_y += (fontFace->size->metrics.height >> 6);
-                if (ceroX) { pen_x = 0;
+                if (ceroX) {
+                    pen_x = 0;
                 } else {
                     pen_x = x;
-}
+                }
             } else {
                 return pen_x;
             }
@@ -217,23 +223,27 @@ auto ttfStringWidth(char *string, int8_t part) -> int {
             if ((buf & 0xF0) == 0xC0) {
                 uint8_t b1 = buf & 0xFF;
                 uint8_t b2 = *string++;
-                if ((b2 & 0xC0) == 0x80) { b2 &= 0x3F;
-}
+                if ((b2 & 0xC0) == 0x80) {
+                    b2 &= 0x3F;
+                }
                 buf = ((b1 & 0xF) << 6) | b2;
             } else if ((buf & 0xF0) == 0xD0) {
                 uint8_t b1 = buf & 0xFF;
                 uint8_t b2 = *string++;
-                if ((b2 & 0xC0) == 0x80) { b2 &= 0x3F;
-}
+                if ((b2 & 0xC0) == 0x80) {
+                    b2 &= 0x3F;
+                }
                 buf = 0x400 | ((b1 & 0xF) << 6) | b2;
             } else if ((buf & 0xF0) == 0xE0) {
                 uint8_t b1 = buf & 0xFF;
                 uint8_t b2 = *string++;
                 uint8_t b3 = *string++;
-                if ((b2 & 0xC0) == 0x80) { b2 &= 0x3F;
-}
-                if ((b3 & 0xC0) == 0x80) { b3 &= 0x3F;
-}
+                if ((b2 & 0xC0) == 0x80) {
+                    b2 &= 0x3F;
+                }
+                if ((b3 & 0xC0) == 0x80) {
+                    b3 &= 0x3F;
+                }
                 buf = ((b1 & 0xF) << 12) | (b2 << 6) | b3;
             }
         } else if ((buf & 0x80) != 0u) {
@@ -252,10 +262,12 @@ auto ttfStringWidth(char *string, int8_t part) -> int {
 
         if (buf == '\n') {
             if (part != 0) {
-                if ((part > 0) && (spart == part)) { return pen_x;
-}
-                if (part == -2) { max_x = max1(pen_x, max_x);
-}
+                if ((part > 0) && (spart == part)) {
+                    return pen_x;
+                }
+                if (part == -2) {
+                    max_x = max1(pen_x, max_x);
+                }
                 pen_x = 0;
                 spart++;
             }
@@ -265,13 +277,14 @@ auto ttfStringWidth(char *string, int8_t part) -> int {
         error = FT_Load_Glyph(fontFace, glyph_index, FT_LOAD_BITMAP_METRICS_ONLY);
         if (error) {
             continue;
-}
+        }
 
         pen_x += (slot->advance.x >> 6);
         previous_glyph = glyph_index;
     }
-    if (spart < part) { pen_x = 0;
-}
+    if (spart < part) {
+        pen_x = 0;
+    }
     return max1(pen_x, max_x);
 }
 

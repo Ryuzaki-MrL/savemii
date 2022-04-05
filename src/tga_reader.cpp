@@ -87,8 +87,7 @@ auto tgaRead(const unsigned char *buffer, const TGA_ORDER *order) -> int * {
             int imageDataOffset = 18 + (colormapDepth / 8) * colormapLength;
             pixels = createPixelsFromColormap(width, height, colormapDepth, buffer, imageDataOffset, buffer,
                                               colormapOrigin, descriptor, order);
-        }
-            break;
+        } break;
         case RGB:
             pixels = createPixelsFromRGB(width, height, depth, buffer, 18, descriptor, order);
             break;
@@ -101,20 +100,17 @@ auto tgaRead(const unsigned char *buffer, const TGA_ORDER *order) -> int * {
             pixels = createPixelsFromColormap(width, height, colormapDepth, decodeBuffer, 0, buffer, colormapOrigin,
                                               descriptor, order);
             tgaFree(decodeBuffer);
-        }
-            break;
+        } break;
         case RGB_RLE: {
             unsigned char *decodeBuffer = decodeRLE(width, height, depth, buffer, 18);
             pixels = createPixelsFromRGB(width, height, depth, decodeBuffer, 0, descriptor, order);
             tgaFree(decodeBuffer);
-        }
-            break;
+        } break;
         case GRAYSCALE_RLE: {
             unsigned char *decodeBuffer = decodeRLE(width, height, depth, buffer, 18);
             pixels = createPixelsFromGrayscale(width, height, depth, decodeBuffer, 0, descriptor, order);
             tgaFree(decodeBuffer);
-        }
-            break;
+        } break;
         default:
             break;
     }
