@@ -55,7 +55,9 @@ extern "C" {
 #ifdef NDS
 #include <nds/disc_io.h>
 #else
+
 #include <disc_io.h>
+
 #endif
 #endif
 
@@ -95,7 +97,8 @@ the disc. Otherwise it will try to mount the partition starting at startSector.
 cacheSize specifies the number of pages to allocate for the cache.
 This will not startup the disc, so you need to call interface->startup(); first.
 */
-extern bool fatMount(const char *name, const DISC_INTERFACE *interface, sec_t startSector, uint32_t cacheSize, uint32_t SectorsPerPage);
+extern bool fatMount(const char *name, const DISC_INTERFACE *interface, sec_t startSector, uint32_t cacheSize,
+                     uint32_t SectorsPerPage);
 
 /*
 Unmount the partition specified by name.
@@ -120,6 +123,7 @@ extern void fatGetVolumeLabel(const char *name, char *label);
 Methods to modify DOS File Attributes
 */
 int FAT_getAttr(const char *file);
+
 int FAT_setAttr(const char *file, uint8_t attr);
 
 #define LIBFAT_FEOS_MULTICWD

@@ -1,5 +1,6 @@
 #include "string.hpp"
 #include <nn/act/client_cpp.h>
+
 extern "C" {
 #include "savemng.h"
 }
@@ -53,7 +54,7 @@ int FSAR(int result) {
 }
 
 int32_t loadFile(const char *fPath, uint8_t **buf) {
-    int ret    = 0;
+    int ret = 0;
     FILE *file = fopen(fPath, "rb");
     if (file != NULL) {
         struct stat st;
@@ -73,7 +74,7 @@ int32_t loadFile(const char *fPath, uint8_t **buf) {
 }
 
 int32_t loadFilePart(const char *fPath, uint32_t start, uint32_t size, uint8_t **buf) {
-    int ret    = 0;
+    int ret = 0;
     FILE *file = fopen(fPath, "rb");
     if (file != NULL) {
         struct stat st;
@@ -152,7 +153,7 @@ int createFolder(const char *fPath) { //Adapted from mkdir_p made by JonathonRei
 
     _path.assign(fPath);
 
-    for (p = (char*)_path.c_str() + 1; *p; p++) {
+    for (p = (char *) _path.c_str() + 1; *p; p++) {
         if (*p == '/') {
             found++;
             if (found > 2) {
@@ -174,7 +175,7 @@ int createFolder(const char *fPath) { //Adapted from mkdir_p made by JonathonRei
 
 void console_print_pos_aligned(int y, uint16_t offset, uint8_t align, const char *format, ...) {
     char *tmp = NULL;
-    int x     = 0;
+    int x = 0;
 
     va_list va;
     va_start(va, format);
@@ -211,23 +212,23 @@ void console_print_pos(int x, int y, const char *format, ...) { // Source: ftpii
 }
 
 void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ...) { // Source: ftpiiu
-    char *tmp    = NULL;
+    char *tmp = NULL;
     uint32_t len = (66 - x);
 
     va_list va;
     va_start(va, format);
     if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
 
-        if ((uint32_t) (ttfStringWidth(tmp, -1) / 12) > len) {
+        if ((uint32_t)(ttfStringWidth(tmp, -1) / 12) > len) {
             char *p = tmp;
             if (strrchr(p, '\n') != NULL) p = strrchr(p, '\n') + 1;
-            while ((uint32_t) (ttfStringWidth(p, -1) / 12) > len) {
+            while ((uint32_t)(ttfStringWidth(p, -1) / 12) > len) {
                 char *q = p;
-                int l1  = strlen(q);
+                int l1 = strlen(q);
                 for (int i = l1; i > 0; i--) {
                     char o = q[l1];
-                    q[l1]  = '\0';
-                    if ((uint32_t) (ttfStringWidth(p, -1) / 12) <= len) {
+                    q[l1] = '\0';
+                    if ((uint32_t)(ttfStringWidth(p, -1) / 12) <= len) {
                         if (strrchr(p, cdiv) != NULL) p = strrchr(p, cdiv) + 1;
                         else
                             p = q + l1;
@@ -239,7 +240,7 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
                 }
                 string buf;
                 buf.assign(p);
-                p = (char*)string_format("\n%s", buf.c_str()).c_str();
+                p = (char *) string_format("\n%s", buf.c_str()).c_str();
                 p++;
                 len = 69;
             }
@@ -304,11 +305,13 @@ bool promptConfirm(Style st, const char *question) {
             KPADRead((WPADChan) i, &(kpad[i]), 1);
             kpad_status = kpad[i];
         }
-        if ((vpad_status.trigger & (VPAD_BUTTON_A)) | (kpad_status.trigger & (WPAD_BUTTON_A)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A))) {
+        if ((vpad_status.trigger & (VPAD_BUTTON_A)) | (kpad_status.trigger & (WPAD_BUTTON_A)) |
+            (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A))) {
             ret = 1;
             break;
         }
-        if ((vpad_status.trigger & (VPAD_BUTTON_B)) | (kpad_status.trigger & (WPAD_BUTTON_B)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_B)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_B))) {
+        if ((vpad_status.trigger & (VPAD_BUTTON_B)) | (kpad_status.trigger & (WPAD_BUTTON_B)) |
+            (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_B)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_B))) {
             ret = 0;
             break;
         }
@@ -341,12 +344,12 @@ void getAccountsWiiU() {
     nn::act::Initialize();
     int i = 0, accn = 0;
     wiiuaccn = nn::act::GetNumOfAccounts();
-    wiiuacc  = (Account *) malloc(wiiuaccn * sizeof(Account));
+    wiiuacc = (Account *) malloc(wiiuaccn * sizeof(Account));
     uint16_t out[11];
     while ((accn < wiiuaccn) && (i <= 12)) {
         if (nn::act::IsSlotOccupied(i)) {
             unsigned int persistentID = nn::act::GetPersistentIdEx(i);
-            wiiuacc[accn].pID         = persistentID;
+            wiiuacc[accn].pID = persistentID;
             sprintf(wiiuacc[accn].persistentID, "%08X", persistentID);
             nn::act::GetMiiNameEx((int16_t *) out, i);
             memset(wiiuacc[accn].miiName, 0, sizeof(wiiuacc[accn].miiName));
@@ -391,14 +394,14 @@ void getAccountsSD(Title *title, uint8_t slot) {
     }
 
     sdacc = (Account *) malloc(sdaccn * sizeof(Account));
-    dir   = opendir(path);
+    dir = opendir(path);
     if (dir != NULL) {
         struct dirent *data;
         int i = 0;
         while ((data = readdir(dir)) != NULL) {
             if (data->d_name[0] == '.' || strncmp(data->d_name, "common", 6) == 0) continue;
             sprintf(sdacc[i].persistentID, "%s", data->d_name);
-            sdacc[i].pID  = strtoul(data->d_name, NULL, 16);
+            sdacc[i].pID = strtoul(data->d_name, NULL, 16);
             sdacc[i].slot = i;
             i++;
         }
@@ -433,14 +436,14 @@ int DumpFile(string pPath, string oPath) {
     setvbuf(source, buffer[0], _IOFBF, IO_MAX_FILE_BUFFER);
     setvbuf(dest, buffer[1], _IOFBF, IO_MAX_FILE_BUFFER);
     struct stat st;
-    if(stat(pPath.c_str(), &st) < 0) return -1;
-    int sizef          = st.st_size, sizew = 0, size = 0, bytesWritten = 0;
-    uint32_t passedMs  = 1;
+    if (stat(pPath.c_str(), &st) < 0) return -1;
+    int sizef = st.st_size, sizew = 0, size = 0, bytesWritten = 0;
+    uint32_t passedMs = 1;
     uint64_t startTime = OSGetTime();
 
     while ((size = fread(buffer[2], 1, IO_MAX_FILE_BUFFER, source)) > 0) {
         bytesWritten = fwrite(buffer[2], 1, size, dest);
-        if(bytesWritten < size) {
+        if (bytesWritten < size) {
             promptError("Write %d,%s", bytesWritten, oPath.c_str());
             fclose(source);
             fclose(dest);
@@ -455,7 +458,8 @@ int DumpFile(string pPath, string oPath) {
         OSScreenClearBufferEx(SCREEN_DRC, 0);
         sizew += size;
         show_file_operation(basename(pPath.c_str()), pPath.c_str(), oPath.c_str());
-        console_print_pos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", sizew, sizef, (uint32_t) (((uint64_t) sizew * 1000) / ((uint64_t) 1024 * passedMs)));
+        console_print_pos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", sizew, sizef,
+                          (uint32_t)(((uint64_t) sizew * 1000) / ((uint64_t) 1024 * passedMs)));
         flipBuffers();
         WHBLogFreetypeDraw();
     }
@@ -464,7 +468,7 @@ int DumpFile(string pPath, string oPath) {
     for (int i = 0; i < 3; i++)
         free(buffer[i]);
 
-    IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA((char*)oPath.c_str()), 0x666);
+    IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA((char *) oPath.c_str()), 0x666);
 
     return 0;
 }
@@ -475,7 +479,7 @@ int DumpDir(string pPath, string tPath) { // Source: ft2sd
         return -1;
 
     mkdir(tPath.c_str(), DEFFILEMODE);
-    struct dirent *data = (dirent*)malloc(sizeof(dirent));
+    struct dirent *data = (dirent *) malloc(sizeof(dirent));
 
     while ((data = readdir(dir)) != NULL) {
         OSScreenClearBufferEx(SCREEN_TV, 0);
@@ -553,7 +557,7 @@ void getUserID(char *out) { // Source: loadiine_gx2
     /* get persistent ID - thanks to Maschell */
     nn::act::Initialize();
 
-    unsigned char slotno      = nn::act::GetSlotNo();
+    unsigned char slotno = nn::act::GetSlotNo();
     unsigned int persistentID = nn::act::GetPersistentIdEx(slotno);
     nn::act::Finalize();
 
@@ -713,7 +717,7 @@ bool hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version
 void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_d, bool common) {
 
     uint32_t highID = title->highID, lowID = title->lowID;
-    bool isUSB       = title->isTitleOnUSB;
+    bool isUSB = title->isTitleOnUSB;
     uint32_t highIDb = titleb->highID, lowIDb = titleb->lowID;
     bool isUSBb = titleb->isTitleOnUSB;
 
@@ -726,7 +730,7 @@ void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_
 
     string srcPath;
     string dstPath;
-    const char *path  = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
+    const char *path = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
     const char *pathb = (isUSBb ? "usb:/usr/save" : "mlc:/usr/save");
     srcPath = string_format("%s/%08x/%08x/%s", path, highID, lowID, "user");
     dstPath = string_format("%s/%08x/%08x/%s", pathb, highIDb, lowIDb, "user");
@@ -738,7 +742,9 @@ void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_
         }
     }
 
-    if (DumpDir(srcPath + string_format("/%s", wiiuacc[allusers].persistentID), dstPath + string_format("/%s", wiiuacc[allusers_d].persistentID)) != 0) promptError("Copy failed.");
+    if (DumpDir(srcPath + string_format("/%s", wiiuacc[allusers].persistentID),
+                dstPath + string_format("/%s", wiiuacc[allusers_d].persistentID)) != 0)
+        promptError("Copy failed.");
 }
 
 void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
@@ -755,7 +761,8 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
     }
 
     char datetime[24];
-    sprintf(datetime, "%04d-%02d-%02dT%02d%02d%02d", dateTime.tm_year, dateTime.tm_mon, dateTime.tm_mday, dateTime.tm_hour, dateTime.tm_min, dateTime.tm_sec);
+    sprintf(datetime, "%04d-%02d-%02dT%02d%02d%02d", dateTime.tm_year, dateTime.tm_mon, dateTime.tm_mday,
+            dateTime.tm_hour, dateTime.tm_min, dateTime.tm_sec);
     for (int i = 0; i < count; i++) {
         if (titles[i].highID == 0 || titles[i].lowID == 0 || !titles[i].saveInit) continue;
 
@@ -774,7 +781,9 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
 
 void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
 
-    if (!isSlotEmpty(title->highID, title->lowID, slot) && !promptConfirm(ST_WARNING, "Backup found on this slot. Overwrite it?")) return;
+    if (!isSlotEmpty(title->highID, title->lowID, slot) &&
+        !promptConfirm(ST_WARNING, "Backup found on this slot. Overwrite it?"))
+        return;
     uint32_t highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
     string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
@@ -816,7 +825,8 @@ void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers
     }
     if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
     int slotb = getEmptySlot(title->highID, title->lowID);
-    if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first to next empty slot?")) backupSavedata(title, slotb, allusers, common);
+    if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first to next empty slot?"))
+        backupSavedata(title, slotb, allusers, common);
     uint32_t highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
     char srcPath[PATH_SIZE];
@@ -849,7 +859,8 @@ void wipeSavedata(Title *title, int8_t allusers, bool common) {
 
     if (!promptConfirm(ST_WARNING, "Are you sure?") || !promptConfirm(ST_WARNING, "Hm, are you REALLY sure?")) return;
     int slotb = getEmptySlot(title->highID, title->lowID);
-    if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first?")) backupSavedata(title, slotb, allusers, common);
+    if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first?"))
+        backupSavedata(title, slotb, allusers, common);
     uint32_t highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB, isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
     char srcPath[PATH_SIZE];
@@ -878,7 +889,8 @@ void importFromLoadiine(Title *title, bool common, int version) {
 
     if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
     int slotb = getEmptySlot(title->highID, title->lowID);
-    if (slotb >= 0 && promptConfirm(ST_YES_NO, "Backup current savedata first?")) backupSavedata(title, slotb, 0, common);
+    if (slotb >= 0 && promptConfirm(ST_YES_NO, "Backup current savedata first?"))
+        backupSavedata(title, slotb, 0, common);
     uint32_t highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     char srcPath[PATH_SIZE];

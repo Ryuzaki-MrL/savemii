@@ -32,6 +32,7 @@ extern "C" {
 /* Implement RFC6901 (https://tools.ietf.org/html/rfc6901) JSON Pointer spec. */
 CJSON_PUBLIC(cJSON *)
 cJSONUtils_GetPointer(cJSON *const object, const char *pointer);
+
 CJSON_PUBLIC(cJSON *)
 cJSONUtils_GetPointerCaseSensitive(cJSON *const object, const char *pointer);
 
@@ -39,14 +40,17 @@ cJSONUtils_GetPointerCaseSensitive(cJSON *const object, const char *pointer);
 /* NOTE: This modifies objects in 'from' and 'to' by sorting the elements by their key */
 CJSON_PUBLIC(cJSON *)
 cJSONUtils_GeneratePatches(cJSON *const from, cJSON *const to);
+
 CJSON_PUBLIC(cJSON *)
 cJSONUtils_GeneratePatchesCaseSensitive(cJSON *const from, cJSON *const to);
 /* Utility for generating patch array entries. */
 CJSON_PUBLIC(void)
-cJSONUtils_AddPatchToArray(cJSON *const array, const char *const operation, const char *const path, const cJSON *const value);
+cJSONUtils_AddPatchToArray(cJSON *const array, const char *const operation, const char *const path,
+                           const cJSON *const value);
 /* Returns 0 for success. */
 CJSON_PUBLIC(int)
 cJSONUtils_ApplyPatches(cJSON *const object, const cJSON *const patches);
+
 CJSON_PUBLIC(int)
 cJSONUtils_ApplyPatchesCaseSensitive(cJSON *const object, const cJSON *const patches);
 
@@ -75,12 +79,14 @@ cJSONUtils_ApplyPatchesCaseSensitive(cJSON *const object, const cJSON *const pat
 /* target will be modified by patch. return value is new ptr for target. */
 CJSON_PUBLIC(cJSON *)
 cJSONUtils_MergePatch(cJSON *target, const cJSON *const patch);
+
 CJSON_PUBLIC(cJSON *)
 cJSONUtils_MergePatchCaseSensitive(cJSON *target, const cJSON *const patch);
 /* generates a patch to move from -> to */
 /* NOTE: This modifies objects in 'from' and 'to' by sorting the elements by their key */
 CJSON_PUBLIC(cJSON *)
 cJSONUtils_GenerateMergePatch(cJSON *const from, cJSON *const to);
+
 CJSON_PUBLIC(cJSON *)
 cJSONUtils_GenerateMergePatchCaseSensitive(cJSON *const from, cJSON *const to);
 
@@ -91,6 +97,7 @@ cJSONUtils_FindPointerFromObjectTo(const cJSON *const object, const cJSON *const
 /* Sorts the members of the object into alphabetical order. */
 CJSON_PUBLIC(void)
 cJSONUtils_SortObject(cJSON *const object);
+
 CJSON_PUBLIC(void)
 cJSONUtils_SortObjectCaseSensitive(cJSON *const object);
 

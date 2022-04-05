@@ -11,17 +11,17 @@ char renderedBuffer[NUM_LINES][LINE_LENGTH];
 
 bool freetypeHasForeground = false;
 
-uint8_t *frameBufferTVFrontPtr  = NULL;
-uint8_t *frameBufferTVBackPtr   = NULL;
-uint32_t frameBufferTVSize      = 0;
+uint8_t *frameBufferTVFrontPtr = NULL;
+uint8_t *frameBufferTVBackPtr = NULL;
+uint32_t frameBufferTVSize = 0;
 uint8_t *frameBufferDRCFrontPtr = NULL;
-uint8_t *frameBufferDRCBackPtr  = NULL;
-uint32_t frameBufferDRCSize     = 0;
-uint8_t *currTVFrameBuffer      = NULL;
-uint8_t *currDRCFrameBuffer     = NULL;
+uint8_t *frameBufferDRCBackPtr = NULL;
+uint32_t frameBufferDRCSize = 0;
+uint8_t *currTVFrameBuffer = NULL;
+uint8_t *currDRCFrameBuffer = NULL;
 
-RGBAColor ttfColor       = {0xFFFFFFFF};
-uint32_t fontColor       = 0xFFFFFFFF;
+RGBAColor ttfColor = {0xFFFFFFFF};
+uint32_t fontColor = 0xFFFFFFFF;
 uint32_t backgroundColor = 0x0B5D5E00;
 FT_Library fontLibrary;
 FT_Face fontFace;
@@ -29,11 +29,11 @@ uint8_t *fontBuffer;
 FT_Pos cursorSpaceWidth = 0;
 
 void drawPixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    uint8_t opacity           = a;
+    uint8_t opacity = a;
     uint8_t backgroundOpacity = (255 - opacity);
     {
-        uint32_t width           = 1280;
-        uint32_t v               = (x + y * width) * 4;
+        uint32_t width = 1280;
+        uint32_t v = (x + y * width) * 4;
         currTVFrameBuffer[v + 0] = (r * opacity + (backgroundOpacity * currTVFrameBuffer[v + 0])) / 255;
         currTVFrameBuffer[v + 1] = (g * opacity + (backgroundOpacity * currTVFrameBuffer[v + 1])) / 255;
         currTVFrameBuffer[v + 2] = (b * opacity + (backgroundOpacity * currTVFrameBuffer[v + 2])) / 255;
@@ -41,8 +41,8 @@ void drawPixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
     }
 
     {
-        uint32_t width            = 896;
-        uint32_t v                = (x + y * width) * 4;
+        uint32_t width = 896;
+        uint32_t v = (x + y * width) * 4;
         currDRCFrameBuffer[v + 0] = (r * opacity + (backgroundOpacity * currDRCFrameBuffer[v + 0])) / 255;
         currDRCFrameBuffer[v + 1] = (g * opacity + (backgroundOpacity * currDRCFrameBuffer[v + 1])) / 255;
         currDRCFrameBuffer[v + 2] = (b * opacity + (backgroundOpacity * currDRCFrameBuffer[v + 2])) / 255;
@@ -55,12 +55,12 @@ uint32_t initScreen() {
     MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
     if (frameBufferTVSize) {
         frameBufferTVFrontPtr = (uint8_t *) MEMAllocFromFrmHeapEx(heap, frameBufferTVSize, 4);
-        frameBufferTVBackPtr  = (uint8_t *) frameBufferTVFrontPtr + (1 * (1280 * 720 * 4));
+        frameBufferTVBackPtr = (uint8_t *) frameBufferTVFrontPtr + (1 * (1280 * 720 * 4));
     }
 
     if (frameBufferDRCSize) {
         frameBufferDRCFrontPtr = (uint8_t *) MEMAllocFromFrmHeapEx(heap, frameBufferDRCSize, 4);
-        frameBufferDRCBackPtr  = (uint8_t *) frameBufferDRCFrontPtr + (1 * (896 * 480 * 4));
+        frameBufferDRCBackPtr = (uint8_t *) frameBufferDRCFrontPtr + (1 * (896 * 480 * 4));
     }
 
     freetypeHasForeground = true;
@@ -81,7 +81,7 @@ uint32_t initScreen() {
 bool WHBLogFreetypeInit() {
     // Initialize screen
     OSScreenInit();
-    frameBufferTVSize  = OSScreenGetBufferSizeEx(SCREEN_TV);
+    frameBufferTVSize = OSScreenGetBufferSizeEx(SCREEN_TV);
     frameBufferDRCSize = OSScreenGetBufferSizeEx(SCREEN_DRC);
 
     initScreen();
@@ -258,6 +258,7 @@ void ttfFontColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 }
 
 void WHBLogFreetypeDraw() {
-    currTVFrameBuffer  = (currTVFrameBuffer == frameBufferTVFrontPtr) ? frameBufferTVBackPtr : frameBufferTVFrontPtr;
-    currDRCFrameBuffer = (currDRCFrameBuffer == frameBufferDRCFrontPtr) ? frameBufferDRCBackPtr : frameBufferDRCFrontPtr;
+    currTVFrameBuffer = (currTVFrameBuffer == frameBufferTVFrontPtr) ? frameBufferTVBackPtr : frameBufferTVFrontPtr;
+    currDRCFrameBuffer = (currDRCFrameBuffer == frameBufferDRCFrontPtr) ? frameBufferDRCBackPtr
+                                                                        : frameBufferDRCFrontPtr;
 }

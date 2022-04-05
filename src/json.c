@@ -1,7 +1,7 @@
 #include "json.h"
 
 char *doit(char *text) {
-    char *out   = NULL;
+    char *out = NULL;
     cJSON *json = NULL;
     cJSON *str;
 
@@ -17,8 +17,8 @@ char *doit(char *text) {
 
 /* Read a file, parse, render back, etc. */
 char *dofile(char *filename) {
-    FILE *f    = NULL;
-    long len   = 0;
+    FILE *f = NULL;
+    long len = 0;
     char *data = NULL;
 
     /* open in read binary mode */

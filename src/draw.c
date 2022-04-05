@@ -3,7 +3,7 @@
 
 uint8_t *scrBuffer;
 bool cur_buf1;
-size_t tvBufferSize  = 0;
+size_t tvBufferSize = 0;
 size_t drcBufferSize = 0;
 
 void *tvBuffer;
@@ -196,9 +196,11 @@ void drawRGB5A3(int x, int y, float scale, uint8_t *fileContent) {
                 for (uint32_t si = i; si < (i + sum); si++) {
                     npos = ((si - i) / scale) + ((pos / scale) * 4);
                     if (pixels[npos] & 0x8000)
-                        color.c = ((pixels[npos] & 0x7C00) << 17) | ((pixels[npos] & 0x3E0) << 14) | ((pixels[npos] & 0x1F) << 11) | 0xFF;
+                        color.c = ((pixels[npos] & 0x7C00) << 17) | ((pixels[npos] & 0x3E0) << 14) |
+                                  ((pixels[npos] & 0x1F) << 11) | 0xFF;
                     else
-                        color.c = (((pixels[npos] & 0xF00) * 0x11) << 16) | (((pixels[npos] & 0xF0) * 0x11) << 12) | (((pixels[npos] & 0xF) * 0x11) << 8) | (((pixels[npos] & 0x7000) >> 12) * 0x24);
+                        color.c = (((pixels[npos] & 0xF00) * 0x11) << 16) | (((pixels[npos] & 0xF0) * 0x11) << 12) |
+                                  (((pixels[npos] & 0xF) * 0x11) << 8) | (((pixels[npos] & 0x7000) >> 12) * 0x24);
                     drawPixel32(si, sj, color);
                 }
             }
@@ -213,7 +215,7 @@ void drawRGB5A3(int x, int y, float scale, uint8_t *fileContent) {
 
 void drawBackgroundDRC(uint32_t w, uint32_t h, uint8_t *out) {
     uint32_t *screen2 = NULL;
-    int otherBuff1    = drcBufferSize / 2;
+    int otherBuff1 = drcBufferSize / 2;
 
     if (cur_buf1) screen2 = (uint32_t *) scrBuffer + tvBufferSize + otherBuff1;
     else
@@ -223,7 +225,7 @@ void drawBackgroundDRC(uint32_t w, uint32_t h, uint8_t *out) {
 
 void drawBackgroundTV(uint32_t w, uint32_t h, uint8_t *out) {
     uint32_t *screen1 = (uint32_t *) scrBuffer;
-    int otherBuff0    = tvBufferSize / 2;
+    int otherBuff0 = tvBufferSize / 2;
 
     if (cur_buf1) screen1 = (uint32_t *) scrBuffer + otherBuff0;
     memcpy(screen1, out, w * h * 4);
@@ -243,7 +245,7 @@ void draw_bitmap(FT_Bitmap *bitmap, FT_Int x, FT_Int y) {
                     uint8_t col = bitmap->buffer[q * bitmap->pitch + p];
                     if (col == 0) continue;
                     float opacity = col / 255.0;
-                    drawPixel(i, j, fcolor.r, fcolor.g, fcolor.b, (uint8_t) (fcolor.a * opacity));
+                    drawPixel(i, j, fcolor.r, fcolor.g, fcolor.b, (uint8_t)(fcolor.a * opacity));
                 }
             }
             break;

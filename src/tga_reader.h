@@ -35,10 +35,13 @@ extern const TGA_ORDER *TGA_READER_ABGR;
 extern const TGA_ORDER *TGA_READER_RGBA;
 
 void *tgaMalloc(size_t size);
+
 void tgaFree(void *memory);
 
 int tgaGetWidth(const unsigned char *buffer);
+
 int tgaGetHeight(const unsigned char *buffer);
+
 int *tgaRead(const unsigned char *buffer, const TGA_ORDER *order);
 
 #ifdef __cplusplus
