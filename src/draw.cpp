@@ -162,7 +162,7 @@ void drawPic(int x, int y, uint32_t w, uint32_t h, float scale, uint32_t *pixels
 void drawTGA(int x, int y, float scale, uint8_t *fileContent) {
     uint32_t w = tgaGetWidth(fileContent), h = tgaGetHeight(fileContent);
     uint32_t nw = w, nh = h;
-    uint32_t *out = (uint32_t *) tgaRead(fileContent, TGA_READER_RGBA);
+    auto *out = (uint32_t *) tgaRead(fileContent, TGA_READER_RGBA);
 
     if (scale <= 0) scale = 1;
     nw = w * scale;
@@ -187,7 +187,7 @@ void drawRGB5A3(int x, int y, float scale, uint8_t *fileContent) {
 
     uint32_t pos = 0, npos = 0;
     RGBAColor color;
-    uint16_t *pixels = (uint16_t *) fileContent;
+    auto *pixels = (uint16_t *) fileContent;
 
     uint8_t sum = (4 * scale);
     for (uint32_t j = y; j < (y + nh); j += sum) {
@@ -224,7 +224,7 @@ void drawBackgroundDRC(uint32_t w, uint32_t h, uint8_t *out) {
 }
 
 void drawBackgroundTV(uint32_t w, uint32_t h, uint8_t *out) {
-    uint32_t *screen1 = (uint32_t *) scrBuffer;
+    auto *screen1 = (uint32_t *) scrBuffer;
     int otherBuff0 = tvBufferSize / 2;
 
     if (cur_buf1) screen1 = (uint32_t *) scrBuffer + otherBuff0;

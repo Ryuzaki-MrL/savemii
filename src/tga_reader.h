@@ -16,33 +16,33 @@
 #ifndef __TGA_READER_H__
 #define __TGA_READER_H__
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct _TGA_ORDER {
+using TGA_ORDER = struct _TGA_ORDER {
     int redShift;
     int greenShift;
     int blueShift;
     int alphaShift;
-} TGA_ORDER;
+};
 
 extern const TGA_ORDER *TGA_READER_ARGB;
 extern const TGA_ORDER *TGA_READER_ABGR;
 extern const TGA_ORDER *TGA_READER_RGBA;
 
-void *tgaMalloc(size_t size);
+auto tgaMalloc(size_t size) -> void *;
 
 void tgaFree(void *memory);
 
-int tgaGetWidth(const unsigned char *buffer);
+auto tgaGetWidth(const unsigned char *buffer) -> int;
 
-int tgaGetHeight(const unsigned char *buffer);
+auto tgaGetHeight(const unsigned char *buffer) -> int;
 
-int *tgaRead(const unsigned char *buffer, const TGA_ORDER *order);
+auto tgaRead(const unsigned char *buffer, const TGA_ORDER *order) -> int *;
 
 #ifdef __cplusplus
 }

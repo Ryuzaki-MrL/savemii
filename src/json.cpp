@@ -1,6 +1,6 @@
 #include "json.h"
 
-char *doit(char *text) {
+auto doit(char *text) -> char * {
     char *out = nullptr;
     cJSON *json = nullptr;
     cJSON *str;
@@ -16,7 +16,7 @@ char *doit(char *text) {
 }
 
 /* Read a file, parse, render back, etc. */
-char *dofile(char *filename) {
+auto dofile(char *filename) -> char * {
     FILE *f = nullptr;
     long len = 0;
     char *data = nullptr;
@@ -39,7 +39,7 @@ char *dofile(char *filename) {
     return stuff;
 }
 
-long getFilesize(FILE *fp) {
+auto getFilesize(FILE *fp) -> long {
     fseek(fp, 0L, SEEK_END);
 
     // calculating the size of the file
@@ -48,7 +48,7 @@ long getFilesize(FILE *fp) {
     return res;
 }
 
-char *getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
+auto getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) -> char * {
     char path[PATH_SIZE];
     sprintf(path, "sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
     if (checkEntry(path)) {
@@ -58,7 +58,7 @@ char *getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
         return "";
 }
 
-bool setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date) {
+auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date) -> bool {
     char path[PATH_SIZE];
     sprintf(path, "sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
 

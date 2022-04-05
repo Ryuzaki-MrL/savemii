@@ -1,17 +1,17 @@
 #include <memory>
 #include <string>
-#include <stdarg.h>
+#include <cstdarg>
 #include <stdexcept>
 #include "savemng.h"
 
 using namespace std;
 
-char *replace_str(char *str, char *orig, char *rep);
+auto replace_str(char *str, char *orig, char *rep) -> char *;
 
-bool StartsWith(const char *a, const char *b);
+auto StartsWith(const char *a, const char *b) -> bool;
 
 template<typename ... Args>
-std::string string_format(const std::string &format, Args ... args) {
+auto string_format(const std::string &format, Args ... args) -> std::string {
     int size_s = std::snprintf(nullptr, 0, format.c_str(), args ...) + 1; // Extra space for '\0'
     if (size_s <= 0) { throw std::runtime_error("Error during formatting."); }
     auto size = static_cast<size_t>( size_s );

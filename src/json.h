@@ -2,13 +2,13 @@
 #define _JSON_H
 
 #include "cJSON.h"
-#include <stdbool.h>
-#include <stdio.h>
+
+#include <cstdio>
 
 #include "savemng.h"
 
-char *getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot);
+auto getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) -> char *;
 
-bool setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date);
+auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date) -> bool;
 
 #endif

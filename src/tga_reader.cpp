@@ -24,7 +24,7 @@ const TGA_ORDER *TGA_READER_ABGR = &_TGA_READER_ABGR;
 static const TGA_ORDER _TGA_READER_RGBA = {24, 16, 8, 0};
 const TGA_ORDER *TGA_READER_RGBA = &_TGA_READER_RGBA;
 
-void *tgaMalloc(size_t size) {
+auto tgaMalloc(size_t size) -> void * {
     return malloc(size);
 }
 
@@ -32,11 +32,11 @@ void tgaFree(void *memory) {
     free(memory);
 }
 
-int tgaGetWidth(const unsigned char *buffer) {
+auto tgaGetWidth(const unsigned char *buffer) -> int {
     return (buffer[12] & 0xFF) | (buffer[13] & 0xFF) << 8;
 }
 
-int tgaGetHeight(const unsigned char *buffer) {
+auto tgaGetHeight(const unsigned char *buffer) -> int {
     return (buffer[14] & 0xFF) | (buffer[15] & 0xFF) << 8;
 }
 
@@ -49,21 +49,21 @@ int tgaGetHeight(const unsigned char *buffer) {
 #define RIGHT_ORIGIN  0x10
 #define UPPER_ORIGIN  0x20
 
-static unsigned char *decodeRLE(int width, int height, int depth, const unsigned char *buffer, int offset);
+static auto decodeRLE(int width, int height, int depth, const unsigned char *buffer, int offset) -> unsigned char *;
 
-static int *createPixelsFromColormap(int width, int height, int depth, const unsigned char *bytes, int offset,
+static auto createPixelsFromColormap(int width, int height, int depth, const unsigned char *bytes, int offset,
                                      const unsigned char *palette, int colormapOrigin, int descriptor,
-                                     const TGA_ORDER *order);
+                                     const TGA_ORDER *order) -> int *;
 
-static int *
+static auto
 createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
-                    const TGA_ORDER *order);
+                    const TGA_ORDER *order) -> int *;
 
-static int *
+static auto
 createPixelsFromGrayscale(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
-                          const TGA_ORDER *order);
+                          const TGA_ORDER *order) -> int *;
 
-int *tgaRead(const unsigned char *buffer, const TGA_ORDER *order) {
+auto tgaRead(const unsigned char *buffer, const TGA_ORDER *order) -> int * {
 
     // header
     //	int idFieldLength = buffer[0] & 0xFF;
@@ -122,11 +122,11 @@ int *tgaRead(const unsigned char *buffer, const TGA_ORDER *order) {
     return pixels;
 }
 
-static unsigned char *decodeRLE(int width, int height, int depth, const unsigned char *buffer, int offset) {
+static auto decodeRLE(int width, int height, int depth, const unsigned char *buffer, int offset) -> unsigned char * {
     int elementCount = depth / 8;
     unsigned char elements[4];
     int decodeBufferLength = elementCount * width * height;
-    unsigned char *decodeBuffer = (unsigned char *) tgaMalloc(decodeBufferLength);
+    auto *decodeBuffer = (unsigned char *) tgaMalloc(decodeBufferLength);
     int decoded = 0;
     while (decoded < decodeBufferLength) {
         int packet = buffer[offset++] & 0xFF;
@@ -152,9 +152,9 @@ static unsigned char *decodeRLE(int width, int height, int depth, const unsigned
     return decodeBuffer;
 }
 
-static int *createPixelsFromColormap(int width, int height, int depth, const unsigned char *bytes, int offset,
+static auto createPixelsFromColormap(int width, int height, int depth, const unsigned char *bytes, int offset,
                                      const unsigned char *palette, int colormapOrigin, int descriptor,
-                                     const TGA_ORDER *order) {
+                                     const TGA_ORDER *order) -> int * {
     int *pixels = nullptr;
     int rs = order->redShift;
     int gs = order->greenShift;
@@ -327,9 +327,9 @@ static int *createPixelsFromColormap(int width, int height, int depth, const uns
     return pixels;
 }
 
-static int *
+static auto
 createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
-                    const TGA_ORDER *order) {
+                    const TGA_ORDER *order) -> int * {
     int *pixels = nullptr;
     int rs = order->redShift;
     int gs = order->greenShift;
@@ -464,9 +464,9 @@ createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes
     return pixels;
 }
 
-static int *
+static auto
 createPixelsFromGrayscale(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
-                          const TGA_ORDER *order) {
+                          const TGA_ORDER *order) -> int * {
     int *pixels = nullptr;
     int rs = order->redShift;
     int gs = order->greenShift;

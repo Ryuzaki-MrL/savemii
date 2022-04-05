@@ -1,6 +1,6 @@
 #include "string.hpp"
 
-char *replace_str(char *str, char *orig, char *rep) {
+auto replace_str(char *str, char *orig, char *rep) -> char * {
     static char buffer[4096];
     char *p;
 
@@ -15,7 +15,7 @@ char *replace_str(char *str, char *orig, char *rep) {
     return buffer;
 }
 
-bool StartsWith(const char *a, const char *b) {
+auto StartsWith(const char *a, const char *b) -> bool {
     if (strncmp(a, b, strlen(b)) == 0) return true;
     return false;
 }

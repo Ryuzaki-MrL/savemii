@@ -1,9 +1,9 @@
 #ifndef _LOG_FREETYPE_H
 #define _LOG_FREETYPE_H
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
+
+#include <cstdint>
+#include <cstring>
 
 #include <coreinit/cache.h>
 #include <coreinit/memfrmheap.h>
@@ -19,13 +19,13 @@
 #endif
 
 // Initialization functions
-bool WHBLogFreetypeInit();
+auto WHBLogFreetypeInit() -> bool;
 
 void WHBLogFreetypeFree();
 
 void drawPixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
-uint32_t initScreen();
+auto initScreen() -> uint32_t;
 
 void ttfFontColor32(uint32_t color);
 

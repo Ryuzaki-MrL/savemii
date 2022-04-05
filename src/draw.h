@@ -47,9 +47,9 @@ void drawBackgroundDRC(uint32_t w, uint32_t h, uint8_t *out);
 
 void drawBackgroundTV(uint32_t w, uint32_t h, uint8_t *out);
 
-int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX);
+auto ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) -> int;
 
-int ttfStringWidth(char *string, int8_t part);
+auto ttfStringWidth(char *string, int8_t part) -> int;
 
 void draw_bitmap(FT_Bitmap *bitmap, FT_Int x, FT_Int y);
 
