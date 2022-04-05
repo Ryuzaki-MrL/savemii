@@ -13,7 +13,7 @@
 #include <iosuhax.h>
 #include <iosuhax_devoptab.h>
 #include <padscore/kpad.h>
-#include <stdio.h>
+#include <cstdio>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>

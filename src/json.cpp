@@ -7,7 +7,7 @@ auto doit(char *text) -> char * {
 
     json = cJSON_Parse(text);
     if (!json)
-        return "";
+        return (char*)"";
     else {
         str = cJSON_GetObjectItemCaseSensitive(json, "Date");
         out = strdup(str->valuestring);
@@ -55,7 +55,7 @@ auto getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) -> char * {
         char *info = dofile(path);
         return info;
     } else
-        return "";
+        return (char*)"";
 }
 
 auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date) -> bool {
