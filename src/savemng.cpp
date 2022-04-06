@@ -41,9 +41,9 @@ void setFSAFD(int fd) {
 }
 
 void show_file_operation(string file_name, string file_src, string file_dest) {
-    console_print_pos(-2, 0, "Copying file: %s", file_name);
-    console_print_pos_multiline(-2, 2, '/', "From: %s", file_src);
-    console_print_pos_multiline(-2, 8, '/', "To: %s", file_dest);
+    console_print_pos(-2, 0, "Copying file: %s", file_name.c_str());
+    console_print_pos_multiline(-2, 2, '/', "From: %s", file_src.c_str());
+    console_print_pos_multiline(-2, 8, '/', "To: %s", file_dest.c_str());
 }
 
 int FSAR(int result) {
@@ -188,31 +188,29 @@ int createFolder(const char *fPath) { //Adapted from mkdir_p made by JonathonRei
 }
 
 void console_print_pos_aligned(int y, uint16_t offset, uint8_t align, const char *format, ...) {
-    char *tmp = nullptr;
     int x = 0;
-
     va_list va;
     va_start(va, format);
-    if ((vasprintf(&tmp, format, va) >= 0) && (tmp != nullptr)) {
+    string tmp = string_format(format, va);
+    if (!tmp.empty()) {
         switch (align) {
             case 0:
                 x = (offset * 12);
                 break;
             case 1:
-                x = (853 - ttfStringWidth(tmp, -2)) / 2;
+                x = (853 - ttfStringWidth((char *) tmp.c_str(), -2)) / 2;
                 break;
             case 2:
-                x = 853 - (offset * 12) - ttfStringWidth(tmp, 0);
+                x = 853 - (offset * 12) - ttfStringWidth((char *) tmp.c_str(), 0);
                 break;
             default:
-                x = (853 - ttfStringWidth(tmp, -2)) / 2;
+                x = (853 - ttfStringWidth((char *) tmp.c_str(), -2)) / 2;
                 break;
         }
-        ttfPrintString(x, (y + 1) * 24, tmp, false, false);
+        ttfPrintString(x, (y + 1) * 24, (char *) tmp.c_str(), false, false);
     }
-    va_end(va);
-    if (tmp != nullptr) {
-        free(tmp);
+    if (!tmp.empty()) {
+        tmp.clear();
     }
 }
 
@@ -271,17 +269,6 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
         ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, true, true);
     }
     va_end(va);
-    if (tmp != nullptr) {
-        free(tmp);
-    }
-}
-
-void console_print_pos_va(int x, int y, const char *format, va_list va) { // Source: ftpiiu
-    char *tmp = nullptr;
-
-    if ((vasprintf(&tmp, format, va) >= 0) && (tmp != nullptr)) {
-        ttfPrintString((x + 4) * 12, (y + 1) * 24, tmp, false, true);
-    }
     if (tmp != nullptr) {
         free(tmp);
     }
@@ -506,7 +493,7 @@ int DumpFile(string pPath, string oPath) {
         OSScreenClearBufferEx(SCREEN_TV, 0);
         OSScreenClearBufferEx(SCREEN_DRC, 0);
         sizew += size;
-        show_file_operation(basename(pPath.c_str()), pPath.c_str(), oPath.c_str());
+        show_file_operation(basename(pPath.c_str()), pPath, oPath);
         console_print_pos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", sizew, sizef,
                           (uint32_t) (((uint64_t) sizew * 1000) / ((uint64_t) 1024 * passedMs)));
         flipBuffers();
@@ -550,7 +537,7 @@ int DumpDir(string pPath, string tPath) { // Source: ft2sd
             }
         } else {
             p1 = data->d_name;
-            show_file_operation(data->d_name, (pPath + string_format("/%s", data->d_name)).c_str(), targetPath.c_str());
+            show_file_operation(data->d_name, pPath + string_format("/%s", data->d_name), targetPath);
 
             if (DumpFile(pPath + string_format("/%s", data->d_name), targetPath) != 0) {
                 closedir(dir);
@@ -591,13 +578,13 @@ int DeleteDir(char *pPath) {
             OSScreenClearBufferEx(SCREEN_TV, 0);
             OSScreenClearBufferEx(SCREEN_DRC, 0);
 
-            console_print_pos(-2, 0, "Deleting folder %s", data->d_name);
+            console_print_pos(-2, 0, "Deleting folder: %s", data->d_name);
             console_print_pos_multiline(-2, 2, '/', "From: \n%s", origPath);
             if (unlink(origPath) == -1) {
                 promptError("Failed to delete folder %s\n%s", origPath, strerror(errno));
             }
         } else {
-            console_print_pos(-2, 0, "Deleting file %s", data->d_name);
+            console_print_pos(-2, 0, "Deleting file: %s", data->d_name);
             console_print_pos_multiline(-2, 2, '/', "From: \n%s", pPath);
             if (unlink(pPath) == -1) {
                 promptError("Failed to delete file %s\n%s", pPath, strerror(errno));
@@ -820,10 +807,10 @@ void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_
 
     string srcPath;
     string dstPath;
-    const char *path = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
-    const char *pathb = (isUSBb ? "usb:/usr/save" : "mlc:/usr/save");
-    srcPath = string_format("%s/%08x/%08x/%s", path, highID, lowID, "user");
-    dstPath = string_format("%s/%08x/%08x/%s", pathb, highIDb, lowIDb, "user");
+    string path = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
+    string pathb = (isUSBb ? "usb:/usr/save" : "mlc:/usr/save");
+    srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, "user");
+    dstPath = string_format("%s/%08x/%08x/%s", pathb.c_str(), highIDb, lowIDb, "user");
     createFolder(dstPath.c_str());
 
     if (allusers > -1) {
@@ -853,9 +840,9 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
         dateTime.tm_mon++;
     }
 
-    char datetime[24];
-    sprintf(datetime, "%04d-%02d-%02dT%02d%02d%02d", dateTime.tm_year, dateTime.tm_mon, dateTime.tm_mday,
-            dateTime.tm_hour, dateTime.tm_min, dateTime.tm_sec);
+    string datetime;
+    datetime = string_format("%04d-%02d-%02dT%02d%02d%02d", dateTime.tm_year, dateTime.tm_mon, dateTime.tm_mday,
+                             dateTime.tm_hour, dateTime.tm_min, dateTime.tm_sec);
     for (int i = 0; i < count; i++) {
         if (titles[i].highID == 0 || titles[i].lowID == 0 || !titles[i].saveInit) {
             continue;
@@ -865,13 +852,13 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
         uint32_t lowID = titles[i].lowID;
         bool isUSB = titles[i].isTitleOnUSB;
         bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-        char srcPath[PATH_SIZE];
-        char dstPath[PATH_SIZE];
+        string srcPath;
+        string dstPath;
         const char *path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
-        sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
-        sprintf(dstPath, "sd:/wiiu/backups/batch/%s/%08x%08x", datetime, highID, lowID);
+        srcPath = string_format("%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
+        dstPath = string_format("sd:/wiiu/backups/batch/%s/%08x%08x", datetime.c_str(), highID, lowID);
 
-        createFolder(dstPath);
+        createFolder(dstPath.c_str());
         if (DumpDir(srcPath, dstPath) != 0) {
             promptError("Backup failed.");
         }
@@ -879,7 +866,6 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
 }
 
 void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
-
     if (!isSlotEmpty(title->highID, title->lowID, slot) &&
         !promptConfirm(ST_WARNING, "Backup found on this slot. Overwrite it?")) {
         return;
@@ -888,7 +874,7 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
+    const string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
     string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
     string dstPath;
     if (isWii && (slot == 255)) {
@@ -918,13 +904,12 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
     }
     OSCalendarTime now;
     OSTicksToCalendarTime(OSGetTime(), &now);
-    char date[255];
-    sprintf(date, "%02d/%02d/%d %02d:%02d", now.tm_mday, now.tm_mon, now.tm_year, now.tm_hour, now.tm_min);
-    setSlotDate(title->highID, title->lowID, slot, date);
+    string date;
+    date = string_format("%02d/%02d/%d %02d:%02d", now.tm_mday, now.tm_mon, now.tm_year, now.tm_hour, now.tm_min);
+    setSlotDate(title->highID, title->lowID, slot, (char *) date.c_str());
 }
 
 void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers, bool common) {
-
     if (isSlotEmpty(title->highID, title->lowID, slot)) {
         promptError("No backup found on selected slot.");
         return;
@@ -940,29 +925,26 @@ void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    char srcPath[PATH_SIZE];
-    char dstPath[PATH_SIZE];
-    const char *path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
+    string srcPath;
+    const string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
     if (isWii && (slot == 255)) {
-        sprintf(srcPath, "sd:/savegames/%08x%08x", highID, lowID);
+        srcPath = string_format("sd:/savegames/%08x%08x", highID, lowID);
     } else {
-        sprintf(srcPath, "sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+        srcPath = string_format("sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
     }
-    sprintf(dstPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
-    createFolder(dstPath);
+    string dstPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
+    createFolder(dstPath.c_str());
 
     if ((sdusers > -1) && !isWii) {
-        uint32_t srcOffset = strlen(srcPath);
-        uint32_t dstOffset = strlen(dstPath);
         if (common) {
-            strcpy(srcPath + srcOffset, "/common");
-            strcpy(dstPath + dstOffset, "/common");
+            srcPath.append("/common");
+            dstPath.append("/common");
             if (DumpDir(srcPath, dstPath) != 0) {
                 promptError("Common save not found.");
             }
         }
-        sprintf(srcPath + srcOffset, "/%s", sdacc[sdusers].persistentID);
-        sprintf(dstPath + dstOffset, "/%s", wiiuacc[allusers].persistentID);
+        srcPath.append(string_format("/%s", sdacc[sdusers].persistentID));
+        dstPath.append(string_format("/%s", wiiuacc[allusers].persistentID));
     }
 
     if (DumpDir(srcPath, dstPath) != 0) {
