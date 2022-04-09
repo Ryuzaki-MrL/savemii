@@ -1,5 +1,6 @@
 #include "string.hpp"
 #include <nn/act/client_cpp.h>
+#include <stdio.h>
 
 extern "C" {
 #include "savemng.h"
@@ -235,7 +236,6 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
     va_list va;
     va_start(va, format);
     if ((vasprintf(&tmp, format, va) >= 0) && (tmp != nullptr)) {
-
         if ((uint32_t) (ttfStringWidth(tmp, -1) / 12) > len) {
             char *p = tmp;
             if (strrchr(p, '\n') != nullptr) {
@@ -404,9 +404,8 @@ void getAccountsSD(Title *title, uint8_t slot) {
         free(sdacc);
     }
 
-    char path[255];
-    sprintf(path, "sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
-    DIR *dir = opendir(path);
+    string path = string_format("sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+    DIR *dir = opendir(path.c_str());
     if (dir != nullptr) {
         struct dirent *data;
         while ((data = readdir(dir)) != nullptr) {
@@ -419,7 +418,7 @@ void getAccountsSD(Title *title, uint8_t slot) {
     }
 
     sdacc = (Account *) malloc(sdaccn * sizeof(Account));
-    dir = opendir(path);
+    dir = opendir(path.c_str());
     if (dir != nullptr) {
         struct dirent *data;
         int i = 0;
@@ -805,12 +804,10 @@ void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_
         promptError("Backup done. Now copying Savedata.");
     }
 
-    string srcPath;
-    string dstPath;
     string path = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
     string pathb = (isUSBb ? "usb:/usr/save" : "mlc:/usr/save");
-    srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, "user");
-    dstPath = string_format("%s/%08x/%08x/%s", pathb.c_str(), highIDb, lowIDb, "user");
+    string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, "user");
+    string dstPath = string_format("%s/%08x/%08x/%s", pathb.c_str(), highIDb, lowIDb, "user");
     createFolder(dstPath.c_str());
 
     if (allusers > -1) {
@@ -840,8 +837,7 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
         dateTime.tm_mon++;
     }
 
-    string datetime;
-    datetime = string_format("%04d-%02d-%02dT%02d%02d%02d", dateTime.tm_year, dateTime.tm_mon, dateTime.tm_mday,
+    string datetime = string_format("%04d-%02d-%02dT%02d%02d%02d", dateTime.tm_year, dateTime.tm_mon, dateTime.tm_mday,
                              dateTime.tm_hour, dateTime.tm_min, dateTime.tm_sec);
     for (int i = 0; i < count; i++) {
         if (titles[i].highID == 0 || titles[i].lowID == 0 || !titles[i].saveInit) {
@@ -852,11 +848,9 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
         uint32_t lowID = titles[i].lowID;
         bool isUSB = titles[i].isTitleOnUSB;
         bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-        string srcPath;
-        string dstPath;
-        const char *path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
-        srcPath = string_format("%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
-        dstPath = string_format("sd:/wiiu/backups/batch/%s/%08x%08x", datetime.c_str(), highID, lowID);
+        const string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
+        string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
+        string dstPath = string_format("sd:/wiiu/backups/batch/%s/%08x%08x", datetime.c_str(), highID, lowID);
 
         createFolder(dstPath.c_str());
         if (DumpDir(srcPath, dstPath) != 0) {
@@ -904,8 +898,7 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
     }
     OSCalendarTime now;
     OSTicksToCalendarTime(OSGetTime(), &now);
-    string date;
-    date = string_format("%02d/%02d/%d %02d:%02d", now.tm_mday, now.tm_mon, now.tm_year, now.tm_hour, now.tm_min);
+    string date = string_format("%02d/%02d/%d %02d:%02d", now.tm_mday, now.tm_mon, now.tm_year, now.tm_hour, now.tm_min);
     setSlotDate(title->highID, title->lowID, slot, (char *) date.c_str());
 }
 
@@ -953,7 +946,6 @@ void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers
 }
 
 void wipeSavedata(Title *title, int8_t allusers, bool common) {
-
     if (!promptConfirm(ST_WARNING, "Are you sure?") || !promptConfirm(ST_WARNING, "Hm, are you REALLY sure?")) {
         return;
     }
@@ -965,38 +957,35 @@ void wipeSavedata(Title *title, int8_t allusers, bool common) {
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    char srcPath[PATH_SIZE];
-    char origPath[PATH_SIZE];
-    const char *path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
-    sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
+    string origPath;
+    const string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
+    string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
     if ((allusers > -1) && !isWii) {
-        uint32_t offset = strlen(srcPath);
         if (common) {
-            strcpy(srcPath + offset, "/common");
-            sprintf(origPath, "%s", srcPath);
-            if (DeleteDir(srcPath) != 0) {
+            srcPath.append("/common");
+            origPath = string_format("%s", srcPath.c_str());
+            if (DeleteDir((char*)srcPath.c_str()) != 0) {
                 promptError("Common save not found.");
             }
-            if (unlink(origPath) == -1) {
+            if (unlink(origPath.c_str()) == -1) {
                 promptError("Failed to delete common folder.\n%s", strerror(errno));
             }
         }
-        sprintf(srcPath + offset, "/%s", wiiuacc[allusers].persistentID);
-        sprintf(origPath, "%s", srcPath);
+        srcPath.append(string_format("/%s", wiiuacc[allusers].persistentID));
+        origPath = string_format("%s", srcPath.c_str());
     }
 
-    if (DeleteDir(srcPath) != 0) {
+    if (DeleteDir((char*)srcPath.c_str()) != 0) {
         promptError("Failed to delete savefile.");
     }
     if ((allusers > -1) && !isWii) {
-        if (unlink(origPath) == -1) {
+        if (unlink(origPath.c_str()) == -1) {
             promptError("Failed to delete user folder.\n%s", strerror(errno));
         }
     }
 }
 
 void importFromLoadiine(Title *title, bool common, int version) {
-
     if (!promptConfirm(ST_WARNING, "Are you sure?")) {
         return;
     }
@@ -1040,7 +1029,6 @@ void importFromLoadiine(Title *title, bool common, int version) {
 }
 
 void exportToLoadiine(Title *title, bool common, int version) {
-
     if (!promptConfirm(ST_WARNING, "Are you sure?")) {
         return;
     }

@@ -4,7 +4,6 @@
 #include "log_freetype.h"
 #include "savemng.h"
 #include "string.hpp"
-#include <cstring>
 
 using namespace std;
 
