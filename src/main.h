@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <malloc.h>
+#include <vector>
 
 #include <coreinit/screen.h>
 #include <padscore/kpad.h>

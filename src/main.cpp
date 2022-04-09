@@ -4,6 +4,7 @@
 #include "log_freetype.h"
 #include "savemng.h"
 #include "string.hpp"
+#include <cstring>
 
 using namespace std;
 
@@ -106,21 +107,19 @@ Title *loadWiiUTitles(int run) {
     int tNoSave = usable;
     for (int i = 0; i <= 1; i++) {
         for (uint8_t a = 0; a < 2; a++) {
-            char path[255];
-            sprintf(path, "%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
-            DIR *dir = opendir(path);
+            string path = string_format("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
+            DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
                 struct dirent *data;
                 while ((data = readdir(dir)) != nullptr) {
-                    if (data->d_name[0] == '.') {
+                    if (data->d_name[0] == '.')
                         continue;
-                    }
 
-                    sprintf(path, "%s:/usr/save/%s/%s/user", (i == 0) ? "usb" : "mlc", highIDs[a], data->d_name);
-                    if (checkEntry(path) == 2) {
-                        sprintf(path, "%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
+                    path = string_format("%s:/usr/save/%s/%s/user", (i == 0) ? "usb" : "mlc", highIDs[a], data->d_name);
+                    if (checkEntry(path.c_str()) == 2) {
+                        path = string_format("%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
                                 data->d_name);
-                        if (checkEntry(path) == 1) {
+                        if (checkEntry(path.c_str()) == 1) {
                             for (int i = 0; i < usable; i++) {
                                 if ((savesl[i].highID == (0x00050000 | 0x00050002)) &&
                                     (strtoul(data->d_name, nullptr, 16) == savesl[i].lowID)) {
@@ -147,19 +146,17 @@ Title *loadWiiUTitles(int run) {
 
     for (uint8_t a = 0; a < 2; a++) {
         for (int i = 0; i <= 1; i++) {
-            char path[255];
-            sprintf(path, "%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
-            DIR *dir = opendir(path);
+            string path = string_format("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
+            DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
                 struct dirent *data;
                 while ((data = readdir(dir)) != nullptr) {
-                    if (data->d_name[0] == '.') {
+                    if (data->d_name[0] == '.')
                         continue;
-                    }
 
-                    sprintf(path, "%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
+                    path = string_format("%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
                             data->d_name);
-                    if (checkEntry(path) == 1) {
+                    if (checkEntry(path.c_str()) == 1) {
                         saves[pos].highID = highIDsNumeric[a];
                         saves[pos].lowID = strtoul(data->d_name, nullptr, 16);
                         saves[pos].dev = i;
@@ -193,30 +190,29 @@ Title *loadWiiUTitles(int run) {
         uint32_t lowID = saves[i].lowID;
         bool isTitleOnUSB = saves[i].dev == 0u;
 
-        char path[255];
-        sprintf(path, "%s:/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc",
+        string path = string_format("%s:/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc",
                 saves[i].found ? "title" : "save", highID, lowID);
         titles[titleswiiu].saveInit = !saves[i].found;
 
         char *xmlBuf = nullptr;
-        if (loadFile(path, (uint8_t **) &xmlBuf) > 0) {
+        if (loadFile(path.c_str(), (uint8_t **) &xmlBuf) > 0) {
             char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
             memset(titles[titleswiiu].productCode, 0, sizeof(titles[titleswiiu].productCode));
-            strncpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<"));
+            strlcpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<") + 1);
 
             cptr = strchr(strstr(xmlBuf, "shortname_en"), '>') + 1;
             memset(titles[titleswiiu].shortName, 0, sizeof(titles[titleswiiu].shortName));
-            if (strcspn(cptr, "<") == 0) {
+            if (strcspn(cptr, "<") == 0)
                 cptr = strchr(strstr(xmlBuf, "shortname_ja"), '>') + 1;
-            }
-            strncpy(titles[titleswiiu].shortName, cptr, strcspn(cptr, "<"));
+            
+            strlcpy(titles[titleswiiu].shortName, cptr, strcspn(cptr, "<") + 1);
 
             cptr = strchr(strstr(xmlBuf, "longname_en"), '>') + 1;
             memset(titles[i].longName, 0, sizeof(titles[i].longName));
-            if (strcspn(cptr, "<") == 0) {
+            if (strcspn(cptr, "<") == 0)
                 cptr = strchr(strstr(xmlBuf, "longname_ja"), '>') + 1;
-            }
-            strncpy(titles[titleswiiu].longName, cptr, strcspn(cptr, "<"));
+            
+            strlcpy(titles[titleswiiu].longName, cptr, strcspn(cptr, "<") + 1);
 
             free(xmlBuf);
         }
@@ -235,9 +231,9 @@ Title *loadWiiUTitles(int run) {
         titles[titleswiiu].lowID = lowID;
         titles[titleswiiu].isTitleOnUSB = isTitleOnUSB;
         titles[titleswiiu].listID = titleswiiu;
-        if (loadTitleIcon(&titles[titleswiiu]) < 0) {
+        if (loadTitleIcon(&titles[titleswiiu]) < 0)
             titles[titleswiiu].iconBuf = nullptr;
-        }
+        
         titleswiiu++;
 
         OSScreenClearBufferEx(SCREEN_TV, 0);
@@ -267,10 +263,10 @@ Title *loadWiiTitles() {
             {0x00010001, 0x48424344},
             {0x00010001, 0x554E454F}};
 
-    char pathW[256];
+    string pathW;
     for (int k = 0; k < 3; k++) {
-        sprintf(pathW, "slc:/title/%s", highIDs[k]);
-        DIR *dir = opendir(pathW);
+        pathW = string_format("slc:/title/%s", highIDs[k]);
+        DIR *dir = opendir(pathW.c_str());
         if (dir != nullptr) {
             struct dirent *data;
             while ((data = readdir(dir)) != nullptr) {
@@ -292,9 +288,8 @@ Title *loadWiiTitles() {
             closedir(dir);
         }
     }
-    if (titlesvwii == 0) {
+    if (titlesvwii == 0)
         return nullptr;
-    }
 
     auto *titles = (Title *) malloc(titlesvwii * sizeof(Title));
     if (titles == nullptr) {
@@ -304,8 +299,8 @@ Title *loadWiiTitles() {
 
     int i = 0;
     for (int k = 0; k < 3; k++) {
-        sprintf(pathW, "slc:/title/%s", highIDs[k]);
-        DIR *dir = opendir(pathW);
+        pathW = string_format("slc:/title/%s", highIDs[k]);
+        DIR *dir = opendir(pathW.c_str());
         if (dir != nullptr) {
             struct dirent *data;
             while ((data = readdir(dir)) != nullptr) {
@@ -322,9 +317,8 @@ Title *loadWiiTitles() {
                     continue;
                 }
 
-                char path[256];
-                sprintf(path, "slc:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
-                FILE *file = fopen(path, "rb");
+                string path = string_format("slc:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
+                FILE *file = fopen(path.c_str(), "rb");
                 if (file != nullptr) {
                     fseek(file, 0x20, SEEK_SET);
                     auto *bnrBuf = (uint16_t *) malloc(0x80);
@@ -415,9 +409,8 @@ void unloadTitles(Title *titles, int count) {
             free(titles[i].iconBuf);
         }
     }
-    if (titles != nullptr) {
+    if (titles != nullptr)
         free(titles);
-    }
 }
 
 /* Entry point */
@@ -568,13 +561,11 @@ int main(void) {
                             console_print_pos(M_OFF, 10, "   Copy Savedata to Title in %s",
                                               titles[targ].isTitleOnUSB ? "NAND" : "USB");
                         }
-                        if (titles[targ].iconBuf != nullptr) {
+                        if (titles[targ].iconBuf != nullptr)
                             drawTGA(660, 80, 1, titles[targ].iconBuf);
-                        }
                     } else if (mode == 1) {
-                        if (titles[targ].iconBuf != nullptr) {
+                        if (titles[targ].iconBuf != nullptr)
                             drawRGB5A3(650, 80, 1, titles[targ].iconBuf);
-                        }
                     }
                     console_print_pos(M_OFF, 2 + 3 + cursor, "\u2192");
                     console_print_pos_aligned(17, 4, 2, "\ue000: Select Task  \ue001: Back");
