@@ -957,29 +957,31 @@ void wipeSavedata(Title *title, int8_t allusers, bool common) {
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    string origPath;
-    const string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
-    string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
+    char srcPath[PATH_SIZE];
+    char origPath[PATH_SIZE];
+    const char *path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
+    sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
     if ((allusers > -1) && !isWii) {
+        uint32_t offset = strlen(srcPath);
         if (common) {
-            srcPath.append("/common");
-            origPath = string_format("%s", srcPath.c_str());
-            if (DeleteDir((char*)srcPath.c_str()) != 0) {
+            strcpy(srcPath + offset, "/common");
+            sprintf(origPath, "%s", srcPath);
+            if (DeleteDir(srcPath) != 0) {
                 promptError("Common save not found.");
             }
-            if (unlink(origPath.c_str()) == -1) {
+            if (unlink(origPath) == -1) {
                 promptError("Failed to delete common folder.\n%s", strerror(errno));
             }
         }
-        srcPath.append(string_format("/%s", wiiuacc[allusers].persistentID));
-        origPath = string_format("%s", srcPath.c_str());
+        sprintf(srcPath + offset, "/%s", wiiuacc[allusers].persistentID);
+        sprintf(origPath, "%s", srcPath);
     }
 
-    if (DeleteDir((char*)srcPath.c_str()) != 0) {
+    if (DeleteDir(srcPath) != 0) {
         promptError("Failed to delete savefile.");
     }
     if ((allusers > -1) && !isWii) {
-        if (unlink(origPath.c_str()) == -1) {
+        if (unlink(origPath) == -1) {
             promptError("Failed to delete user folder.\n%s", strerror(errno));
         }
     }
