@@ -11,9 +11,14 @@ For sorting Titles press R to change sorting method and press L to change betwee
 
 Use it at your own risk and please report any issues that may occur.
 
-TODO:
+Reasons to use this over original mod:
 
-- installable package
+- Faster copy speeds
+- VC injects are shown
+- If VC is vWii, the user is warned to go to the vWii saves section instead
+- Demo support
+- Fixes issues present in the mod version
+- Shows useful info about the saves like its date and time of creation
 
 Credits:
 
