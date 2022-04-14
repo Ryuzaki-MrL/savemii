@@ -2,10 +2,7 @@
 #include <nn/act/client_cpp.h>
 #include <stdio.h>
 
-extern "C" {
 #include "savemng.h"
-}
-using namespace std;
 
 #define IO_MAX_FILE_BUFFER (1024 * 1024) // 1 MB
 
@@ -274,12 +271,12 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
     }
 }
 
-bool promptConfirm(Style st, const char *question) {
+bool promptConfirm(Style st, string question) {
     clearBuffers();
     WHBLogFreetypeDraw();
-    const char *msg1 = "\ue000 Yes - \ue001 No";
-    const char *msg2 = "\ue000 Confirm - \ue001 Cancel";
-    const char *msg;
+    const string msg1 = "\ue000 Yes - \ue001 No";
+    const string msg2 = "\ue000 Confirm - \ue001 Cancel";
+    string msg;
     switch (st & 0x0F) {
         case ST_YES_NO:
             msg = msg1;
@@ -303,8 +300,8 @@ bool promptConfirm(Style st, const char *question) {
     if ((st & ST_MULTILINE) != 0) {
 
     } else {
-        console_print_pos(31 - (ttfStringWidth((char *) question, 0) / 24), 7, question);
-        console_print_pos(31 - (ttfStringWidth((char *) msg, -1) / 24), 9, msg);
+        console_print_pos(31 - (ttfStringWidth((char *) question.c_str(), 0) / 24), 7, question.c_str());
+        console_print_pos(31 - (ttfStringWidth((char *) msg.c_str(), -1) / 24), 9, msg.c_str());
     }
     int ret = 0;
     flipBuffers();
@@ -550,8 +547,8 @@ int DumpDir(string pPath, string tPath) { // Source: ft2sd
     return 0;
 }
 
-int DeleteDir(char *pPath) {
-    DIR *dir = opendir(pPath);
+int DeleteDir(string pPath) {
+    DIR *dir = opendir(pPath.c_str());
     if (dir == nullptr) {
         return -1;
     }
@@ -566,33 +563,31 @@ int DeleteDir(char *pPath) {
             continue;
         }
 
-        int len = strlen(pPath);
-        snprintf(pPath + len, PATH_MAX - len, "/%s", data->d_name);
+        pPath.append(string_format("/%s", data->d_name));
 
         if ((data->d_type & DT_DIR) != 0) {
-            char origPath[PATH_SIZE];
-            sprintf(origPath, "%s", pPath);
+            string origPath = pPath;
             DeleteDir(pPath);
 
             OSScreenClearBufferEx(SCREEN_TV, 0);
             OSScreenClearBufferEx(SCREEN_DRC, 0);
 
             console_print_pos(-2, 0, "Deleting folder: %s", data->d_name);
-            console_print_pos_multiline(-2, 2, '/', "From: \n%s", origPath);
-            if (unlink(origPath) == -1) {
-                promptError("Failed to delete folder %s\n%s", origPath, strerror(errno));
+            console_print_pos_multiline(-2, 2, '/', "From: \n%s", origPath.c_str());
+            if (unlink(origPath.c_str()) == -1) {
+                promptError("Failed to delete folder %s\n%s", origPath.c_str(), strerror(errno));
             }
         } else {
             console_print_pos(-2, 0, "Deleting file: %s", data->d_name);
-            console_print_pos_multiline(-2, 2, '/', "From: \n%s", pPath);
-            if (unlink(pPath) == -1) {
-                promptError("Failed to delete file %s\n%s", pPath, strerror(errno));
+            console_print_pos_multiline(-2, 2, '/', "From: \n%s", pPath.c_str());
+            if (unlink(pPath.c_str()) == -1) {
+                promptError("Failed to delete file %s\n%s", pPath.c_str(), strerror(errno));
             }
         }
 
         flipBuffers();
         WHBLogFreetypeDraw();
-        pPath[len] = 0;
+        pPath.clear();
     }
 
     closedir(dir);
@@ -957,31 +952,29 @@ void wipeSavedata(Title *title, int8_t allusers, bool common) {
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    char srcPath[PATH_SIZE];
-    char origPath[PATH_SIZE];
-    const char *path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
-    sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
+    string origPath;
+    const string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
+    string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
     if ((allusers > -1) && !isWii) {
-        uint32_t offset = strlen(srcPath);
         if (common) {
-            strcpy(srcPath + offset, "/common");
-            sprintf(origPath, "%s", srcPath);
+            srcPath.append("/common");
+            origPath = string_format("%s", srcPath.c_str());
             if (DeleteDir(srcPath) != 0) {
                 promptError("Common save not found.");
             }
-            if (unlink(origPath) == -1) {
+            if (unlink(origPath.c_str()) == -1) {
                 promptError("Failed to delete common folder.\n%s", strerror(errno));
             }
         }
-        sprintf(srcPath + offset, "/%s", wiiuacc[allusers].persistentID);
-        sprintf(origPath, "%s", srcPath);
+        srcPath.append(string_format("/%s", wiiuacc[allusers].persistentID));
+        origPath = string_format("%s", srcPath.c_str());
     }
 
     if (DeleteDir(srcPath) != 0) {
         promptError("Failed to delete savefile.");
     }
     if ((allusers > -1) && !isWii) {
-        if (unlink(origPath) == -1) {
+        if (unlink(origPath.c_str()) == -1) {
             promptError("Failed to delete user folder.\n%s", strerror(errno));
         }
     }

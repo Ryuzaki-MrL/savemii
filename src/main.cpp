@@ -189,7 +189,7 @@ Title *loadWiiUTitles(int run) {
         uint32_t lowID = saves[i].lowID;
         bool isTitleOnUSB = saves[i].dev == 0u;
 
-        string path = string_format("%s:/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc",
+        const string path = string_format("%s:/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc",
                 saves[i].found ? "title" : "save", highID, lowID);
         titles[titleswiiu].saveInit = !saves[i].found;
 
@@ -317,7 +317,7 @@ Title *loadWiiTitles() {
                     continue;
                 }
 
-                string path = string_format("slc:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
+                const string path = string_format("slc:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
                 FILE *file = fopen(path.c_str(), "rb");
                 if (file != nullptr) {
                     fseek(file, 0x20, SEEK_SET);
@@ -654,7 +654,7 @@ int main(void) {
                         if ((task == 0) || (task == 1)) {
                             if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
                                 console_print_pos(M_OFF, 15, "Date: %s",
-                                                  getSlotDate(titles[targ].highID, titles[targ].lowID, slot));
+                                                  getSlotDate(titles[targ].highID, titles[targ].lowID, slot).c_str());
                             }
                         }
 
@@ -715,7 +715,7 @@ int main(void) {
                         }
                         if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
                             console_print_pos(M_OFF, 15, "Date: %s",
-                                              getSlotDate(titles[targ].highID, titles[targ].lowID, slot));
+                                              getSlotDate(titles[targ].highID, titles[targ].lowID, slot).c_str());
                         }
                     }
 

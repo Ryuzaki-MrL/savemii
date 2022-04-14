@@ -70,7 +70,7 @@ extern uint8_t wiiuaccn, sdaccn;
 
 void console_print_pos(int x, int y, const char *format, ...);
 
-bool promptConfirm(Style st, const char *question);
+bool promptConfirm(Style st, string question);
 
 void promptError(const char *message, ...);
 

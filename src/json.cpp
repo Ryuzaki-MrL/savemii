@@ -1,4 +1,5 @@
 #include "json.h"
+#include "string.hpp"
 
 auto doit(char *text) -> char * {
     char *out = nullptr;
@@ -47,14 +48,13 @@ auto getFilesize(FILE *fp) -> long {
     return res;
 }
 
-auto getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) -> char * {
-    char path[PATH_SIZE];
-    sprintf(path, "sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
-    if (checkEntry(path) != 0) {
-        char *info = dofile(path);
+string getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
+    string path = string_format("sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
+    if (checkEntry(path.c_str()) != 0) {
+        char *info = dofile(path.c_str());
         return info;
     }
-    return (char *) "";
+    return "";
 }
 
 auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date) -> bool {
