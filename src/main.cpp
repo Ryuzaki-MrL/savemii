@@ -204,14 +204,15 @@ Title *loadWiiUTitles(int run) {
             if (strcspn(cptr, "<") == 0)
                 cptr = strchr(strstr(xmlBuf, "shortname_ja"), '>') + 1;
             
-            strlcpy(titles[titleswiiu].shortName, cptr, strcspn(cptr, "<") + 1);
+            decodeXMLEscapeLine(string(cptr));
+            strlcpy(titles[titleswiiu].shortName, decodeXMLEscapeLine(string(cptr)).c_str(), strcspn(decodeXMLEscapeLine(string(cptr)).c_str(), "<") + 1);
 
             cptr = strchr(strstr(xmlBuf, "longname_en"), '>') + 1;
             memset(titles[i].longName, 0, sizeof(titles[i].longName));
             if (strcspn(cptr, "<") == 0)
                 cptr = strchr(strstr(xmlBuf, "longname_ja"), '>') + 1;
             
-            strlcpy(titles[titleswiiu].longName, cptr, strcspn(cptr, "<") + 1);
+            strlcpy(titles[titleswiiu].longName, decodeXMLEscapeLine(string(cptr)).c_str(), strcspn(decodeXMLEscapeLine(string(cptr)).c_str(), "<") + 1);
 
             free(xmlBuf);
         }

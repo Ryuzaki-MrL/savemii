@@ -7,6 +7,7 @@
 using namespace std;
 
 bool replace(string &str, const string &from, const string &to);
+string decodeXMLEscapeLine(string xmlString);
 
 template<typename... Args>
 auto string_format(const string &format, Args... args) -> string {
