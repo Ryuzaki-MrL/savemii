@@ -594,15 +594,15 @@ int DeleteDir(string pPath) {
     return 0;
 }
 
-void getUserID(char *out) { // Source: loadiine_gx2
+string getUserID() { // Source: loadiine_gx2
     /* get persistent ID - thanks to Maschell */
     nn::act::Initialize();
 
     unsigned char slotno = nn::act::GetSlotNo();
     unsigned int persistentID = nn::act::GetPersistentIdEx(slotno);
     nn::act::Finalize();
-
-    sprintf(out, "%08X", persistentID);
+    string out = string_format("%08X", persistentID);
+    return out;
 }
 
 string getLoadiineGameSaveDir(const char *productCode) {
@@ -996,12 +996,11 @@ void importFromLoadiine(Title *title, bool common, int version) {
     if (version != 0) {
         srcPath.append(string_format("/v%i", version));
     }
-    char usrPath[16];
-    getUserID(usrPath);
-    srcPath = getLoadiineUserDir(srcPath.c_str(), usrPath);
+    string usrPath = getUserID();
+    srcPath = getLoadiineUserDir(srcPath.c_str(), usrPath.c_str());
     dstPath = string_format("%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
     createFolder(dstPath.c_str());
-    dstPath.append(string_format("/%s", usrPath));
+    dstPath.append(string_format("/%s", usrPath.c_str()));
     promptError(srcPath.c_str());
     promptError(dstPath.c_str());
     if (DumpDir(srcPath, dstPath) != 0) {
@@ -1033,11 +1032,10 @@ void exportToLoadiine(Title *title, bool common, int version) {
     if (version != 0) {
         dstPath.append(string_format("/v%u", version));
     }
-    char usrPath[16];
-    getUserID(usrPath);
-    dstPath = getLoadiineUserDir(dstPath.c_str(), usrPath);
+    string usrPath = getUserID();
+    dstPath = getLoadiineUserDir(dstPath.c_str(), usrPath.c_str());
     srcPath = string_format("%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
-    srcPath.append(string_format("/%s", usrPath));
+    srcPath.append(string_format("/%s", usrPath.c_str()));
     createFolder(dstPath.c_str());
     promptError(srcPath.c_str());
     promptError(dstPath.c_str());

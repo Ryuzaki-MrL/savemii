@@ -1015,11 +1015,10 @@ int main(void) {
                             continue;
                         }
                     }
-                    char path[255];
-                    sprintf(path, "%s:/usr/title/000%x/%x/code/fw.img",
+                    string path = string_format("%s:/usr/title/000%x/%x/code/fw.img",
                             (titles[targ].isTitleOnUSB) ? "usb" : "mlc", titles[targ].highID,
                             titles[targ].lowID);
-                    if ((mode == 0) && (checkEntry(path) != 0)) {
+                    if ((mode == 0) && (checkEntry(path.c_str()) != 0)) {
                         if (!promptConfirm(ST_ERROR, "vWii saves are in the vWii section. Continue?")) {
                             continue;
                         }

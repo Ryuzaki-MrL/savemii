@@ -72,7 +72,7 @@ bool promptConfirm(Style st, string question);
 
 void promptError(const char *message, ...);
 
-void getUserID(char *out);
+string getUserID();
 
 void getAccountsWiiU();
 
