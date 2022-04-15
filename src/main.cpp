@@ -1057,12 +1057,12 @@ int main(void) {
                     }
 
                     if ((task == 3) || (task == 4)) {
-                        char gamePath[PATH_SIZE];
+                        string gamePath;
                         memset(versionList, 0, 0x100 * sizeof(int));
-                        if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode) != 0) {
+                        if (!(gamePath = getLoadiineGameSaveDir(titles[targ].productCode)).empty()) {
                             continue;
                         }
-                        getLoadiineSaveVersionList(versionList, gamePath);
+                        getLoadiineSaveVersionList(versionList, gamePath.c_str());
                         if (task == 4) {
                             if (!titles[targ].saveInit) {
                                 promptError("No save to Export.");

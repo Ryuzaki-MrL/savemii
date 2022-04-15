@@ -51,22 +51,21 @@ auto getFilesize(FILE *fp) -> long {
 string getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
     string path = string_format("sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
     if (checkEntry(path.c_str()) != 0) {
-        char *info = dofile(path.c_str());
+        string info = dofile((char *)path.c_str());
         return info;
     }
     return "";
 }
 
-auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date) -> bool {
-    char path[PATH_SIZE];
-    sprintf(path, "sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
+auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, string date) -> bool {
+    string path = string_format("sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
 
     cJSON *config = cJSON_CreateObject();
     if (config == nullptr) {
         return false;
     }
 
-    cJSON *entry = cJSON_CreateString(date);
+    cJSON *entry = cJSON_CreateString(date.c_str());
     if (entry == nullptr) {
         cJSON_Delete(config);
         return false;
@@ -79,7 +78,7 @@ auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, char *date) -> b
         return false;
     }
 
-    FILE *fp = fopen(path, "wb");
+    FILE *fp = fopen(path.c_str(), "wb");
     if (fp == nullptr) {
         return false;
     }
