@@ -22,15 +22,14 @@ void flipBuffers() {
     OSScreenFlipBuffersEx(SCREEN_DRC);
 }
 
-void clearBuffers() {
-    OSScreenClearBufferEx(SCREEN_TV, 0x00000000);
-    OSScreenClearBufferEx(SCREEN_DRC, 0x00000000);
-    flipBuffers();
-}
-
 void clearBuffersEx() {
     OSScreenClearBufferEx(SCREEN_TV, 0x00000000);
     OSScreenClearBufferEx(SCREEN_DRC, 0x00000000);
+}
+
+void clearBuffers() {
+    clearBuffersEx();
+    flipBuffers();
 }
 
 void fillScreen(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
@@ -47,29 +46,22 @@ void drawPixel32(int x, int y, RGBAColor color) {
 }
 
 void drawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-
     int x;
     int y;
     if (x1 == x2) {
-        if (y1 < y2) {
-            for (y = y1; y <= y2; y++) {
+        if (y1 < y2)
+            for (y = y1; y <= y2; y++)
                 drawPixel(x1, y, r, g, b, a);
-            }
-        } else {
-            for (y = y2; y <= y1; y++) {
+        else
+            for (y = y2; y <= y1; y++)
                 drawPixel(x1, y, r, g, b, a);
-            }
-        }
     } else {
-        if (x1 < x2) {
-            for (x = x1; x <= x2; x++) {
+        if (x1 < x2)
+            for (x = x1; x <= x2; x++)
                 drawPixel(x, y1, r, g, b, a);
-            }
-        } else {
-            for (x = x2; x <= x1; x++) {
+        else
+            for (x = x2; x <= x1; x++)
                 drawPixel(x, y1, r, g, b, a);
-            }
-        }
     }
 }
 
@@ -103,11 +95,9 @@ void drawFillRect(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t 
         Y1 = y2;
         Y2 = y1;
     }
-    for (i = X1; i <= X2; i++) {
-        for (j = Y1; j <= Y2; j++) {
+    for (i = X1; i <= X2; i++)
+        for (j = Y1; j <= Y2; j++)
             drawPixel(i, j, r, g, b, a);
-        }
-    }
 }
 
 void drawCircle(int xCen, int yCen, int radius, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
@@ -131,17 +121,13 @@ void drawFillCircle(int xCen, int yCen, int radius, uint8_t r, uint8_t g, uint8_
     drawCircle(xCen, yCen, radius, r, g, b, a);
     int x;
     int y;
-    for (y = -radius; y <= radius; y++) {
-        for (x = -radius; x <= radius; x++) {
-            if (x * x + y * y <= radius * radius + radius * .8f) {
+    for (y = -radius; y <= radius; y++)
+        for (x = -radius; x <= radius; x++)
+            if (x * x + y * y <= radius * radius + radius * .8f)
                 drawPixel(xCen + x, yCen + y, r, g, b, a);
-            }
-        }
-    }
 }
 
 void drawCircleCircum(int cx, int cy, int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-
     if (x == 0) {
         drawPixel(cx, cy + y, r, g, b, a);
         drawPixel(cx, cy - y, r, g, b, a);
@@ -206,9 +192,8 @@ void drawRGB5A3(int x, int y, float scale, uint8_t *fileContent) {
     uint32_t nw = w;
     uint32_t nh = h;
 
-    if (scale <= 0) {
+    if (scale <= 0)
         scale = 1;
-    }
     nw = w * scale;
     nh = h * scale;
 
@@ -252,11 +237,10 @@ void drawBackgroundDRC(uint32_t w, uint32_t h, uint8_t *out) {
     uint32_t *screen2 = nullptr;
     int otherBuff1 = drcBufferSize / 2;
 
-    if (cur_buf1) {
+    if (cur_buf1)
         screen2 = (uint32_t *) scrBuffer + tvBufferSize + otherBuff1;
-    } else {
+    else
         screen2 = (uint32_t *) scrBuffer + tvBufferSize;
-    }
     memcpy(screen2, out, w * h * 4);
 }
 
@@ -264,9 +248,8 @@ void drawBackgroundTV(uint32_t w, uint32_t h, uint8_t *out) {
     auto *screen1 = (uint32_t *) scrBuffer;
     int otherBuff0 = tvBufferSize / 2;
 
-    if (cur_buf1) {
+    if (cur_buf1)
         screen1 = (uint32_t *) scrBuffer + otherBuff0;
-    }
     memcpy(screen1, out, w * h * 4);
 }
 
