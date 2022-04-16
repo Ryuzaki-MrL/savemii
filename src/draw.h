@@ -21,6 +21,8 @@ void flipBuffers();
 
 void clearBuffers();
 
+void clearBuffersEx();
+
 void fillScreen(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
 void drawPixel32(int x, int y, RGBAColor color);

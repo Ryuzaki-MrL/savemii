@@ -231,8 +231,7 @@ Title *loadWiiUTitles(int run) {
         
         titleswiiu++;
 
-        OSScreenClearBufferEx(SCREEN_TV, 0);
-        OSScreenClearBufferEx(SCREEN_DRC, 0);
+        clearBuffersEx();
         drawTGA(285, 144, 1, icon_tga);
         disclaimer();
         console_print_pos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
@@ -379,8 +378,7 @@ Title *loadWiiTitles() {
                     titles[i].iconBuf = nullptr;
                 i++;
 
-                OSScreenClearBufferEx(SCREEN_TV, 0);
-                OSScreenClearBufferEx(SCREEN_DRC, 0);
+                clearBuffersEx();
                 drawTGA(285, 144, 1, icon_tga);
                 disclaimer();
                 console_print_pos(20, 10, "Loaded %i Wii U titles.", titleswiiu);

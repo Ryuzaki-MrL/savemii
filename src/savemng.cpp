@@ -270,16 +270,12 @@ bool promptConfirm(Style st, string question) {
         default:
             msg = msg2;
     }
-    if ((st & ST_WARNING) != 0) {
-        OSScreenClearBufferEx(SCREEN_TV, 0x7F7F0000);
-        OSScreenClearBufferEx(SCREEN_DRC, 0x7F7F0000);
-    } else if ((st & ST_ERROR) != 0) {
-        OSScreenClearBufferEx(SCREEN_TV, 0x7F000000);
-        OSScreenClearBufferEx(SCREEN_DRC, 0x7F000000);
-    } else {
-        OSScreenClearBufferEx(SCREEN_TV, 0x007F0000);
-        OSScreenClearBufferEx(SCREEN_DRC, 0x007F0000);
-    }
+    if ((st & ST_WARNING) != 0)
+        clearBuffersEx();
+    else if ((st & ST_ERROR) != 0)
+        clearBuffersEx();
+    else
+        clearBuffersEx();
     if (!((st & ST_MULTILINE) != 0)) {
         console_print_pos(31 - (ttfStringWidth((char *) question.c_str(), 0) / 24), 7, question.c_str());
         console_print_pos(31 - (ttfStringWidth((char *) msg.c_str(), -1) / 24), 9, msg.c_str());
@@ -318,8 +314,7 @@ void promptError(const char *message, ...) {
     WHBLogFreetypeDraw();
     va_list va;
     va_start(va, message);
-    OSScreenClearBufferEx(SCREEN_TV, 0x7F000000);
-    OSScreenClearBufferEx(SCREEN_DRC, 0x7F000000);
+    clearBuffersEx();
     char *tmp = nullptr;
     if ((vasprintf(&tmp, message, va) >= 0) && (tmp != nullptr)) {
         int x = 31 - (ttfStringWidth(tmp, -2) / 24);
@@ -459,8 +454,7 @@ int DumpFile(string pPath, string oPath) {
         if (passedMs == 0) {
             passedMs = 1; // avoid 0 div
         }
-        OSScreenClearBufferEx(SCREEN_TV, 0);
-        OSScreenClearBufferEx(SCREEN_DRC, 0);
+        clearBuffersEx();
         sizew += size;
         show_file_operation(basename(pPath.c_str()), pPath, oPath);
         console_print_pos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", sizew, sizef,
@@ -488,8 +482,7 @@ int DumpDir(string pPath, string tPath) { // Source: ft2sd
     auto *data = (dirent *) malloc(sizeof(dirent));
 
     while ((data = readdir(dir)) != nullptr) {
-        OSScreenClearBufferEx(SCREEN_TV, 0);
-        OSScreenClearBufferEx(SCREEN_DRC, 0);
+        clearBuffersEx();
 
         if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0) {
             continue;
@@ -527,8 +520,7 @@ int DeleteDir(char *pPath) {
     struct dirent *data;
 
     while ((data = readdir(dir)) != NULL) {
-        OSScreenClearBufferEx(SCREEN_TV, 0);
-        OSScreenClearBufferEx(SCREEN_DRC, 0);
+        clearBuffersEx();
 
         if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0) continue;
 
@@ -540,8 +532,7 @@ int DeleteDir(char *pPath) {
             sprintf(origPath, "%s", pPath);
             DeleteDir(pPath);
 
-            OSScreenClearBufferEx(SCREEN_TV, 0);
-            OSScreenClearBufferEx(SCREEN_DRC, 0);
+            clearBuffersEx();
 
             console_print_pos(-2, 0, "Deleting folder %s", data->d_name);
             console_print_pos_multiline(-2, 2, '/', "From: \n%s", origPath);

@@ -28,14 +28,18 @@ void clearBuffers() {
     flipBuffers();
 }
 
+void clearBuffersEx() {
+    OSScreenClearBufferEx(SCREEN_TV, 0x00000000);
+    OSScreenClearBufferEx(SCREEN_DRC, 0x00000000);
+}
+
 void fillScreen(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
     RGBAColor color;
     color.r = r;
     color.g = g;
     color.b = b;
     color.a = a;
-    OSScreenClearBufferEx(SCREEN_TV, color.c);
-    OSScreenClearBufferEx(SCREEN_DRC, color.c);
+    clearBuffersEx();
 }
 
 void drawPixel32(int x, int y, RGBAColor color) {
