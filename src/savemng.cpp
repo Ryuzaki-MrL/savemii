@@ -421,7 +421,7 @@ void getAccountsSD(Title *title, uint8_t slot) {
         struct dirent *data;
         int i = 0;
         while ((data = readdir(dir)) != nullptr) {
-            if (data->d_name[0] == '.' || strncmp(data->d_name, "common", 6) == 0) {
+            if (data->d_name[0] == '.' || strncmp(data->d_name, "common", 6) == 0) || strncmp(data->d_name, "savemiiMeta.json", 16) == 0) {
                 continue;
             }
             sprintf(sdacc[i].persistentID, "%s", data->d_name);
