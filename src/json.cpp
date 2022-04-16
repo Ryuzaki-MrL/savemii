@@ -7,9 +7,8 @@ auto doit(char *text) -> char * {
     cJSON *str;
 
     json = cJSON_Parse(text);
-    if (json == nullptr) {
+    if (json == nullptr)
         return (char *) "";
-    }
     str = cJSON_GetObjectItemCaseSensitive(json, "Date");
     out = strdup(str->valuestring);
     return out;
@@ -39,15 +38,6 @@ auto dofile(char *filename) -> char * {
     return stuff;
 }
 
-auto getFilesize(FILE *fp) -> long {
-    fseek(fp, 0L, SEEK_END);
-
-    // calculating the size of the file
-    long int res = ftell(fp);
-
-    return res;
-}
-
 string getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
     string path = string_format("sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
     if (checkEntry(path.c_str()) != 0) {
@@ -61,9 +51,8 @@ auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, string date) -> 
     string path = string_format("sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
 
     cJSON *config = cJSON_CreateObject();
-    if (config == nullptr) {
+    if (config == nullptr)
         return false;
-    }
 
     cJSON *entry = cJSON_CreateString(date.c_str());
     if (entry == nullptr) {
@@ -74,14 +63,12 @@ auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, string date) -> 
 
     char *configString = cJSON_Print(config);
     cJSON_Delete(config);
-    if (configString == nullptr) {
+    if (configString == nullptr)
         return false;
-    }
 
     FILE *fp = fopen(path.c_str(), "wb");
-    if (fp == nullptr) {
+    if (fp == nullptr)
         return false;
-    }
 
     fwrite(configString, strlen(configString), 1, fp);
 

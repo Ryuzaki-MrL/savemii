@@ -30,24 +30,19 @@ int titleSort(const void *c1, const void *c2) {
             return strcmp(((Title *) c1)->shortName, ((Title *) c2)->shortName) * sorta;
 
         case 2:
-            if (((Title *) c1)->isTitleOnUSB == ((Title *) c2)->isTitleOnUSB) {
+            if (((Title *) c1)->isTitleOnUSB == ((Title *) c2)->isTitleOnUSB)
                 return 0;
-            }
-            if (((Title *) c1)->isTitleOnUSB) {
+            if (((Title *) c1)->isTitleOnUSB)
                 return -1 * sorta;
-            }
-            if (((Title *) c2)->isTitleOnUSB) {
+            if (((Title *) c2)->isTitleOnUSB)
                 return 1 * sorta;
-            }
             return 0;
 
         case 3:
-            if (((Title *) c1)->isTitleOnUSB && !((Title *) c2)->isTitleOnUSB) {
+            if (((Title *) c1)->isTitleOnUSB && !((Title *) c2)->isTitleOnUSB)
                 return -1 * sorta;
-            }
-            if (!((Title *) c1)->isTitleOnUSB && ((Title *) c2)->isTitleOnUSB) {
+            if (!((Title *) c1)->isTitleOnUSB && ((Title *) c2)->isTitleOnUSB)
                 return 1 * sorta;
-            }
 
             return strcmp(((Title *) c1)->shortName, ((Title *) c2)->shortName) * sorta;
 
@@ -373,18 +368,15 @@ Title *loadWiiTitles() {
 
                 titles[i].listID = i;
                 memcpy(titles[i].productCode, &titles[i].lowID, 4);
-                for (int ii = 0; ii < 4; ii++) {
-                    if (titles[i].productCode[ii] == 0) {
+                for (int ii = 0; ii < 4; ii++)
+                    if (titles[i].productCode[ii] == 0)
                         titles[i].productCode[ii] = '.';
-                    }
-                }
                 titles[i].productCode[4] = 0;
                 titles[i].isTitleOnUSB = false;
                 titles[i].isTitleDupe = false;
                 titles[i].dupeID = 0;
-                if (!titles[i].saveInit || (loadTitleIcon(&titles[i]) < 0)) {
+                if (!titles[i].saveInit || (loadTitleIcon(&titles[i]) < 0))
                     titles[i].iconBuf = nullptr;
-                }
                 i++;
 
                 OSScreenClearBufferEx(SCREEN_TV, 0);
@@ -404,11 +396,9 @@ Title *loadWiiTitles() {
 }
 
 void unloadTitles(Title *titles, int count) {
-    for (int i = 0; i < count; i++) {
-        if (titles[i].iconBuf != nullptr) {
+    for (int i = 0; i < count; i++)
+        if (titles[i].iconBuf != nullptr)
             free(titles[i].iconBuf);
-        }
-    }
     if (titles != nullptr)
         free(titles);
 }
@@ -507,25 +497,21 @@ int main(void) {
                                           (tsort > 0) ? ((sorta == 1) ? "\u2193 \ue083" : "\u2191 \ue083") : "");
                         entrycount = count;
                         for (int i = 0; i < 14; i++) {
-                            if (i + scroll < 0 || i + scroll >= count) {
+                            if (i + scroll < 0 || i + scroll >= count)
                                 break;
-                            }
                             ttfFontColor32(0x00FF00FF);
-                            if (!titles[i + scroll].saveInit) {
+                            if (!titles[i + scroll].saveInit)
                                 ttfFontColor32(0xFFFF00FF);
-                            }
-                            if (strcmp(titles[i + scroll].shortName, "DONT TOUCH ME") == 0) {
+                            if (strcmp(titles[i + scroll].shortName, "DONT TOUCH ME") == 0)
                                 ttfFontColor32(0xFF0000FF);
-                            }
-                            if (strlen(titles[i + scroll].shortName) != 0u) {
+                            if (strlen(titles[i + scroll].shortName) != 0u)
                                 console_print_pos(M_OFF, i + 2, "   %s %s%s%s", titles[i + scroll].shortName,
                                                   titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""),
                                                   titles[i + scroll].isTitleDupe ? " [D]" : "",
                                                   titles[i + scroll].saveInit ? "" : " [Not Init]");
-                            } else {
+                            else
                                 console_print_pos(M_OFF, i + 2, "   %08lx%08lx", titles[i + scroll].highID,
                                                   titles[i + scroll].lowID);
-                            }
                             ttfFontColor32(0xFFFFFFFF);
                             if (mode == 0) {
                                 if (titles[i + scroll].iconBuf != nullptr) {
@@ -538,11 +524,10 @@ int main(void) {
                                 }
                             }
                         }
-                        if (mode == 0) {
+                        if (mode == 0)
                             console_print_pos(-1, 2 + cursor, "\u2192");
-                        } else if (mode == 1) {
+                        else if (mode == 1)
                             console_print_pos(-3, 2 + cursor, "\u2192");
-                        }
                         console_print_pos_aligned(17, 4, 2, "\ue000: Select Game  \ue001: Back");
                     }
                 } break;
@@ -557,16 +542,14 @@ int main(void) {
                     if (mode == 0) {
                         console_print_pos(M_OFF, 8, "   Import from loadiine");
                         console_print_pos(M_OFF, 9, "   Export to loadiine");
-                        if (titles[targ].isTitleDupe) {
+                        if (titles[targ].isTitleDupe)
                             console_print_pos(M_OFF, 10, "   Copy Savedata to Title in %s",
                                               titles[targ].isTitleOnUSB ? "NAND" : "USB");
-                        }
                         if (titles[targ].iconBuf != nullptr)
                             drawTGA(660, 80, 1, titles[targ].iconBuf);
-                    } else if (mode == 1) {
+                    } else if (mode == 1)
                         if (titles[targ].iconBuf != nullptr)
-                            drawRGB5A3(650, 80, 1, titles[targ].iconBuf);
-                    }
+                            drawRGB5A3(645, 80, 1, titles[targ].iconBuf);
                     console_print_pos(M_OFF, 2 + 3 + cursor, "\u2192");
                     console_print_pos_aligned(17, 4, 2, "\ue000: Select Task  \ue001: Back");
                 } break;
@@ -588,15 +571,14 @@ int main(void) {
                     } else {
                         console_print_pos(M_OFF, 4, "Select %s:", "slot");
 
-                        if (((titles[targ].highID & 0xFFFFFFF0) == 0x00010000) && (slot == 255)) {
+                        if (((titles[targ].highID & 0xFFFFFFF0) == 0x00010000) && (slot == 255))
                             console_print_pos(M_OFF, 5, "   < SaveGame Manager GX > (%s)",
                                               isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot) ? "Empty"
                                                                                                          : "Used");
-                        } else {
+                        else
                             console_print_pos(M_OFF, 5, "   < %03u > (%s)", slot,
                                               isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot) ? "Empty"
                                                                                                          : "Used");
-                        }
                     }
 
                     if (mode == 0) {
@@ -604,41 +586,39 @@ int main(void) {
                             if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
                                 entrycount++;
                                 console_print_pos(M_OFF, 7, "Select SD user to copy from:");
-                                if (sdusers == -1) {
+                                if (sdusers == -1)
                                     console_print_pos(M_OFF, 8, "   < %s >", "all users");
-                                } else {
+                                else
                                     console_print_pos(M_OFF, 8, "   < %s > (%s)", sdacc[sdusers].persistentID,
                                                       hasAccountSave(&titles[targ], true, false, sdacc[sdusers].pID,
                                                                      slot, 0)
                                                               ? "Has Save"
                                                               : "Empty");
-                                }
                             }
                         }
 
                         if (task == 2) {
                             console_print_pos(M_OFF, 7, "Select Wii U user to delete from:");
-                            if (allusers == -1) {
+                            if (allusers == -1)
                                 console_print_pos(M_OFF, 8, "   < %s >", "all users");
-                            } else {
+                            else
                                 console_print_pos(M_OFF, 8, "   < %s (%s) > (%s)", wiiuacc[allusers].miiName,
                                                   wiiuacc[allusers].persistentID,
                                                   hasAccountSave(&titles[targ], false, false, wiiuacc[allusers].pID,
                                                                  slot, 0)
                                                           ? "Has Save"
                                                           : "Empty");
-                            }
                         }
 
                         if ((task == 0) || (task == 1) || (task == 5)) {
-                            if ((task == 1) && isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
+                            if ((task == 1) && isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
                                 entrycount--;
-                            } else {
+                            else {
                                 console_print_pos(M_OFF, (task == 1) ? 10 : 7, "Select Wii U user%s:",
                                                   (task == 5) ? " to copy from" : ((task == 1) ? " to copy to" : ""));
-                                if (allusers == -1) {
+                                if (allusers == -1)
                                     console_print_pos(M_OFF, (task == 1) ? 11 : 8, "   < %s >", "all users");
-                                } else {
+                                else
                                     console_print_pos(M_OFF, (task == 1) ? 11 : 8, "   < %s (%s) > (%s)",
                                                       wiiuacc[allusers].miiName, wiiuacc[allusers].persistentID,
                                                       hasAccountSave(&titles[targ],
@@ -648,29 +628,25 @@ int main(void) {
                                                                      versionList != nullptr ? versionList[slot] : 0)
                                                               ? "Has Save"
                                                               : "Empty");
-                                }
                             }
                         }
-                        if ((task == 0) || (task == 1)) {
-                            if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
+                        if ((task == 0) || (task == 1)) 
+                            if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
                                 console_print_pos(M_OFF, 15, "Date: %s",
                                                   getSlotDate(titles[targ].highID, titles[targ].lowID, slot).c_str());
-                            }
-                        }
 
                         if (task == 5) {
                             entrycount++;
                             console_print_pos(M_OFF, 10, "Select Wii U user%s:", (task == 5) ? " to copy to" : "");
-                            if (allusers_d == -1) {
+                            if (allusers_d == -1)
                                 console_print_pos(M_OFF, 11, "   < %s >", "all users");
-                            } else {
+                            else
                                 console_print_pos(M_OFF, 11, "   < %s (%s) > (%s)", wiiuacc[allusers_d].miiName,
                                                   wiiuacc[allusers_d].persistentID,
                                                   hasAccountSave(&titles[titles[targ].dupeID], false, false,
                                                                  wiiuacc[allusers_d].pID, 0, 0)
                                                           ? "Has Save"
                                                           : "Empty");
-                            }
                         }
 
                         if ((task != 3) && (task != 4)) {
@@ -705,18 +681,15 @@ int main(void) {
                         }
 
                         console_print_pos(M_OFF, 5 + cursor * 3, "\u2192");
-                        if (titles[targ].iconBuf != nullptr) {
+                        if (titles[targ].iconBuf != nullptr)
                             drawTGA(660, 100, 1, titles[targ].iconBuf);
-                        }
                     } else if (mode == 1) {
                         entrycount = 1;
-                        if (titles[targ].iconBuf != nullptr) {
+                        if (titles[targ].iconBuf != nullptr)
                             drawRGB5A3(650, 100, 1, titles[targ].iconBuf);
-                        }
-                        if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
+                        if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
                             console_print_pos(M_OFF, 15, "Date: %s",
                                               getSlotDate(titles[targ].highID, titles[targ].lowID, slot).c_str());
-                        }
                     }
 
                     switch (task) {
@@ -762,36 +735,33 @@ int main(void) {
             }
         }
 
-        if (vpad_status.trigger | kpad_status.trigger | kpad_status.classic.trigger | kpad_status.pro.trigger) {
+        if (vpad_status.trigger | kpad_status.trigger | kpad_status.classic.trigger | kpad_status.pro.trigger)
             redraw = true;
-        }
 
         if ((vpad_status.trigger & (VPAD_BUTTON_DOWN | VPAD_STICK_L_EMULATION_DOWN)) |
             (kpad_status.trigger & (WPAD_BUTTON_DOWN)) |
             (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_DOWN | WPAD_CLASSIC_STICK_L_EMULATION_DOWN)) |
             (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_DOWN | WPAD_PRO_STICK_L_EMULATION_DOWN))) {
-            if (entrycount <= 14) {
+            if (entrycount <= 14)
                 cursor = (cursor + 1) % entrycount;
-            } else if (cursor < 6) {
+            else if (cursor < 6)
                 cursor++;
-            } else if (((cursor + scroll + 1) % entrycount) != 0) {
+            else if (((cursor + scroll + 1) % entrycount) != 0)
                 scroll++;
-            } else {
+            else
                 cursor = scroll = 0;
-            }
         } else if ((vpad_status.trigger & (VPAD_BUTTON_UP | VPAD_STICK_L_EMULATION_UP)) |
                    (kpad_status.trigger & (WPAD_BUTTON_UP)) |
                    (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_UP | WPAD_CLASSIC_STICK_L_EMULATION_UP)) |
                    (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_UP | WPAD_PRO_STICK_L_EMULATION_UP))) {
-            if (scroll > 0) {
+            if (scroll > 0)
                 cursor -= (cursor > 6) ? 1 : 0 * (scroll--);
-            } else if (cursor > 0) {
+            else if (cursor > 0)
                 cursor--;
-            } else if (entrycount > 14) {
+            else if (entrycount > 14)
                 scroll = entrycount - (cursor = 6) - 1;
-            } else {
+            else
                 cursor = entrycount - 1;
-            }
         }
 
         if ((vpad_status.trigger & (VPAD_BUTTON_LEFT | VPAD_STICK_L_EMULATION_LEFT)) |
@@ -948,9 +918,8 @@ int main(void) {
             if (menu == 1) {
                 tsort = (tsort + 1) % 4;
                 qsort(titles, count, sizeof(Title), titleSort);
-            } else if (menu == 2) {
+            } else if (menu == 2)
                 targ = (targ + 1) % count;
-            }
         }
 
         if ((vpad_status.trigger & VPAD_BUTTON_L) | (kpad_status.trigger & (WPAD_BUTTON_MINUS)) |
@@ -961,9 +930,8 @@ int main(void) {
                 qsort(titles, count, sizeof(Title), titleSort);
             } else if (menu == 2) {
                 targ--;
-                if (targ < 0) {
+                if (targ < 0)
                     targ = count - 1;
-                }
             }
         }
 
@@ -1006,9 +974,8 @@ int main(void) {
                         }
                         continue;
                     }
-                    if (titles[targ].highID == 0 || titles[targ].lowID == 0) {
+                    if (titles[targ].highID == 0 || titles[targ].lowID == 0)
                         continue;
-                    }
                     if ((mode == 0) && (strcmp(titles[targ].shortName, "DONT TOUCH ME") == 0)) {
                         if (!promptConfirm(ST_ERROR, "CBHC save. Could be dangerous to modify. Continue?") ||
                             !promptConfirm(ST_WARNING, "Are you REALLY sure?")) {
@@ -1018,11 +985,9 @@ int main(void) {
                     string path = string_format("%s:/usr/title/000%x/%x/code/fw.img",
                             (titles[targ].isTitleOnUSB) ? "usb" : "mlc", titles[targ].highID,
                             titles[targ].lowID);
-                    if ((mode == 0) && (checkEntry(path.c_str()) != 0)) {
-                        if (!promptConfirm(ST_ERROR, "vWii saves are in the vWii section. Continue?")) {
+                    if ((mode == 0) && (checkEntry(path.c_str()) != 0))
+                        if (!promptConfirm(ST_ERROR, "vWii saves are in the vWii section. Continue?"))
                             continue;
-                        }
-                    }
                     if ((mode == 0) && (!titles[targ].saveInit)) {
                         if (!promptConfirm(ST_WARNING, "Recommended to run Game at least one time. Continue?") ||
                             !promptConfirm(ST_WARNING, "Are you REALLY sure?")) {
@@ -1058,9 +1023,8 @@ int main(void) {
                     if ((task == 3) || (task == 4)) {
                         string gamePath;
                         memset(versionList, 0, 0x100 * sizeof(int));
-                        if (!(gamePath = getLoadiineGameSaveDir(titles[targ].productCode)).empty()) {
+                        if (!(gamePath = getLoadiineGameSaveDir(titles[targ].productCode)).empty())
                             continue;
-                        }
                         getLoadiineSaveVersionList(versionList, gamePath.c_str());
                         if (task == 4) {
                             if (!titles[targ].saveInit) {
@@ -1118,9 +1082,8 @@ int main(void) {
                 cursor = cursorb;
                 scroll = scrollb;
             }
-            if (menu == 2) {
+            if (menu == 2)
                 cursor = cursort;
-            }
         }
     }
 
