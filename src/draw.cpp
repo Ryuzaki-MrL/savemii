@@ -50,17 +50,17 @@ void drawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b, u
     int y;
     if (x1 == x2) {
         if (y1 < y2)
-            for (y = y1; y <= y2; ++y)
+            for (y = y1; y <= y2; y++)
                 drawPixel(x1, y, r, g, b, a);
         else
-            for (y = y2; y <= y1; ++y)
+            for (y = y2; y <= y1; y++)
                 drawPixel(x1, y, r, g, b, a);
     } else {
         if (x1 < x2)
-            for (x = x1; x <= x2; ++x)
+            for (x = x1; x <= x2; x++)
                 drawPixel(x, y1, r, g, b, a);
         else
-            for (x = x2; x <= x1; ++x)
+            for (x = x2; x <= x1; x++)
                 drawPixel(x, y1, r, g, b, a);
     }
 }
@@ -95,8 +95,8 @@ void drawFillRect(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t 
         Y1 = y2;
         Y2 = y1;
     }
-    for (i = X1; i <= X2; ++i)
-        for (j = Y1; j <= Y2; ++j)
+    for (i = X1; i <= X2; i++)
+        for (j = Y1; j <= Y2; j++)
             drawPixel(i, j, r, g, b, a);
 }
 
@@ -106,11 +106,11 @@ void drawCircle(int xCen, int yCen, int radius, uint8_t r, uint8_t g, uint8_t b,
     int p = (5 - radius * 4) / 4;
     drawCircleCircum(xCen, yCen, x, y, r, g, b, a);
     while (x < y) {
-        ++x;
+        x++;
         if (p < 0) {
             p += 2 * x + 1;
         } else {
-            --y;
+            y--;
             p += 2 * (x - y) + 1;
         }
         drawCircleCircum(xCen, yCen, x, y, r, g, b, a);
@@ -121,8 +121,8 @@ void drawFillCircle(int xCen, int yCen, int radius, uint8_t r, uint8_t g, uint8_
     drawCircle(xCen, yCen, radius, r, g, b, a);
     int x;
     int y;
-    for (y = -radius; y <= radius; ++y)
-        for (x = -radius; x <= radius; ++x)
+    for (y = -radius; y <= radius; y++)
+        for (x = -radius; x <= radius; x++)
             if (x * x + y * y <= radius * radius + radius * .8f)
                 drawPixel(xCen + x, yCen + y, r, g, b, a);
 }
@@ -160,8 +160,8 @@ void drawPic(int x, int y, uint32_t w, uint32_t h, float scale, uint32_t *pixels
     nh = h * scale;
 
 
-    for (uint32_t j = y; j < (y + nh); ++j) {
-        for (uint32_t i = x; i < (x + nw); ++i) {
+    for (uint32_t j = y; j < (y + nh); j++) {
+        for (uint32_t i = x; i < (x + nw); i++) {
             color.c = pixels[((i - x) * w / nw) + ((j - y) * h / nh) * w];
             drawPixel32(i, j, color);
         }
@@ -205,8 +205,8 @@ void drawRGB5A3(int x, int y, float scale, uint8_t *fileContent) {
     uint8_t sum = (4 * scale);
     for (uint32_t j = y; j < (y + nh); j += sum) {
         for (uint32_t i = x; i < (x + nw); i += sum) {
-            for (uint32_t sj = j; sj < (j + sum); ++sj, ++pos) {
-                for (uint32_t si = i; si < (i + sum); ++si) {
+            for (uint32_t sj = j; sj < (j + sum); sj++, pos++) {
+                for (uint32_t si = i; si < (i + sum); si++) {
                     npos = ((si - i) / scale) + ((pos / scale) * 4);
                     if ((pixels[npos] & 0x8000) != 0) {
                         color.c = ((pixels[npos] & 0x7C00) << 17) | ((pixels[npos] & 0x3E0) << 14) |
@@ -261,8 +261,8 @@ void draw_bitmap(FT_Bitmap *bitmap, FT_Int x, FT_Int y) {
     switch (bitmap->pixel_mode) {
         case FT_PIXEL_MODE_GRAY:
             x_max = x + bitmap->width;
-            for (i = x, p = 0; i < x_max; ++i, ++p) {
-                for (j = y, q = 0; j < y_max; ++j, ++q) {
+            for (i = x, p = 0; i < x_max; i++, p++) {
+                for (j = y, q = 0; j < y_max; j++, q++) {
                     if (i < 0 || j < 0 || i >= 854 || j >= 480) continue;
                     uint8_t col = bitmap->buffer[q * bitmap->pitch + p];
                     if (col == 0) continue;
@@ -273,8 +273,8 @@ void draw_bitmap(FT_Bitmap *bitmap, FT_Int x, FT_Int y) {
             break;
         case FT_PIXEL_MODE_LCD:
             x_max = x + bitmap->width / 3;
-            for (i = x, p = 0; i < x_max; ++i, ++p) {
-                for (j = y, q = 0; j < y_max; ++j, ++q) {
+            for (i = x, p = 0; i < x_max; i++, p++) {
+                for (j = y, q = 0; j < y_max; j++, q++) {
                     if (i < 0 || j < 0 || i >= 854 || j >= 480) continue;
                     uint8_t cr = bitmap->buffer[q * bitmap->pitch + p * 3];
                     uint8_t cg = bitmap->buffer[q * bitmap->pitch + p * 3 + 1];
@@ -287,8 +287,8 @@ void draw_bitmap(FT_Bitmap *bitmap, FT_Int x, FT_Int y) {
             break;
         case FT_PIXEL_MODE_BGRA:
             x_max = x + bitmap->width / 2;
-            for (i = x, p = 0; i < x_max; ++i, ++p) {
-                for (j = y, q = 0; j < y_max; ++j, ++q) {
+            for (i = x, p = 0; i < x_max; i++, p++) {
+                for (j = y, q = 0; j < y_max; j++, q++) {
                     if (i < 0 || j < 0 || i >= 854 || j >= 480) continue;
                     uint8_t cb = bitmap->buffer[q * bitmap->pitch + p * 4];
                     uint8_t cg = bitmap->buffer[q * bitmap->pitch + p * 4 + 1];

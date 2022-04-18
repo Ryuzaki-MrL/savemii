@@ -91,7 +91,7 @@ compare_strings(const unsigned char *string1, const unsigned char *string2, cons
         return strcmp((const char *) string1, (const char *) string2);
     }
 
-    for (; tolower(*string1) == tolower(*string2); (void) ++string1, ++string2) {
+    for (; tolower(*string1) == tolower(*string2); (void) string1++, string2++) {
         if (*string1 == '\0') {
             return 0;
         }
@@ -143,7 +143,7 @@ compare_pointers(const unsigned char *name, const unsigned char *pointer, const 
 /* calculate the length of a string if encoded as JSON pointer with ~0 and ~1 escape sequences */
 static auto pointer_encoded_length(const unsigned char *string) -> size_t {
     size_t length;
-    for (length = 0; *string != '\0'; (void) ++string, length++) {
+    for (length = 0; *string != '\0'; (void) string++, length++) {
         /* character needs to be escaped? */
         if ((*string == '~') || (*string == '/')) {
             length++;
@@ -237,7 +237,7 @@ auto cJSONUtils_FindPointerFromObjectTo(const cJSON *const object, const cJSON *
 static auto get_array_item(const cJSON *array, size_t item) -> cJSON * {
     cJSON *child = array != nullptr ? array->child : nullptr;
     while ((child != nullptr) && (item > 0)) {
-        --item;
+        item--;
         child = child->next;
     }
 
@@ -320,7 +320,7 @@ static void decode_pointer_inplace(unsigned char *string) {
         return;
     }
 
-    for (; *string != 0u; (void) decoded_string++, ++string) {
+    for (; *string != 0u; (void) decoded_string++, string++) {
         if (string[0] == '~') {
             if (string[1] == '0') {
                 decoded_string[0] = '~';
@@ -331,7 +331,7 @@ static void decode_pointer_inplace(unsigned char *string) {
                 return;
             }
 
-            ++string;
+            string++;
         }
     }
 
@@ -343,7 +343,7 @@ static auto detach_item_from_array(cJSON *array, size_t which) -> cJSON * {
     cJSON *c = array->child;
     while ((c != nullptr) && (which > 0)) {
         c = c->next;
-        --which;
+        which--;
     }
     if (c == nullptr) {
         /* item doesn't exist */
@@ -585,7 +585,7 @@ static auto insert_item_in_array(cJSON *array, size_t which, cJSON *newitem) -> 
     cJSON *child = array->child;
     while ((child != nullptr) && (which > 0)) {
         child = child->next;
-        --which;
+        which--;
     }
     if (which > 0) {
         /* item is after the end of the array */
@@ -993,7 +993,7 @@ static void create_patches(cJSON *const patches, const unsigned char *const path
             /* generate patches for all array elements that exist in both "from" and "to" */
             for (index = 0; (from_child != nullptr) && (to_child !=
                                                         nullptr);
-                 (void) (from_child = from_child->next), (void) (to_child = to_child->next), ++index) {
+                 (void) (from_child = from_child->next), (void) (to_child = to_child->next), index++) {
                 /* check if conversion to unsigned long is valid
                  * This should be eliminated at compile time by dead code elimination
                  * if size_t is an alias of unsigned long, or if it is bigger */
@@ -1019,7 +1019,7 @@ static void create_patches(cJSON *const patches, const unsigned char *const path
                 compose_patch(patches, (const unsigned char *) "remove", path, new_path, nullptr);
             }
             /* add new elements in 'to' that were not in 'from' */
-            for (; (to_child != nullptr); (void) (to_child = to_child->next), ++index) {
+            for (; (to_child != nullptr); (void) (to_child = to_child->next), index++) {
                 compose_patch(patches, (const unsigned char *) "add", path, (const unsigned char *) "-", to_child);
             }
             cJSON_free(new_path);

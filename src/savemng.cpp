@@ -154,9 +154,9 @@ int createFolder(const char *fPath) { //Adapted from mkdir_p made by JonathonRei
 
     _path.assign(fPath);
 
-    for (p = (char *) _path.c_str() + 1; *p != 0; ++p) {
+    for (p = (char *) _path.c_str() + 1; *p != 0; p++) {
         if (*p == '/') {
-            ++found;
+            found++;
             if (found > 2) {
                 *p = '\0';
                 if (checkEntry(_path.c_str()) == 0)
@@ -226,7 +226,7 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
             while ((uint32_t) (ttfStringWidth(p, -1) / 12) > len) {
                 char *q = p;
                 int l1 = strlen(q);
-                for (int i = l1; i > 0; --i) {
+                for (int i = l1; i > 0; i--) {
                     char o = q[l1];
                     q[l1] = '\0';
                     if ((uint32_t) (ttfStringWidth(p, -1) / 12) <= len) {
@@ -238,12 +238,12 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
                         break;
                     }
                     q[l1] = o;
-                    --l1;
+                    l1--;
                 }
                 string buf;
                 buf.assign(p);
                 p = (char *) string_format("\n%s", buf.c_str()).c_str();
-                ++p;
+                p++;
                 len = 69;
             }
         }
@@ -286,7 +286,7 @@ bool promptConfirm(Style st, string question) {
     WHBLogFreetypeDraw();
     while (true) {
         VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
-        for (int i = 0; i < 4; ++i) {
+        for (int i = 0; i < 4; i++) {
             WPADExtensionType controllerType;
             // check if the controller is connected
             if (WPADProbe((WPADChan) i, &controllerType) != 0)
@@ -345,25 +345,25 @@ void getAccountsWiiU() {
             sprintf(wiiuacc[accn].persistentID, "%08X", persistentID);
             nn::act::GetMiiNameEx((int16_t *) out, i);
             memset(wiiuacc[accn].miiName, 0, sizeof(wiiuacc[accn].miiName));
-            for (int j = 0, k = 0; j < 10; ++j) {
+            for (int j = 0, k = 0; j < 10; j++) {
                 if (out[j] < 0x80) {
-                    wiiuacc[accn].miiName[++k] = (char) out[j];
+                    wiiuacc[accn].miiName[k++] = (char) out[j];
                 } else if ((out[j] & 0xF000) > 0) {
-                    wiiuacc[accn].miiName[++k] = 0xE0 | ((out[j] & 0xF000) >> 12);
-                    wiiuacc[accn].miiName[++k] = 0x80 | ((out[j] & 0xFC0) >> 6);
-                    wiiuacc[accn].miiName[++k] = 0x80 | (out[j] & 0x3F);
+                    wiiuacc[accn].miiName[k++] = 0xE0 | ((out[j] & 0xF000) >> 12);
+                    wiiuacc[accn].miiName[k++] = 0x80 | ((out[j] & 0xFC0) >> 6);
+                    wiiuacc[accn].miiName[k++] = 0x80 | (out[j] & 0x3F);
                 } else if (out[j] < 0x400) {
-                    wiiuacc[accn].miiName[++k] = 0xC0 | ((out[j] & 0x3C0) >> 6);
-                    wiiuacc[accn].miiName[++k] = 0x80 | (out[j] & 0x3F);
+                    wiiuacc[accn].miiName[k++] = 0xC0 | ((out[j] & 0x3C0) >> 6);
+                    wiiuacc[accn].miiName[k++] = 0x80 | (out[j] & 0x3F);
                 } else {
-                    wiiuacc[accn].miiName[++k] = 0xD0 | ((out[j] & 0x3C0) >> 6);
-                    wiiuacc[accn].miiName[++k] = 0x80 | (out[j] & 0x3F);
+                    wiiuacc[accn].miiName[k++] = 0xD0 | ((out[j] & 0x3C0) >> 6);
+                    wiiuacc[accn].miiName[k++] = 0x80 | (out[j] & 0x3F);
                 }
             }
             wiiuacc[accn].slot = i;
-            ++accn;
+            accn++;
         }
-        ++i;
+        i++;
     }
     nn::act::Finalize();
 }
@@ -382,7 +382,7 @@ void getAccountsSD(Title *title, uint8_t slot) {
         while ((data = readdir(dir)) != nullptr) {
             if (data->d_name[0] == '.' || data->d_name[0] == 's' || strncmp(data->d_name, "common", 6) == 0)
                 continue;
-            ++sdaccn;
+            sdaccn++;
         }
         closedir(dir);
     }
@@ -398,7 +398,7 @@ void getAccountsSD(Title *title, uint8_t slot) {
             sprintf(sdacc[i].persistentID, "%s", data->d_name);
             sdacc[i].pID = strtoul(data->d_name, nullptr, 16);
             sdacc[i].slot = i;
-            ++i;
+            i++;
         }
         closedir(dir);
     }
@@ -416,12 +416,12 @@ int DumpFile(string pPath, string oPath) {
     }
 
     char *buffer[3];
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 3; i++) {
         buffer[i] = (char *) aligned_alloc(0x40, IO_MAX_FILE_BUFFER);
         if (buffer[i] == nullptr) {
             fclose(source);
             fclose(dest);
-            for (--i; i >= 0; --i)
+            for (i--; i >= 0; i--)
                 free(buffer[i]);
 
             return -1;
@@ -446,7 +446,7 @@ int DumpFile(string pPath, string oPath) {
             promptError("Write %d,%s", bytesWritten, oPath.c_str());
             fclose(source);
             fclose(dest);
-            for (int i = 0; i < 3; ++i)
+            for (int i = 0; i < 3; i++)
                 free(buffer[i]);
             return -1;
         }
@@ -464,7 +464,7 @@ int DumpFile(string pPath, string oPath) {
     }
     fclose(source);
     fclose(dest);
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < 3; i++)
         free(buffer[i]);
 
     IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA(oPath).c_str(), 0x666);
@@ -636,7 +636,7 @@ bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) {
 }
 
 int getEmptySlot(uint32_t highID, uint32_t lowID) {
-    for (int i = 0; i < 256; ++i)
+    for (int i = 0; i < 256; i++)
         if (isSlotEmpty(highID, lowID, i))
             return i;
     return -1;
@@ -755,17 +755,17 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
     if (date) {
         if (date->tm_year == 0) {
             OSTicksToCalendarTime(OSGetTime(), date);
-            ++date->tm_mon;
+            date->tm_mon++;
         }
         dateTime = (*date);
     } else {
         OSTicksToCalendarTime(OSGetTime(), &dateTime);
-        ++dateTime.tm_mon;
+        dateTime.tm_mon++;
     }
 
     string datetime = string_format("%04d-%02d-%02dT%02d%02d%02d", dateTime.tm_year, dateTime.tm_mon, dateTime.tm_mday,
                              dateTime.tm_hour, dateTime.tm_min, dateTime.tm_sec);
-    for (int i = 0; i < count; ++i) {
+    for (int i = 0; i < count; i++) {
         if (titles[i].highID == 0 || titles[i].lowID == 0 || !titles[i].saveInit)
             continue;
 
