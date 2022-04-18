@@ -82,25 +82,25 @@ Title *loadWiiUTitles(int run) {
         promptError("Out of memory.");
         return nullptr;
     }
-    for (uint32_t i = 0; i < receivedCount; i++) {
+    for (uint32_t i = 0; i < receivedCount; ++i) {
         char *element = tList + (i * 0x61);
         savesl[j].highID = *(uint32_t *) (element);
         if (savesl[j].highID != (0x00050000 | 0x00050002)) {
-            usable--;
+            --usable;
             continue;
         }
         savesl[j].lowID = *(uint32_t *) (element + 4);
         savesl[j].dev = static_cast<uint8_t>(!(memcmp(element + 0x56, "usb", 4) == 0));
         savesl[j].found = false;
-        j++;
+        ++j;
     }
     savesl = (Saves *) realloc(savesl, usable * sizeof(Saves));
 
     int foundCount = 0;
     int pos = 0;
     int tNoSave = usable;
-    for (int i = 0; i <= 1; i++) {
-        for (uint8_t a = 0; a < 2; a++) {
+    for (int i = 0; i <= 1; ++i) {
+        for (uint8_t a = 0; a < 2; ++a) {
             string path = string_format("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
             DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
@@ -114,15 +114,15 @@ Title *loadWiiUTitles(int run) {
                         path = string_format("%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
                                 data->d_name);
                         if (checkEntry(path.c_str()) == 1) {
-                            for (int i = 0; i < usable; i++) {
+                            for (int i = 0; i < usable; ++i) {
                                 if ((savesl[i].highID == (0x00050000 | 0x00050002)) &&
                                     (strtoul(data->d_name, nullptr, 16) == savesl[i].lowID)) {
                                     savesl[i].found = true;
-                                    tNoSave--;
+                                    --tNoSave;
                                     break;
                                 }
                             }
-                            foundCount++;
+                            ++foundCount;
                         }
                     }
                 }
@@ -138,8 +138,8 @@ Title *loadWiiUTitles(int run) {
         return nullptr;
     }
 
-    for (uint8_t a = 0; a < 2; a++) {
-        for (int i = 0; i <= 1; i++) {
+    for (uint8_t a = 0; a < 2; ++a) {
+        for (int i = 0; i <= 1; ++i) {
             string path = string_format("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
             DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
@@ -155,7 +155,7 @@ Title *loadWiiUTitles(int run) {
                         saves[pos].lowID = strtoul(data->d_name, nullptr, 16);
                         saves[pos].dev = i;
                         saves[pos].found = false;
-                        pos++;
+                        ++pos;
                     }
                 }
                 closedir(dir);
@@ -163,13 +163,13 @@ Title *loadWiiUTitles(int run) {
         }
     }
 
-    for (int i = 0; i < usable; i++) {
+    for (int i = 0; i < usable; ++i) {
         if (!savesl[i].found) {
             saves[pos].highID = savesl[i].highID;
             saves[pos].lowID = savesl[i].lowID;
             saves[pos].dev = savesl[i].dev;
             saves[pos].found = true;
-            pos++;
+            ++pos;
         }
     }
 
@@ -179,7 +179,7 @@ Title *loadWiiUTitles(int run) {
         return nullptr;
     }
 
-    for (int i = 0; i < foundCount; i++) {
+    for (int i = 0; i < foundCount; ++i) {
         uint32_t highID = saves[i].highID;
         uint32_t lowID = saves[i].lowID;
         bool isTitleOnUSB = saves[i].dev == 0u;
@@ -213,7 +213,7 @@ Title *loadWiiUTitles(int run) {
         }
 
         titles[titleswiiu].isTitleDupe = false;
-        for (int i = 0; i < titleswiiu; i++) {
+        for (int i = 0; i < titleswiiu; ++i) {
             if ((titles[i].highID == highID) && (titles[i].lowID == lowID)) {
                 titles[titleswiiu].isTitleDupe = true;
                 titles[titleswiiu].dupeID = i;
@@ -229,7 +229,7 @@ Title *loadWiiUTitles(int run) {
         if (loadTitleIcon(&titles[titleswiiu]) < 0)
             titles[titleswiiu].iconBuf = nullptr;
         
-        titleswiiu++;
+        ++titleswiiu;
 
         clearBuffersEx();
         drawTGA(285, 144, 1, icon_tga);
@@ -258,13 +258,13 @@ Title *loadWiiTitles() {
             {0x00010001, 0x554E454F}};
 
     string pathW;
-    for (int k = 0; k < 3; k++) {
+    for (int k = 0; k < 3; ++k) {
         pathW = string_format("slc:/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW.c_str());
         if (dir != nullptr) {
             struct dirent *data;
             while ((data = readdir(dir)) != nullptr) {
-                for (int ii = 0; ii < 7; ii++) {
+                for (int ii = 0; ii < 7; ++ii) {
                     if (blacklist[ii][0] == strtoul(highIDs[k], nullptr, 16)) {
                         if (blacklist[ii][1] == strtoul(data->d_name, nullptr, 16)) {
                             found = true;
@@ -277,7 +277,7 @@ Title *loadWiiTitles() {
                     continue;
                 }
 
-                titlesvwii++;
+                ++titlesvwii;
             }
             closedir(dir);
         }
@@ -292,13 +292,13 @@ Title *loadWiiTitles() {
     }
 
     int i = 0;
-    for (int k = 0; k < 3; k++) {
+    for (int k = 0; k < 3; ++k) {
         pathW = string_format("slc:/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW.c_str());
         if (dir != nullptr) {
             struct dirent *data;
             while ((data = readdir(dir)) != nullptr) {
-                for (int ii = 0; ii < 7; ii++) {
+                for (int ii = 0; ii < 7; ++ii) {
                     if (blacklist[ii][0] == strtoul(highIDs[k], nullptr, 16)) {
                         if (blacklist[ii][1] == strtoul(data->d_name, nullptr, 16)) {
                             found = true;
@@ -319,36 +319,36 @@ Title *loadWiiTitles() {
                     if (bnrBuf != nullptr) {
                         fread(bnrBuf, 0x02, 0x20, file);
                         memset(titles[i].shortName, 0, sizeof(titles[i].shortName));
-                        for (int j = 0, k = 0; j < 0x20; j++) {
+                        for (int j = 0, k = 0; j < 0x20; ++j) {
                             if (bnrBuf[j] < 0x80) {
-                                titles[i].shortName[k++] = (char) bnrBuf[j];
+                                titles[i].shortName[++k] = (char) bnrBuf[j];
                             } else if ((bnrBuf[j] & 0xF000) > 0) {
-                                titles[i].shortName[k++] = 0xE0 | ((bnrBuf[j] & 0xF000) >> 12);
-                                titles[i].shortName[k++] = 0x80 | ((bnrBuf[j] & 0xFC0) >> 6);
-                                titles[i].shortName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
+                                titles[i].shortName[++k] = 0xE0 | ((bnrBuf[j] & 0xF000) >> 12);
+                                titles[i].shortName[++k] = 0x80 | ((bnrBuf[j] & 0xFC0) >> 6);
+                                titles[i].shortName[++k] = 0x80 | (bnrBuf[j] & 0x3F);
                             } else if (bnrBuf[j] < 0x400) {
-                                titles[i].shortName[k++] = 0xC0 | ((bnrBuf[j] & 0x3C0) >> 6);
-                                titles[i].shortName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
+                                titles[i].shortName[++k] = 0xC0 | ((bnrBuf[j] & 0x3C0) >> 6);
+                                titles[i].shortName[++k] = 0x80 | (bnrBuf[j] & 0x3F);
                             } else {
-                                titles[i].shortName[k++] = 0xD0 | ((bnrBuf[j] & 0x3C0) >> 6);
-                                titles[i].shortName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
+                                titles[i].shortName[++k] = 0xD0 | ((bnrBuf[j] & 0x3C0) >> 6);
+                                titles[i].shortName[++k] = 0x80 | (bnrBuf[j] & 0x3F);
                             }
                         }
 
                         memset(titles[i].longName, 0, sizeof(titles[i].longName));
-                        for (int j = 0x20, k = 0; j < 0x40; j++) {
+                        for (int j = 0x20, k = 0; j < 0x40; ++j) {
                             if (bnrBuf[j] < 0x80) {
-                                titles[i].longName[k++] = (char) bnrBuf[j];
+                                titles[i].longName[++k] = (char) bnrBuf[j];
                             } else if ((bnrBuf[j] & 0xF000) > 0) {
-                                titles[i].longName[k++] = 0xE0 | ((bnrBuf[j] & 0xF000) >> 12);
-                                titles[i].longName[k++] = 0x80 | ((bnrBuf[j] & 0xFC0) >> 6);
-                                titles[i].longName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
+                                titles[i].longName[++k] = 0xE0 | ((bnrBuf[j] & 0xF000) >> 12);
+                                titles[i].longName[++k] = 0x80 | ((bnrBuf[j] & 0xFC0) >> 6);
+                                titles[i].longName[++k] = 0x80 | (bnrBuf[j] & 0x3F);
                             } else if (bnrBuf[j] < 0x400) {
-                                titles[i].longName[k++] = 0xC0 | ((bnrBuf[j] & 0x3C0) >> 6);
-                                titles[i].longName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
+                                titles[i].longName[++k] = 0xC0 | ((bnrBuf[j] & 0x3C0) >> 6);
+                                titles[i].longName[++k] = 0x80 | (bnrBuf[j] & 0x3F);
                             } else {
-                                titles[i].longName[k++] = 0xD0 | ((bnrBuf[j] & 0x3C0) >> 6);
-                                titles[i].longName[k++] = 0x80 | (bnrBuf[j] & 0x3F);
+                                titles[i].longName[++k] = 0xD0 | ((bnrBuf[j] & 0x3C0) >> 6);
+                                titles[i].longName[++k] = 0x80 | (bnrBuf[j] & 0x3F);
                             }
                         }
                         titles[i].saveInit = true;
@@ -367,7 +367,7 @@ Title *loadWiiTitles() {
 
                 titles[i].listID = i;
                 memcpy(titles[i].productCode, &titles[i].lowID, 4);
-                for (int ii = 0; ii < 4; ii++)
+                for (int ii = 0; ii < 4; ++ii)
                     if (titles[i].productCode[ii] == 0)
                         titles[i].productCode[ii] = '.';
                 titles[i].productCode[4] = 0;
@@ -376,7 +376,7 @@ Title *loadWiiTitles() {
                 titles[i].dupeID = 0;
                 if (!titles[i].saveInit || (loadTitleIcon(&titles[i]) < 0))
                     titles[i].iconBuf = nullptr;
-                i++;
+                ++i;
 
                 clearBuffersEx();
                 drawTGA(285, 144, 1, icon_tga);
@@ -394,7 +394,7 @@ Title *loadWiiTitles() {
 }
 
 void unloadTitles(Title *titles, int count) {
-    for (int i = 0; i < count; i++)
+    for (int i = 0; i < count; ++i)
         if (titles[i].iconBuf != nullptr)
             free(titles[i].iconBuf);
     if (titles != nullptr)
@@ -494,7 +494,7 @@ int main(void) {
                         console_print_pos(40, 0, "\ue084 Sort: %s %s", sortn[tsort],
                                           (tsort > 0) ? ((sorta == 1) ? "\u2193 \ue083" : "\u2191 \ue083") : "");
                         entrycount = count;
-                        for (int i = 0; i < 14; i++) {
+                        for (int i = 0; i < 14; ++i) {
                             if (i + scroll < 0 || i + scroll >= count)
                                 break;
                             ttfFontColor32(0x00FF00FF);
@@ -582,7 +582,7 @@ int main(void) {
                     if (mode == 0) {
                         if (task == 1) {
                             if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
-                                entrycount++;
+                                ++entrycount;
                                 console_print_pos(M_OFF, 7, "Select SD user to copy from:");
                                 if (sdusers == -1)
                                     console_print_pos(M_OFF, 8, "   < %s >", "all users");
@@ -610,7 +610,7 @@ int main(void) {
 
                         if ((task == 0) || (task == 1) || (task == 5)) {
                             if ((task == 1) && isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
-                                entrycount--;
+                                --entrycount;
                             else {
                                 console_print_pos(M_OFF, (task == 1) ? 10 : 7, "Select Wii U user%s:",
                                                   (task == 5) ? " to copy from" : ((task == 1) ? " to copy to" : ""));
@@ -634,7 +634,7 @@ int main(void) {
                                                   getSlotDate(titles[targ].highID, titles[targ].lowID, slot).c_str());
 
                         if (task == 5) {
-                            entrycount++;
+                            ++entrycount;
                             console_print_pos(M_OFF, 10, "Select Wii U user%s:", (task == 5) ? " to copy to" : "");
                             if (allusers_d == -1)
                                 console_print_pos(M_OFF, 11, "   < %s >", "all users");
@@ -661,11 +661,11 @@ int main(void) {
                                     common = false;
                                     console_print_pos(M_OFF, (task == 1) || (task == 5) ? 13 : 10,
                                                       "No 'common' save found.");
-                                    entrycount--;
+                                    --entrycount;
                                 }
                             } else {
                                 common = false;
-                                entrycount--;
+                                --entrycount;
                             }
                         } else {
                             if (hasCommonSave(&titles[targ], true, true, slot, versionList != nullptr ? versionList[slot] : 0)) {
@@ -674,7 +674,7 @@ int main(void) {
                             } else {
                                 common = false;
                                 console_print_pos(M_OFF, 7, "No 'common' save found.");
-                                entrycount--;
+                                --entrycount;
                             }
                         }
 
@@ -726,7 +726,7 @@ int main(void) {
 
         memset(&kpad_status, 0, sizeof(KPADStatus));
         WPADExtensionType controllerType;
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; ++i) {
             if (WPADProbe((WPADChan) i, &controllerType) == 0) {
                 KPADRead((WPADChan) i, &kpad_status, 1);
                 break;
@@ -743,9 +743,9 @@ int main(void) {
             if (entrycount <= 14)
                 cursor = (cursor + 1) % entrycount;
             else if (cursor < 6)
-                cursor++;
+                ++cursor;
             else if (((cursor + scroll + 1) % entrycount) != 0)
-                scroll++;
+                ++scroll;
             else
                 cursor = scroll = 0;
         } else if ((vpad_status.trigger & (VPAD_BUTTON_UP | VPAD_STICK_L_EMULATION_UP)) |
@@ -753,9 +753,9 @@ int main(void) {
                    (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_UP | WPAD_CLASSIC_STICK_L_EMULATION_UP)) |
                    (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_UP | WPAD_PRO_STICK_L_EMULATION_UP))) {
             if (scroll > 0)
-                cursor -= (cursor > 6) ? 1 : 0 * (scroll--);
+                cursor -= (cursor > 6) ? 1 : 0 * (--scroll);
             else if (cursor > 0)
-                cursor--;
+                --cursor;
             else if (entrycount > 14)
                 scroll = entrycount - (cursor = 6) - 1;
             else
@@ -786,7 +786,7 @@ int main(void) {
                 } else if (task == 1) {
                     switch (cursor) {
                         case 0:
-                            slot--;
+                            --slot;
                             getAccountsSD(&titles[targ], slot);
                             break;
                         case 1:
@@ -815,7 +815,7 @@ int main(void) {
                 } else if ((task == 3) || (task == 4)) {
                     switch (cursor) {
                         case 0:
-                            slot--;
+                            --slot;
                             break;
                         case 1:
                             common ^= 1;
@@ -824,7 +824,7 @@ int main(void) {
                 } else {
                     switch (cursor) {
                         case 0:
-                            slot--;
+                            --slot;
                             break;
                         case 1:
                             allusers = ((allusers == -1) ? -1 : (allusers - 1));
@@ -859,7 +859,7 @@ int main(void) {
                 } else if (task == 1) {
                     switch (cursor) {
                         case 0:
-                            slot++;
+                            ++slot;
                             getAccountsSD(&titles[targ], slot);
                             break;
                         case 1:
@@ -888,7 +888,7 @@ int main(void) {
                 } else if ((task == 3) || (task == 4)) {
                     switch (cursor) {
                         case 0:
-                            slot++;
+                            ++slot;
                             break;
                         case 1:
                             common ^= 1;
@@ -897,7 +897,7 @@ int main(void) {
                 } else {
                     switch (cursor) {
                         case 0:
-                            slot++;
+                            ++slot;
                             break;
                         case 1:
                             allusers = ((allusers == (wiiuaccn - 1)) ? (wiiuaccn - 1) : (allusers + 1));
@@ -927,7 +927,7 @@ int main(void) {
                 sorta *= -1;
                 qsort(titles, count, sizeof(Title), titleSort);
             } else if (menu == 2) {
-                targ--;
+                --targ;
                 if (targ < 0)
                     targ = count - 1;
             }
@@ -1039,7 +1039,7 @@ int main(void) {
                         }
                     }
                 }
-                menu++;
+                ++menu;
                 cursor = scroll = 0;
             } else {
                 switch (task) {
@@ -1059,7 +1059,7 @@ int main(void) {
                         exportToLoadiine(&titles[targ], common, versionList != nullptr ? versionList[slot] : 0);
                         break;
                     case 5:
-                        for (int i = 0; i < count; i++) {
+                        for (int i = 0; i < count; ++i) {
                             if (titles[i].listID == titles[targ].dupeID) {
                                 copySavedata(&titles[targ], &titles[i], allusers, allusers_d, common);
                                 break;
@@ -1074,7 +1074,7 @@ int main(void) {
                    menu > 0) {
             clearBuffers();
             WHBLogFreetypeDraw();
-            menu--;
+            --menu;
             cursor = scroll = 0;
             if (menu == 1) {
                 cursor = cursorb;

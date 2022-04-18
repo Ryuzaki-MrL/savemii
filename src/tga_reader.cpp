@@ -125,25 +125,25 @@ static auto decodeRLE(int width, int height, int depth, const unsigned char *buf
     auto *decodeBuffer = (unsigned char *) tgaMalloc(decodeBufferLength);
     int decoded = 0;
     while (decoded < decodeBufferLength) {
-        int packet = buffer[offset++] & 0xFF;
+        int packet = buffer[++offset] & 0xFF;
         if ((packet & 0x80) != 0) { // RLE
             int i;
             int j;
             int count;
-            for (i = 0; i < elementCount; i++) {
-                elements[i] = buffer[offset++];
+            for (i = 0; i < elementCount; ++i) {
+                elements[i] = buffer[++offset];
             }
             count = (packet & 0x7F) + 1;
-            for (i = 0; i < count; i++) {
-                for (j = 0; j < elementCount; j++) {
-                    decodeBuffer[decoded++] = elements[j];
+            for (i = 0; i < count; ++i) {
+                for (j = 0; j < elementCount; ++j) {
+                    decodeBuffer[++decoded] = elements[j];
                 }
             }
         } else { // RAW
             int count = (packet + 1) * elementCount;
             int i;
-            for (i = 0; i < count; i++) {
-                decodeBuffer[decoded++] = buffer[offset++];
+            for (i = 0; i < count; ++i) {
+                decodeBuffer[++decoded] = buffer[++offset];
             }
         }
     }
@@ -166,8 +166,8 @@ static auto createPixelsFromColormap(int width, int height, int depth, const uns
                     // UpperRight
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int colormapIndex = (bytes[offset + width * i + j] & 0xFF) - colormapOrigin;
                             int color = 0xFFFFFFFF;
                             if (colormapIndex >= 0) {
@@ -185,8 +185,8 @@ static auto createPixelsFromColormap(int width, int height, int depth, const uns
                     // LowerRight
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int colormapIndex = (bytes[offset + width * i + j] & 0xFF) - colormapOrigin;
                             int color = 0xFFFFFFFF;
                             if (colormapIndex >= 0) {
@@ -206,8 +206,8 @@ static auto createPixelsFromColormap(int width, int height, int depth, const uns
                     // UpperLeft
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int colormapIndex = (bytes[offset + width * i + j] & 0xFF) - colormapOrigin;
                             int color = 0xFFFFFFFF;
                             if (colormapIndex >= 0) {
@@ -225,8 +225,8 @@ static auto createPixelsFromColormap(int width, int height, int depth, const uns
                     // LowerLeft
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int colormapIndex = (bytes[offset + width * i + j] & 0xFF) - colormapOrigin;
                             int color = 0xFFFFFFFF;
                             if (colormapIndex >= 0) {
@@ -250,8 +250,8 @@ static auto createPixelsFromColormap(int width, int height, int depth, const uns
                     // UpperRight
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int colormapIndex = (bytes[offset + width * i + j] & 0xFF) - colormapOrigin;
                             int color = 0xFFFFFFFF;
                             if (colormapIndex >= 0) {
@@ -269,8 +269,8 @@ static auto createPixelsFromColormap(int width, int height, int depth, const uns
                     // LowerRight
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int colormapIndex = (bytes[offset + width * i + j] & 0xFF) - colormapOrigin;
                             int color = 0xFFFFFFFF;
                             if (colormapIndex >= 0) {
@@ -290,8 +290,8 @@ static auto createPixelsFromColormap(int width, int height, int depth, const uns
                     // UpperLeft
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int colormapIndex = (bytes[offset + width * i + j] & 0xFF) - colormapOrigin;
                             int color = 0xFFFFFFFF;
                             if (colormapIndex >= 0) {
@@ -309,8 +309,8 @@ static auto createPixelsFromColormap(int width, int height, int depth, const uns
                     // LowerLeft
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int colormapIndex = (bytes[offset + width * i + j] & 0xFF) - colormapOrigin;
                             int color = 0xFFFFFFFF;
                             if (colormapIndex >= 0) {
@@ -349,8 +349,8 @@ createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes
                     // UpperRight
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int index = offset + 3 * width * i + 3 * j;
                             int b = bytes[index + 0] & 0xFF;
                             int g = bytes[index + 1] & 0xFF;
@@ -363,8 +363,8 @@ createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes
                     // LowerRight
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int index = offset + 3 * width * i + 3 * j;
                             int b = bytes[index + 0] & 0xFF;
                             int g = bytes[index + 1] & 0xFF;
@@ -380,8 +380,8 @@ createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes
                     // UpperLeft
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int index = offset + 3 * width * i + 3 * j;
                             int b = bytes[index + 0] & 0xFF;
                             int g = bytes[index + 1] & 0xFF;
@@ -394,8 +394,8 @@ createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes
                     // LowerLeft
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int index = offset + 3 * width * i + 3 * j;
                             int b = bytes[index + 0] & 0xFF;
                             int g = bytes[index + 1] & 0xFF;
@@ -414,8 +414,8 @@ createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes
                     // UpperRight
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int index = offset + 4 * width * i + 4 * j;
                             int b = bytes[index + 0] & 0xFF;
                             int g = bytes[index + 1] & 0xFF;
@@ -428,8 +428,8 @@ createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes
                     // LowerRight
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int index = offset + 4 * width * i + 4 * j;
                             int b = bytes[index + 0] & 0xFF;
                             int g = bytes[index + 1] & 0xFF;
@@ -445,8 +445,8 @@ createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes
                     // UpperLeft
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int index = offset + 4 * width * i + 4 * j;
                             int b = bytes[index + 0] & 0xFF;
                             int g = bytes[index + 1] & 0xFF;
@@ -459,8 +459,8 @@ createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes
                     // LowerLeft
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int index = offset + 4 * width * i + 4 * j;
                             int b = bytes[index + 0] & 0xFF;
                             int g = bytes[index + 1] & 0xFF;
@@ -494,8 +494,8 @@ createPixelsFromGrayscale(int width, int height, int depth, const unsigned char 
                     // UpperRight
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int e = bytes[offset + width * i + j] & 0xFF;
                             int a = 0xFF;
                             pixels[width * i + (width - j - 1)] = (e << rs) | (e << gs) | (e << bs) | (a << as);
@@ -505,8 +505,8 @@ createPixelsFromGrayscale(int width, int height, int depth, const unsigned char 
                     // LowerRight
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int e = bytes[offset + width * i + j] & 0xFF;
                             int a = 0xFF;
                             pixels[width * (height - i - 1) + (width - j - 1)] =
@@ -519,8 +519,8 @@ createPixelsFromGrayscale(int width, int height, int depth, const unsigned char 
                     // UpperLeft
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int e = bytes[offset + width * i + j] & 0xFF;
                             int a = 0xFF;
                             pixels[width * i + j] = (e << rs) | (e << gs) | (e << bs) | (a << as);
@@ -530,8 +530,8 @@ createPixelsFromGrayscale(int width, int height, int depth, const unsigned char 
                     // LowerLeft
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int e = bytes[offset + width * i + j] & 0xFF;
                             int a = 0xFF;
                             pixels[width * (height - i - 1) + j] = (e << rs) | (e << gs) | (e << bs) | (a << as);
@@ -547,8 +547,8 @@ createPixelsFromGrayscale(int width, int height, int depth, const unsigned char 
                     // UpperRight
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int e = bytes[offset + 2 * width * i + 2 * j + 0] & 0xFF;
                             int a = bytes[offset + 2 * width * i + 2 * j + 1] & 0xFF;
                             pixels[width * i + (width - j - 1)] = (e << rs) | (e << gs) | (e << bs) | (a << as);
@@ -558,8 +558,8 @@ createPixelsFromGrayscale(int width, int height, int depth, const unsigned char 
                     // LowerRight
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int e = bytes[offset + 2 * width * i + 2 * j + 0] & 0xFF;
                             int a = bytes[offset + 2 * width * i + 2 * j + 1] & 0xFF;
                             pixels[width * (height - i - 1) + (width - j - 1)] =
@@ -572,8 +572,8 @@ createPixelsFromGrayscale(int width, int height, int depth, const unsigned char 
                     // UpperLeft
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int e = bytes[offset + 2 * width * i + 2 * j + 0] & 0xFF;
                             int a = bytes[offset + 2 * width * i + 2 * j + 1] & 0xFF;
                             pixels[width * i + j] = (e << rs) | (e << gs) | (e << bs) | (a << as);
@@ -583,8 +583,8 @@ createPixelsFromGrayscale(int width, int height, int depth, const unsigned char 
                     // LowerLeft
                     int i;
                     int j;
-                    for (i = 0; i < height; i++) {
-                        for (j = 0; j < width; j++) {
+                    for (i = 0; i < height; ++i) {
+                        for (j = 0; j < width; ++j) {
                             int e = bytes[offset + 2 * width * i + 2 * j + 0] & 0xFF;
                             int a = bytes[offset + 2 * width * i + 2 * j + 1] & 0xFF;
                             pixels[width * (height - i - 1) + j] = (e << rs) | (e << gs) | (e << bs) | (a << as);

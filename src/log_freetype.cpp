@@ -121,27 +121,27 @@ auto ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) -> int {
     FT_UInt previous_glyph;
 
     while (*string != 0) {
-        uint32_t buf = *string++;
+        uint32_t buf = ++*string;
 
         if ((buf >> 6) == 3) {
             if ((buf & 0xF0) == 0xC0) {
                 uint8_t b1 = buf & 0xFF;
-                uint8_t b2 = *string++;
+                uint8_t b2 = ++*string;
                 if ((b2 & 0xC0) == 0x80) {
                     b2 &= 0x3F;
                 }
                 buf = ((b1 & 0xF) << 6) | b2;
             } else if ((buf & 0xF0) == 0xD0) {
                 uint8_t b1 = buf & 0xFF;
-                uint8_t b2 = *string++;
+                uint8_t b2 = ++*string;
                 if ((b2 & 0xC0) == 0x80) {
                     b2 &= 0x3F;
                 }
                 buf = 0x400 | ((b1 & 0xF) << 6) | b2;
             } else if ((buf & 0xF0) == 0xE0) {
                 uint8_t b1 = buf & 0xFF;
-                uint8_t b2 = *string++;
-                uint8_t b3 = *string++;
+                uint8_t b2 = ++*string;
+                uint8_t b3 = ++*string;
                 if ((b2 & 0xC0) == 0x80) {
                     b2 &= 0x3F;
                 }
@@ -151,7 +151,7 @@ auto ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) -> int {
                 buf = ((b1 & 0xF) << 12) | (b2 << 6) | b3;
             }
         } else if ((buf & 0x80) != 0u) {
-            string++;
+            ++string;
             continue;
         }
 
@@ -211,24 +211,24 @@ auto ttfStringWidth(char *string, int8_t part) -> int {
     FT_UInt previous_glyph;
 
     while (*string != 0) {
-        uint32_t buf = *string++;
+        uint32_t buf = ++*string;
         if ((buf >> 6) == 3) {
             if ((buf & 0xF0) == 0xC0) {
                 uint8_t b1 = buf & 0xFF;
-                uint8_t b2 = *string++;
+                uint8_t b2 = ++*string;
                 if ((b2 & 0xC0) == 0x80)
                     b2 &= 0x3F;
                 buf = ((b1 & 0xF) << 6) | b2;
             } else if ((buf & 0xF0) == 0xD0) {
                 uint8_t b1 = buf & 0xFF;
-                uint8_t b2 = *string++;
+                uint8_t b2 = ++*string;
                 if ((b2 & 0xC0) == 0x80)
                     b2 &= 0x3F;
                 buf = 0x400 | ((b1 & 0xF) << 6) | b2;
             } else if ((buf & 0xF0) == 0xE0) {
                 uint8_t b1 = buf & 0xFF;
-                uint8_t b2 = *string++;
-                uint8_t b3 = *string++;
+                uint8_t b2 = ++*string;
+                uint8_t b3 = ++*string;
                 if ((b2 & 0xC0) == 0x80)
                     b2 &= 0x3F;
                 if ((b3 & 0xC0) == 0x80)
@@ -236,7 +236,7 @@ auto ttfStringWidth(char *string, int8_t part) -> int {
                 buf = ((b1 & 0xF) << 12) | (b2 << 6) | b3;
             }
         } else if ((buf & 0x80) != 0u) {
-            string++;
+            ++string;
             continue;
         }
 
@@ -256,15 +256,14 @@ auto ttfStringWidth(char *string, int8_t part) -> int {
                 if (part == -2)
                     max_x = max1(pen_x, max_x);
                 pen_x = 0;
-                spart++;
+                ++spart;
             }
             continue;
         }
 
         error = FT_Load_Glyph(fontFace, glyph_index, FT_LOAD_BITMAP_METRICS_ONLY);
-        if (error) {
+        if (error)
             continue;
-        }
 
         pen_x += (slot->advance.x >> 6);
         previous_glyph = glyph_index;
