@@ -276,7 +276,7 @@ bool promptConfirm(Style st, string question) {
         clearBuffersEx();
     else
         clearBuffersEx();
-    if (!((st & ST_MULTILINE) != 0)) {
+    if (!(st & ST_MULTILINE)) {
         console_print_pos(31 - (ttfStringWidth((char *) question.c_str(), 0) / 24), 7, question.c_str());
         console_print_pos(31 - (ttfStringWidth((char *) msg.c_str(), -1) / 24), 9, msg.c_str());
     }
@@ -897,69 +897,60 @@ void wipeSavedata(Title *title, int8_t allusers, bool common) {
     }
 }
 
-void importFromLoadiine(Title *title, bool common, int version) {
-    if (!promptConfirm(ST_WARNING, "Are you sure?"))
-        return;
-    
+void importFromLoadiine(Title* title, bool common, int version) {
+    if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
     int slotb = getEmptySlot(title->highID, title->lowID);
-    if (slotb >= 0 && promptConfirm(ST_YES_NO, "Backup current savedata first?"))
-        backupSavedata(title, slotb, 0, common);
-    
-    uint32_t highID = title->highID;
-    uint32_t lowID = title->lowID;
+    if (slotb>=0 && promptConfirm(ST_YES_NO, "Backup current savedata first?")) backupSavedata(title, slotb, 0, common);
+    uint32_t highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
-    string srcPath;
-    string dstPath;
-    if (!(srcPath = getLoadiineGameSaveDir(title->productCode)).empty())
-        return;
-    if (version != 0)
-        srcPath.append(string_format("/v%i", version));
-    string usrPath = getUserID();
-    srcPath = getLoadiineUserDir(srcPath.c_str(), usrPath.c_str());
-    dstPath = string_format("%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
-    createFolder(dstPath.c_str());
-    dstPath.append(string_format("/%s", usrPath.c_str()));
-    promptError(srcPath.c_str());
-    promptError(dstPath.c_str());
-    if (DumpDir(srcPath, dstPath) != 0)
-        promptError("Failed to import savedata from loadiine.");
-    if (common) {
-        srcPath.append("/c\0");
-        dstPath.append("/common\0");
-        promptError(srcPath.c_str());
-        promptError(dstPath.c_str());
-        if (DumpDir(srcPath, dstPath) != 0)
-            promptError("Common save not found.");
-    }
+    char* srcPath;
+    char* dstPath;
+    if ((srcPath = getLoadiineGameSaveDir(title->productCode).c_str()) !=0 ) return;
+    if (version) sprintf(srcPath + strlen(srcPath), "/v%i", version);
+    char* usrPath;
+    usrPath = getUserID().c_str();
+    uint32_t srcOffset = strlen(srcPath);
+    srcPath = getLoadiineUserDir(srcPath, usrPath).c_str();
+    sprintf(dstPath, "/vol/storage_%s01/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
+	createFolder(dstPath);
+    uint32_t dstOffset = strlen(dstPath);
+    sprintf(dstPath + dstOffset, "/%s", usrPath);
+	promptError(srcPath);
+	promptError(dstPath);
+    if (DumpDir(srcPath, dstPath) != 0) promptError("Failed to import savedata from loadiine.");
+	if (common) {
+	    strcpy(srcPath + srcOffset, "/c\0");
+	    strcpy(dstPath + dstOffset, "/common\0");
+		promptError(srcPath);
+		promptError(dstPath);
+	    if (DumpDir(srcPath, dstPath) != 0) promptError("Common save not found.");
+	}
 }
 
-void exportToLoadiine(Title *title, bool common, int version) {
-    if (!promptConfirm(ST_WARNING, "Are you sure?"))
-        return;
-    uint32_t highID = title->highID;
-    uint32_t lowID = title->lowID;
+void exportToLoadiine(Title* title, bool common, int version) {
+    if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
+    uint32_t highID = title->highID, lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
-    string srcPath;
-    string dstPath;
-    if (!(dstPath = getLoadiineGameSaveDir(title->productCode)).empty())
-        return;
-    if (version != 0)
-        dstPath.append(string_format("/v%u", version));
-    string usrPath = getUserID();
-    dstPath = getLoadiineUserDir(dstPath.c_str(), usrPath.c_str());
-    srcPath = string_format("%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
-    srcPath.append(string_format("/%s", usrPath.c_str()));
-    createFolder(dstPath.c_str());
-    promptError(srcPath.c_str());
-    promptError(dstPath.c_str());
-    if (DumpDir(srcPath, dstPath) != 0)
-        promptError("Failed to export savedata to loadiine.");
-    if (common) {
-        dstPath.append("/c\0");
-        srcPath.append("/common\0");
-        promptError(srcPath.c_str());
-        promptError(dstPath.c_str());
-        if (DumpDir(srcPath, dstPath) != 0)
-            promptError("Common save not found.");
-    }
+    char* srcPath;
+    char* dstPath;
+    if ((dstPath = getLoadiineGameSaveDir(title->productCode).c_str())!=0) return;
+    if (version) sprintf(dstPath + strlen(dstPath), "/v%u", version);
+    char* usrPath;
+    usrPath = getUserID().c_str();
+    uint32_t dstOffset = strlen(dstPath);
+    dstPath = getLoadiineUserDir(dstPath, usrPath).c_str();
+    sprintf(srcPath, "/vol/storage_%s01/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
+    uint32_t srcOffset = strlen(srcPath);
+    sprintf(srcPath + srcOffset, "/%s", usrPath);
+	createFolder(dstPath);
+	promptError(srcPath);
+	promptError(dstPath);
+    if (DumpDir(srcPath, dstPath) != 0) promptError("Failed to export savedata to loadiine.");
+	if (common) {
+	    strcpy(dstPath + dstOffset, "/c\0");
+	    strcpy(srcPath + srcOffset, "/common\0");
+		promptError(srcPath);
+		promptError(dstPath);
+	    if (DumpDir(srcPath, dstPath) != 0) promptError("Common save not found.");
+	}
 }
