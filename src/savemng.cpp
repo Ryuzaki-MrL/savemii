@@ -4,7 +4,6 @@
 
 #include "savemng.h"
 
-#define PATH_SIZE 0x400
 #define IO_MAX_FILE_BUFFER (1024 * 1024) // 1 MB
 
 int fsaFd = -1;
@@ -270,12 +269,16 @@ bool promptConfirm(Style st, string question) {
         default:
             msg = msg2;
     }
-    if ((st & ST_WARNING) != 0)
-        clearBuffersEx();
-    else if ((st & ST_ERROR) != 0)
-        clearBuffersEx();
-    else
-        clearBuffersEx();
+    if (st & ST_WARNING) {
+		OSScreenClearBufferEx(SCREEN_TV, 0x7F7F0000);
+	    OSScreenClearBufferEx(SCREEN_DRC, 0x7F7F0000);
+	} else if (st & ST_ERROR) {
+		OSScreenClearBufferEx(SCREEN_TV, 0x7F000000);
+	    OSScreenClearBufferEx(SCREEN_DRC, 0x7F000000);
+	} else {
+		OSScreenClearBufferEx(SCREEN_TV, 0x007F0000);
+	    OSScreenClearBufferEx(SCREEN_DRC, 0x007F0000);
+    }
     if (!(st & ST_MULTILINE)) {
         console_print_pos(31 - (ttfStringWidth((char *) question.c_str(), 0) / 24), 7, question.c_str());
         console_print_pos(31 - (ttfStringWidth((char *) msg.c_str(), -1) / 24), 9, msg.c_str());
@@ -563,24 +566,25 @@ string getUserID() { // Source: loadiine_gx2
     return out;
 }
 
-string getLoadiineGameSaveDir(const char *productCode) {
+int getLoadiineGameSaveDir(char *out, const char *productCode) {
     DIR *dir = opendir("sd:/wiiu/saves");
 
-    if (dir == nullptr)
-        return "";
+    if (dir == nullptr) {
+        return -1;
+    }
 
     struct dirent *data;
     while ((data = readdir(dir)) != nullptr) {
         if (((data->d_type & DT_DIR) != 0) && (strstr(data->d_name, productCode) != nullptr)) {
-            string out = string_format("sd:/wiiu/saves/%s", data->d_name);
+            sprintf(out, "sd:/wiiu/saves/%s", data->d_name);
             closedir(dir);
-            return out;
+            return 0;
         }
     }
 
     promptError("Loadiine game folder not found.");
     closedir(dir);
-    return "";
+    return -2;
 }
 
 int getLoadiineSaveVersionList(int *out, const char *gamePath) {
@@ -601,28 +605,29 @@ int getLoadiineSaveVersionList(int *out, const char *gamePath) {
     return 0;
 }
 
-string getLoadiineUserDir(const char *fullSavePath, const char *userID) {
+int getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID) {
     DIR *dir = opendir(fullSavePath);
-    string out;
 
     if (dir == nullptr) {
         promptError("Failed to open Loadiine game save directory.");
-        return "";
+        return -1;
     }
 
     struct dirent *data;
     while ((data = readdir(dir)) != nullptr) {
         if (((data->d_type & DT_DIR) != 0) && ((strstr(data->d_name, userID)) != nullptr)) {
-            out = string_format("%s/%s", fullSavePath, data->d_name);
+            sprintf(out, "%s/%s", fullSavePath, data->d_name);
             closedir(dir);
-            return out;
+            return 0;
         }
     }
-    out = string_format("%s/u", fullSavePath);
+
+    sprintf(out, "%s/u", fullSavePath);
     closedir(dir);
-    if (checkEntry(out.c_str()) <= 0)
-        return "";
-    return out;
+    if (checkEntry(out) <= 0) {
+        return -1;
+    }
+    return 0;
 }
 
 bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) {
@@ -650,41 +655,49 @@ bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t s
     if (highID == 0 || lowID == 0)
         return false;
 
-    string srcPath;
+    char srcPath[PATH_SIZE];
     if (!isWii) {
         if (!inSD) {
             const char *path = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
-            if (user == 0)
-                srcPath = string_format("%s/%08x/%08x/%s/common", path, highID, lowID, "user");
-            else if (user == 0xFFFFFFFF)
-                srcPath = string_format("%s/%08x/%08x/%s", path, highID, lowID, "user");
-            else
-                srcPath = string_format("%s/%08x/%08x/%s/%08x", path, highID, lowID, "user", user);
+            if (user == 0) {
+                sprintf(srcPath, "%s/%08x/%08x/%s/common", path, highID, lowID, "user");
+            } else if (user == 0xFFFFFFFF) {
+                sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, "user");
+            } else {
+                sprintf(srcPath, "%s/%08x/%08x/%s/%08X", path, highID, lowID, "user", user);
+            }
         } else {
             if (!iine) {
-                srcPath = string_format("sd:/wiiu/backups/%08x%08x/%u/%08X", highID, lowID, slot, user);
+                sprintf(srcPath, "sd:/wiiu/backups/%08x%08x/%u/%08X", highID, lowID, slot, user);
             } else {
-                if (!(srcPath = getLoadiineGameSaveDir(title->productCode)).empty())
+                if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) {
                     return false;
-                if (version != 0)
-                    srcPath.append(string_format("/v%d", version));
+                }
+                if (version != 0) {
+                    sprintf(srcPath + strlen(srcPath), "/v%u", version);
+                }
                 if (user == 0) {
-                    srcPath.append("/c\0");
+                    uint32_t srcOffset = strlen(srcPath);
+                    strcpy(srcPath + srcOffset, "/c\0");
                 } else {
-                    string usrPath = string_format("%08X", user);
-                    srcPath = getLoadiineUserDir(srcPath.c_str(), usrPath.c_str());
+                    char usrPath[16];
+                    sprintf(usrPath, "%08X", user);
+                    getLoadiineUserDir(srcPath, srcPath, usrPath);
                 }
             }
         }
     } else {
-        if (!inSD)
-            srcPath = string_format("slc:/title/%08x/%08x/data", highID, lowID);
-        else
-            srcPath = string_format("sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+        if (!inSD) {
+            sprintf(srcPath, "slc:/title/%08x/%08x/data", highID, lowID);
+        } else {
+            sprintf(srcPath, "sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+        }
     }
-    if (checkEntry(srcPath.c_str()) == 2)
-        if (folderEmpty(srcPath.c_str()) == 0)
+    if (checkEntry(srcPath) == 2) {
+        if (folderEmpty(srcPath) == 0) {
             return true;
+        }
+    }
     return false;
 }
 
@@ -704,7 +717,7 @@ bool hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version
         if (!iine) {
             srcPath = string_format("sd:/wiiu/backups/%08x%08x/%u/common", highID, lowID, slot);
         } else {
-            if (!(srcPath = getLoadiineGameSaveDir(title->productCode)).empty())
+            if (getLoadiineGameSaveDir(srcPath.data(), title->productCode) != 0)
                 return false;
             if (version != 0)
                 srcPath.append(string_format("/v%u", version));
@@ -897,60 +910,71 @@ void wipeSavedata(Title *title, int8_t allusers, bool common) {
     }
 }
 
-void importFromLoadiine(Title* title, bool common, int version) {
-    if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
+void importFromLoadiine(Title *title, bool common, int version) {
+    if (!promptConfirm(ST_WARNING, "Are you sure?"))
+        return;
     int slotb = getEmptySlot(title->highID, title->lowID);
-    if (slotb>=0 && promptConfirm(ST_YES_NO, "Backup current savedata first?")) backupSavedata(title, slotb, 0, common);
-    uint32_t highID = title->highID, lowID = title->lowID;
+    if (slotb >= 0 && promptConfirm(ST_YES_NO, "Backup current savedata first?"))
+        backupSavedata(title, slotb, 0, common);
+    uint32_t highID = title->highID;
+    uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
-    char* srcPath;
-    char* dstPath;
-    if ((srcPath = getLoadiineGameSaveDir(title->productCode).c_str()) !=0 ) return;
-    if (version) sprintf(srcPath + strlen(srcPath), "/v%i", version);
-    char* usrPath;
-    usrPath = getUserID().c_str();
+    char srcPath[PATH_SIZE];
+    char dstPath[PATH_SIZE];
+    if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0)
+        return;
+    if (version != 0)
+        sprintf(srcPath + strlen(srcPath), "/v%i", version);
+    const char usrPath[16] = { getUserID().c_str() };
     uint32_t srcOffset = strlen(srcPath);
-    srcPath = getLoadiineUserDir(srcPath, usrPath).c_str();
-    sprintf(dstPath, "/vol/storage_%s01/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
-	createFolder(dstPath);
+    getLoadiineUserDir(srcPath, srcPath, usrPath);
+    sprintf(dstPath, "%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
+    createFolder(dstPath);
     uint32_t dstOffset = strlen(dstPath);
     sprintf(dstPath + dstOffset, "/%s", usrPath);
-	promptError(srcPath);
-	promptError(dstPath);
-    if (DumpDir(srcPath, dstPath) != 0) promptError("Failed to import savedata from loadiine.");
-	if (common) {
-	    strcpy(srcPath + srcOffset, "/c\0");
-	    strcpy(dstPath + dstOffset, "/common\0");
-		promptError(srcPath);
-		promptError(dstPath);
-	    if (DumpDir(srcPath, dstPath) != 0) promptError("Common save not found.");
-	}
+    promptError(srcPath);
+    promptError(dstPath);
+    if (DumpDir(srcPath, dstPath) != 0)
+        promptError("Failed to import savedata from loadiine.");
+    if (common) {
+        strcpy(srcPath + srcOffset, "/c\0");
+        strcpy(dstPath + dstOffset, "/common\0");
+        promptError(srcPath);
+        promptError(dstPath);
+        if (DumpDir(srcPath, dstPath) != 0)
+            promptError("Common save not found.");
+    }
 }
 
-void exportToLoadiine(Title* title, bool common, int version) {
-    if (!promptConfirm(ST_WARNING, "Are you sure?")) return;
-    uint32_t highID = title->highID, lowID = title->lowID;
+void exportToLoadiine(Title *title, bool common, int version) {
+    if (!promptConfirm(ST_WARNING, "Are you sure?"))
+        return;
+    uint32_t highID = title->highID;
+    uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
-    char* srcPath;
-    char* dstPath;
-    if ((dstPath = getLoadiineGameSaveDir(title->productCode).c_str())!=0) return;
-    if (version) sprintf(dstPath + strlen(dstPath), "/v%u", version);
-    char* usrPath;
-    usrPath = getUserID().c_str();
+    char srcPath[PATH_SIZE];
+    char dstPath[PATH_SIZE];
+    if (getLoadiineGameSaveDir(dstPath, title->productCode) != 0)
+        return;
+    if (version != 0)
+        sprintf(dstPath + strlen(dstPath), "/v%u", version);
+    const char usrPath[16] = { getUserID().c_str() };
     uint32_t dstOffset = strlen(dstPath);
-    dstPath = getLoadiineUserDir(dstPath, usrPath).c_str();
-    sprintf(srcPath, "/vol/storage_%s01/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
+    getLoadiineUserDir(dstPath, dstPath, usrPath);
+    sprintf(srcPath, "%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
     uint32_t srcOffset = strlen(srcPath);
     sprintf(srcPath + srcOffset, "/%s", usrPath);
-	createFolder(dstPath);
-	promptError(srcPath);
-	promptError(dstPath);
-    if (DumpDir(srcPath, dstPath) != 0) promptError("Failed to export savedata to loadiine.");
-	if (common) {
-	    strcpy(dstPath + dstOffset, "/c\0");
-	    strcpy(srcPath + srcOffset, "/common\0");
-		promptError(srcPath);
-		promptError(dstPath);
-	    if (DumpDir(srcPath, dstPath) != 0) promptError("Common save not found.");
-	}
+    createFolder(dstPath);
+    promptError(srcPath);
+    promptError(dstPath);
+    if (DumpDir(srcPath, dstPath) != 0)
+        promptError("Failed to export savedata to loadiine.");
+    if (common) {
+        strcpy(dstPath + dstOffset, "/c\0");
+        strcpy(srcPath + srcOffset, "/common\0");
+        promptError(srcPath);
+        promptError(dstPath);
+        if (DumpDir(srcPath, dstPath) != 0)
+            promptError("Common save not found.");
+    }
 }

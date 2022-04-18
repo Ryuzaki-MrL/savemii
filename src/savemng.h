@@ -22,6 +22,8 @@
 
 using namespace std;
 
+#define PATH_SIZE 0x400
+
 extern VPADStatus vpad_status;
 extern VPADReadError vpad_error;
 extern KPADStatus kpad_status;
@@ -80,11 +82,11 @@ void getAccountsSD(Title *title, uint8_t slot);
 
 bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t slot, int version);
 
-string getLoadiineGameSaveDir(const char *productCode);
+int getLoadiineGameSaveDir(char *out, const char *productCode);
 
 int getLoadiineSaveVersionList(int *out, const char *gamePath);
 
-string getLoadiineUserDir(const char *fullSavePath, const char *userID);
+int getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID);
 
 bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot);
 
