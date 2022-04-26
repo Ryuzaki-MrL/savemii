@@ -10,15 +10,15 @@ json_t *load_json(const char *text) {
     if (root)
         return root;
     else
-        return (json_t *)0;
+        return (json_t *) 0;
 }
 
 auto doit(char *text) -> char * {
     char *out = nullptr;
     json_t *root = load_json(text);
-    if(root == nullptr)
+    if (root == nullptr)
         return (char *) "";
-    out = json_string_value(json_object_get(root, "Date"));
+    out = (char *) json_string_value(json_object_get(root, "Date"));
     json_decref(root);
     return out;
 }
@@ -50,7 +50,7 @@ auto dofile(char *filename) -> char * {
 string getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
     string path = string_format("sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
     if (checkEntry(path.c_str()) != 0) {
-        string info = dofile((char *)path.c_str());
+        string info = dofile((char *) path.c_str());
         return info;
     }
     return "";
@@ -58,7 +58,7 @@ string getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
 
 auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, string date) -> bool {
     string path = string_format("sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
-  
+
     json_t *config = json_object();
     if (config == nullptr)
         return false;
@@ -68,7 +68,7 @@ auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, string date) -> 
     char *configString = json_dumps(config, 0);
     if (configString == nullptr)
         return false;
-  
+
     json_decref(config);
 
     FILE *fp = fopen(path.c_str(), "wb");

@@ -112,7 +112,7 @@ Title *loadWiiUTitles(int run) {
                     path = string_format("%s:/usr/save/%s/%s/user", (i == 0) ? "usb" : "mlc", highIDs[a], data->d_name);
                     if (checkEntry(path.c_str()) == 2) {
                         path = string_format("%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
-                                data->d_name);
+                                             data->d_name);
                         if (checkEntry(path.c_str()) == 1) {
                             for (int i = 0; i < usable; i++) {
                                 if ((savesl[i].highID == (0x00050000 | 0x00050002)) &&
@@ -149,7 +149,7 @@ Title *loadWiiUTitles(int run) {
                         continue;
 
                     path = string_format("%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
-                            data->d_name);
+                                         data->d_name);
                     if (checkEntry(path.c_str()) == 1) {
                         saves[pos].highID = highIDsNumeric[a];
                         saves[pos].lowID = strtoul(data->d_name, nullptr, 16);
@@ -185,7 +185,7 @@ Title *loadWiiUTitles(int run) {
         bool isTitleOnUSB = saves[i].dev == 0u;
 
         const string path = string_format("%s:/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc",
-                saves[i].found ? "title" : "save", highID, lowID);
+                                          saves[i].found ? "title" : "save", highID, lowID);
         titles[titleswiiu].saveInit = !saves[i].found;
 
         char *xmlBuf = nullptr;
@@ -198,7 +198,7 @@ Title *loadWiiUTitles(int run) {
             memset(titles[titleswiiu].shortName, 0, sizeof(titles[titleswiiu].shortName));
             if (strcspn(cptr, "<") == 0)
                 cptr = strchr(strstr(xmlBuf, "shortname_ja"), '>') + 1;
-            
+
             decodeXMLEscapeLine(string(cptr));
             strlcpy(titles[titleswiiu].shortName, decodeXMLEscapeLine(string(cptr)).c_str(), strcspn(decodeXMLEscapeLine(string(cptr)).c_str(), "<") + 1);
 
@@ -206,7 +206,7 @@ Title *loadWiiUTitles(int run) {
             memset(titles[i].longName, 0, sizeof(titles[i].longName));
             if (strcspn(cptr, "<") == 0)
                 cptr = strchr(strstr(xmlBuf, "longname_ja"), '>') + 1;
-            
+
             strlcpy(titles[titleswiiu].longName, decodeXMLEscapeLine(string(cptr)).c_str(), strcspn(decodeXMLEscapeLine(string(cptr)).c_str(), "<") + 1);
 
             free(xmlBuf);
@@ -228,7 +228,7 @@ Title *loadWiiUTitles(int run) {
         titles[titleswiiu].listID = titleswiiu;
         if (loadTitleIcon(&titles[titleswiiu]) < 0)
             titles[titleswiiu].iconBuf = nullptr;
-        
+
         titleswiiu++;
 
         clearBuffersEx();
@@ -628,7 +628,7 @@ int main(void) {
                                                               : "Empty");
                             }
                         }
-                        if ((task == 0) || (task == 1)) 
+                        if ((task == 0) || (task == 1))
                             if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
                                 console_print_pos(M_OFF, 15, "Date: %s",
                                                   getSlotDate(titles[targ].highID, titles[targ].lowID, slot).c_str());
@@ -981,8 +981,8 @@ int main(void) {
                         }
                     }
                     string path = string_format("%s:/usr/title/000%x/%x/code/fw.img",
-                            (titles[targ].isTitleOnUSB) ? "usb" : "mlc", titles[targ].highID,
-                            titles[targ].lowID);
+                                                (titles[targ].isTitleOnUSB) ? "usb" : "mlc", titles[targ].highID,
+                                                titles[targ].lowID);
                     if ((mode == 0) && (checkEntry(path.c_str()) != 0))
                         if (!promptConfirm(ST_ERROR, "vWii saves are in the vWii section. Continue?"))
                             continue;

@@ -127,7 +127,7 @@ int checkEntry(const char *fPath) {
 
     if (S_ISDIR(st.st_mode))
         return 2;
-    
+
     return 1;
 }
 
@@ -270,14 +270,14 @@ bool promptConfirm(Style st, string question) {
             msg = msg2;
     }
     if (st & ST_WARNING) {
-		OSScreenClearBufferEx(SCREEN_TV, 0x7F7F0000);
-	    OSScreenClearBufferEx(SCREEN_DRC, 0x7F7F0000);
-	} else if (st & ST_ERROR) {
-		OSScreenClearBufferEx(SCREEN_TV, 0x7F000000);
-	    OSScreenClearBufferEx(SCREEN_DRC, 0x7F000000);
-	} else {
-		OSScreenClearBufferEx(SCREEN_TV, 0x007F0000);
-	    OSScreenClearBufferEx(SCREEN_DRC, 0x007F0000);
+        OSScreenClearBufferEx(SCREEN_TV, 0x7F7F0000);
+        OSScreenClearBufferEx(SCREEN_DRC, 0x7F7F0000);
+    } else if (st & ST_ERROR) {
+        OSScreenClearBufferEx(SCREEN_TV, 0x7F000000);
+        OSScreenClearBufferEx(SCREEN_DRC, 0x7F000000);
+    } else {
+        OSScreenClearBufferEx(SCREEN_TV, 0x007F0000);
+        OSScreenClearBufferEx(SCREEN_DRC, 0x007F0000);
     }
     if (!(st & ST_MULTILINE)) {
         console_print_pos(31 - (ttfStringWidth((char *) question.c_str(), 0) / 24), 7, question.c_str());
@@ -777,7 +777,7 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
     }
 
     string datetime = string_format("%04d-%02d-%02dT%02d%02d%02d", dateTime.tm_year, dateTime.tm_mon, dateTime.tm_mday,
-                             dateTime.tm_hour, dateTime.tm_min, dateTime.tm_sec);
+                                    dateTime.tm_hour, dateTime.tm_min, dateTime.tm_sec);
     for (int i = 0; i < count; i++) {
         if (titles[i].highID == 0 || titles[i].lowID == 0 || !titles[i].saveInit)
             continue;
@@ -925,7 +925,7 @@ void importFromLoadiine(Title *title, bool common, int version) {
         return;
     if (version != 0)
         sprintf(srcPath + strlen(srcPath), "/v%i", version);
-    const char *usrPath = { getUserID().c_str() };
+    const char *usrPath = {getUserID().c_str()};
     uint32_t srcOffset = strlen(srcPath);
     getLoadiineUserDir(srcPath, srcPath, usrPath);
     sprintf(dstPath, "%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
@@ -958,7 +958,7 @@ void exportToLoadiine(Title *title, bool common, int version) {
         return;
     if (version != 0)
         sprintf(dstPath + strlen(dstPath), "/v%u", version);
-    const char *usrPath = { getUserID().c_str() };
+    const char *usrPath = {getUserID().c_str()};
     uint32_t dstOffset = strlen(dstPath);
     getLoadiineUserDir(dstPath, dstPath, usrPath);
     sprintf(srcPath, "%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);

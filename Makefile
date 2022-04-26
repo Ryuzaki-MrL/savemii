@@ -21,9 +21,9 @@ include $(DEVKITPRO)/wut/share/wut_rules
 #-------------------------------------------------------------------------------
 TARGET		:=	savemii
 BUILD		:=	build
-SOURCES		:=	src cJSON libfat
+SOURCES		:=	src libfat
 DATA		:=  
-INCLUDES	:=  src cJSON include libfat/include
+INCLUDES	:=  src include libfat/include
 DEFS        :=  
 #-------------------------------------------------------------------------------
 # options for code generation
