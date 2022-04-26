@@ -925,7 +925,7 @@ void importFromLoadiine(Title *title, bool common, int version) {
         return;
     if (version != 0)
         sprintf(srcPath + strlen(srcPath), "/v%i", version);
-    const char usrPath[16] = { getUserID().c_str() };
+    const char *usrPath = { getUserID().c_str() };
     uint32_t srcOffset = strlen(srcPath);
     getLoadiineUserDir(srcPath, srcPath, usrPath);
     sprintf(dstPath, "%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
@@ -958,7 +958,7 @@ void exportToLoadiine(Title *title, bool common, int version) {
         return;
     if (version != 0)
         sprintf(dstPath + strlen(dstPath), "/v%u", version);
-    const char usrPath[16] = { getUserID().c_str() };
+    const char *usrPath = { getUserID().c_str() };
     uint32_t dstOffset = strlen(dstPath);
     getLoadiineUserDir(dstPath, dstPath, usrPath);
     sprintf(srcPath, "%s:/usr/save/%08x/%08x/user", isUSB ? "usb" : "mlc", highID, lowID);
