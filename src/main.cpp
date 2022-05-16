@@ -9,7 +9,7 @@ using namespace std;
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 4
-#define VERSION_MICRO 0
+#define VERSION_MICRO 1
 #define M_OFF         1
 
 uint8_t slot = 0;
