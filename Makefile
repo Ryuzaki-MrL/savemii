@@ -64,6 +64,7 @@ CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 sFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.S)))
+DEFFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(TOPDIR)/$(dir)/*.def)))
 BINFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.bin)))
 
 #-------------------------------------------------------------------------------
@@ -121,7 +122,7 @@ all	:	$(OUTPUT).rpx
 $(OUTPUT).rpx	:	$(OUTPUT).elf
 $(OUTPUT).elf	:	$(OFILES)
 
-$(OFILES_SRC)	: $(HFILES_BIN)
+$(OFILES_SRC)	: $(DEFFILES:.def=.o) $(HFILES_BIN)
 
 #---------------------------------------------------------------------------------
 %.a:
@@ -184,6 +185,14 @@ $(OFILES_SRC)	: $(HFILES_BIN)
 %.zip.o : %.zip
 	@echo $(notdir $<)
 	@bin2s -a 32 $< | $(AS) -o $(@)
+#---------------------------------------------------------------------------------
+%.o: %.def
+	$(SILENTMSG) $(notdir $<)
+	$(SILENTCMD)rplexportgen $< $*.s $(ERROR_FILTER)
+	$(SILENTCMD)$(CC) -x assembler-with-cpp $(ASFLAGS) -c $*.s -o $@ $(ERROR_FILTER)
+
+-include $(DEPENDS)
+
 #---------------------------------------------------------------------------------
 endif
 #---------------------------------------------------------------------------------
