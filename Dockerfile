@@ -1,4 +1,4 @@
-FROM wiiuenv/devkitppc:latest
+FROM devkitpro/devkitppc:latest
 
 COPY --from=wiiuenv/libiosuhax:latest /artifacts $DEVKITPRO
 
