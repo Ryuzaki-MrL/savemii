@@ -1,6 +1,6 @@
 #include "string.hpp"
 #include <nn/act/client_cpp.h>
-#include <stdio.h>
+#include <cstdio>
 
 #include "savemng.h"
 
@@ -44,7 +44,7 @@ void show_file_operation(std::string file_name, std::string file_src, std::strin
     console_print_pos_multiline(-2, 8, '/', "To: %s", file_dest.c_str());
 }
 
-int FSAR(int result) {
+auto FSAR(int result) -> int {
     if ((result & 0xFFFF0000) == 0xFFFC0000)
         return (result & 0xFFFF) | 0xFFFF0000;
     return result;
@@ -120,7 +120,7 @@ int32_t loadTitleIcon(Title *title) {
     return -23;
 }
 
-int checkEntry(const char *fPath) {
+auto checkEntry(const char *fPath) -> int {
     struct stat st;
     if (stat(fPath, &st) == -1)
         return 0;
@@ -131,7 +131,7 @@ int checkEntry(const char *fPath) {
     return 1;
 }
 
-int folderEmpty(const char *fPath) {
+auto folderEmpty(const char *fPath) -> int {
     DIR *dir = opendir(fPath);
     if (dir == nullptr)
         return -1;
@@ -146,7 +146,7 @@ int folderEmpty(const char *fPath) {
     return c < 3 ? 1 : 0;
 }
 
-int createFolder(const char *fPath) { //Adapted from mkdir_p made by JonathonReinhart
+auto createFolder(const char *fPath) -> int { //Adapted from mkdir_p made by JonathonReinhart
     std::string _path;
     char *p;
     int found = 0;
@@ -253,7 +253,7 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
         free(tmp);
 }
 
-bool promptConfirm(Style st, std::string question) {
+auto promptConfirm(Style st, std::string question) -> bool {
     clearBuffers();
     WHBLogFreetypeDraw();
     const std::string msg1 = "\ue000 Yes - \ue001 No";
@@ -407,7 +407,7 @@ void getAccountsSD(Title *title, uint8_t slot) {
     }
 }
 
-int DumpFile(std::string pPath, std::string oPath) {
+auto DumpFile(std::string pPath, std::string oPath) -> int {
     FILE *source = fopen(pPath.c_str(), "rb");
     if (source == nullptr)
         return -1;
@@ -475,7 +475,7 @@ int DumpFile(std::string pPath, std::string oPath) {
     return 0;
 }
 
-int DumpDir(std::string pPath, std::string tPath) { // Source: ft2sd
+auto DumpDir(std::string pPath, std::string tPath) -> int { // Source: ft2sd
     DIR *dir = opendir(pPath.c_str());
     if (dir == nullptr) {
         return -1;
@@ -487,9 +487,8 @@ int DumpDir(std::string pPath, std::string tPath) { // Source: ft2sd
     while ((data = readdir(dir)) != nullptr) {
         clearBuffersEx();
 
-        if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0) {
+        if (strcmp(data->d_name, "..") == 0 || strcmp(data->d_name, ".") == 0)
             continue;
-        }
 
         std::string targetPath = string_format("%s/%s", tPath.c_str(), data->d_name);
 
@@ -515,7 +514,7 @@ int DumpDir(std::string pPath, std::string tPath) { // Source: ft2sd
     return 0;
 }
 
-int DeleteDir(char *pPath) {
+auto DeleteDir(char *pPath) -> int {
     DIR *dir = opendir(pPath);
     if (dir == NULL)
         return -1;
@@ -566,7 +565,7 @@ std::string getUserID() { // Source: loadiine_gx2
     return out;
 }
 
-int getLoadiineGameSaveDir(char *out, const char *productCode) {
+auto getLoadiineGameSaveDir(char *out, const char *productCode) -> int {
     DIR *dir = opendir("sd:/wiiu/saves");
 
     if (dir == nullptr) {
@@ -587,7 +586,7 @@ int getLoadiineGameSaveDir(char *out, const char *productCode) {
     return -2;
 }
 
-int getLoadiineSaveVersionList(int *out, const char *gamePath) {
+auto getLoadiineSaveVersionList(int *out, const char *gamePath) -> int {
     DIR *dir = opendir(gamePath);
 
     if (dir == nullptr) {
@@ -605,7 +604,7 @@ int getLoadiineSaveVersionList(int *out, const char *gamePath) {
     return 0;
 }
 
-int getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID) {
+auto getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID) -> int {
     DIR *dir = opendir(fullSavePath);
 
     if (dir == nullptr) {
@@ -630,7 +629,7 @@ int getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID) 
     return 0;
 }
 
-bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) {
+auto isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) -> bool {
     std::string path;
     if (((highID & 0xFFFFFFF0) == 0x00010000) && (slot == 255))
         path = string_format("sd:/savegames/%08x%08x", highID, lowID);
@@ -640,14 +639,14 @@ bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) {
     return ret <= 0;
 }
 
-int getEmptySlot(uint32_t highID, uint32_t lowID) {
+auto getEmptySlot(uint32_t highID, uint32_t lowID) -> int {
     for (int i = 0; i < 256; i++)
         if (isSlotEmpty(highID, lowID, i))
             return i;
     return -1;
 }
 
-bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t slot, int version) {
+auto hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t slot, int version) -> bool {
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
@@ -701,7 +700,7 @@ bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t s
     return false;
 }
 
-bool hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version) {
+auto hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version) -> bool {
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;

@@ -4,11 +4,11 @@
 #include <stdexcept>
 #include <string>
 
-bool replace(std::string &str, const std::string &from, const std::string &to);
-std::string decodeXMLEscapeLine(std::string xmlString);
+auto replace(std::string &str, const std::string &from, const std::string &to) -> bool;
+auto decodeXMLEscapeLine(std::string xmlString) -> std::string;
 
 template<typename ... Args>
-std::string string_format( const std::string& format, Args ... args )
+auto string_format( const std::string& format, Args ... args ) -> std::string
 {
     int size_s = std::snprintf( nullptr, 0, format.c_str(), args ... ) + 1; // Extra space for '\0'
     if( size_s <= 0 ){ throw std::runtime_error( "Error during formatting." ); }

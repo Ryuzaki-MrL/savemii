@@ -19,7 +19,7 @@ int cursorb = 0, cursort = 0, scrollb = 0;
 int titleswiiu = 0, titlesvwii = 0;
 const char *sortn[4] = {"None", "Name", "Storage", "Storage+Name"};
 
-int titleSort(const void *c1, const void *c2) {
+auto titleSort(const void *c1, const void *c2) -> int {
     switch (tsort) {
         case 0:
             return ((Title *) c1)->listID - ((Title *) c2)->listID;
@@ -400,7 +400,7 @@ void unloadTitles(Title *titles, int count) {
 }
 
 /* Entry point */
-int main(void) {
+auto main() -> int {
     WHBProcInit();
     WHBLogFreetypeInit();
     VPADInit();

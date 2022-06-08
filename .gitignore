@@ -8,3 +8,4 @@ encryptKeyWith
 *.jar
 *.rpx
 TODO.txt
+.vscode
