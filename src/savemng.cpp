@@ -17,7 +17,7 @@ VPADReadError vpad_error;
 
 KPADStatus kpad[4], kpad_status;
 
-static string newlibToFSA(string path) {
+static std::string newlibToFSA(std::string path) {
     if (path[3] == ':') {
         switch (path[0]) {
             case 'u':
@@ -38,7 +38,7 @@ void setFSAFD(int fd) {
     fsaFd = fd;
 }
 
-void show_file_operation(string file_name, string file_src, string file_dest) {
+void show_file_operation(std::string file_name, std::string file_src, std::string file_dest) {
     console_print_pos(-2, 0, "Copying file: %s", file_name.c_str());
     console_print_pos_multiline(-2, 2, '/', "From: %s", file_src.c_str());
     console_print_pos_multiline(-2, 8, '/', "To: %s", file_dest.c_str());
@@ -102,7 +102,7 @@ int32_t loadTitleIcon(Title *title) {
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    string path;
+    std::string path;
 
     if (isWii) {
         if (title->saveInit) {
@@ -147,7 +147,7 @@ int folderEmpty(const char *fPath) {
 }
 
 int createFolder(const char *fPath) { //Adapted from mkdir_p made by JonathonReinhart
-    string _path;
+    std::string _path;
     char *p;
     int found = 0;
 
@@ -177,7 +177,7 @@ void console_print_pos_aligned(int y, uint16_t offset, uint8_t align, const char
     int x = 0;
     va_list va;
     va_start(va, format);
-    string tmp = string_format(format, va);
+    std::string tmp = string_format(format, va);
     if (!tmp.empty()) {
         switch (align) {
             case 0:
@@ -239,7 +239,7 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
                     q[l1] = o;
                     l1--;
                 }
-                string buf;
+                std::string buf;
                 buf.assign(p);
                 p = (char *) string_format("\n%s", buf.c_str()).c_str();
                 p++;
@@ -253,12 +253,12 @@ void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ..
         free(tmp);
 }
 
-bool promptConfirm(Style st, string question) {
+bool promptConfirm(Style st, std::string question) {
     clearBuffers();
     WHBLogFreetypeDraw();
-    const string msg1 = "\ue000 Yes - \ue001 No";
-    const string msg2 = "\ue000 Confirm - \ue001 Cancel";
-    string msg;
+    const std::string msg1 = "\ue000 Yes - \ue001 No";
+    const std::string msg2 = "\ue000 Confirm - \ue001 Cancel";
+    std::string msg;
     switch (st & 0x0F) {
         case ST_YES_NO:
             msg = msg1;
@@ -378,7 +378,7 @@ void getAccountsSD(Title *title, uint8_t slot) {
     if (sdacc != nullptr)
         free(sdacc);
 
-    string path = string_format("sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
+    std::string path = string_format("sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
     DIR *dir = opendir(path.c_str());
     if (dir != nullptr) {
         struct dirent *data;
@@ -407,7 +407,7 @@ void getAccountsSD(Title *title, uint8_t slot) {
     }
 }
 
-int DumpFile(string pPath, string oPath) {
+int DumpFile(std::string pPath, std::string oPath) {
     FILE *source = fopen(pPath.c_str(), "rb");
     if (source == nullptr)
         return -1;
@@ -475,7 +475,7 @@ int DumpFile(string pPath, string oPath) {
     return 0;
 }
 
-int DumpDir(string pPath, string tPath) { // Source: ft2sd
+int DumpDir(std::string pPath, std::string tPath) { // Source: ft2sd
     DIR *dir = opendir(pPath.c_str());
     if (dir == nullptr) {
         return -1;
@@ -491,7 +491,7 @@ int DumpDir(string pPath, string tPath) { // Source: ft2sd
             continue;
         }
 
-        string targetPath = string_format("%s/%s", tPath.c_str(), data->d_name);
+        std::string targetPath = string_format("%s/%s", tPath.c_str(), data->d_name);
 
         if ((data->d_type & DT_DIR) != 0) {
             mkdir(targetPath.c_str(), DEFFILEMODE);
@@ -555,14 +555,14 @@ int DeleteDir(char *pPath) {
     return 0;
 }
 
-string getUserID() { // Source: loadiine_gx2
+std::string getUserID() { // Source: loadiine_gx2
     /* get persistent ID - thanks to Maschell */
     nn::act::Initialize();
 
     unsigned char slotno = nn::act::GetSlotNo();
     unsigned int persistentID = nn::act::GetPersistentIdEx(slotno);
     nn::act::Finalize();
-    string out = string_format("%08X", persistentID);
+    std::string out = string_format("%08X", persistentID);
     return out;
 }
 
@@ -631,7 +631,7 @@ int getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID) 
 }
 
 bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) {
-    string path;
+    std::string path;
     if (((highID & 0xFFFFFFF0) == 0x00010000) && (slot == 255))
         path = string_format("sd:/savegames/%08x%08x", highID, lowID);
     else
@@ -709,7 +709,7 @@ bool hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version
     if (isWii)
         return false;
 
-    string srcPath;
+    std::string srcPath;
     if (!inSD) {
         const char *path = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
         srcPath = string_format("%s/%08x/%08x/%s/common", path, highID, lowID, "user");
@@ -747,10 +747,10 @@ void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_
         promptError("Backup done. Now copying Savedata.");
     }
 
-    string path = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
-    string pathb = (isUSBb ? "usb:/usr/save" : "mlc:/usr/save");
-    string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, "user");
-    string dstPath = string_format("%s/%08x/%08x/%s", pathb.c_str(), highIDb, lowIDb, "user");
+    std::string path = (isUSB ? "usb:/usr/save" : "mlc:/usr/save");
+    std::string pathb = (isUSBb ? "usb:/usr/save" : "mlc:/usr/save");
+    std::string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, "user");
+    std::string dstPath = string_format("%s/%08x/%08x/%s", pathb.c_str(), highIDb, lowIDb, "user");
     createFolder(dstPath.c_str());
 
     if (allusers > -1)
@@ -776,7 +776,7 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
         dateTime.tm_mon++;
     }
 
-    string datetime = string_format("%04d-%02d-%02dT%02d%02d%02d", dateTime.tm_year, dateTime.tm_mon, dateTime.tm_mday,
+    std::string datetime = string_format("%04d-%02d-%02dT%02d%02d%02d", dateTime.tm_year, dateTime.tm_mon, dateTime.tm_mday,
                                     dateTime.tm_hour, dateTime.tm_min, dateTime.tm_sec);
     for (int i = 0; i < count; i++) {
         if (titles[i].highID == 0 || titles[i].lowID == 0 || !titles[i].saveInit)
@@ -786,9 +786,9 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
         uint32_t lowID = titles[i].lowID;
         bool isUSB = titles[i].isTitleOnUSB;
         bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-        const string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
-        string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
-        string dstPath = string_format("sd:/wiiu/backups/batch/%s/%08x%08x", datetime.c_str(), highID, lowID);
+        const std::string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
+        std::string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
+        std::string dstPath = string_format("sd:/wiiu/backups/batch/%s/%08x%08x", datetime.c_str(), highID, lowID);
 
         createFolder(dstPath.c_str());
         if (DumpDir(srcPath, dstPath) != 0)
@@ -805,9 +805,9 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    const string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
-    string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
-    string dstPath;
+    const std::string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
+    std::string srcPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
+    std::string dstPath;
     if (isWii && (slot == 255))
         dstPath = string_format("sd:/savegames/%08x%08x", highID, lowID);
     else
@@ -832,7 +832,7 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
         promptError("Backup failed. DO NOT restore from this slot.");
     OSCalendarTime now;
     OSTicksToCalendarTime(OSGetTime(), &now);
-    string date = string_format("%02d/%02d/%d %02d:%02d", now.tm_mday, now.tm_mon, now.tm_year, now.tm_hour, now.tm_min);
+    std::string date = string_format("%02d/%02d/%d %02d:%02d", now.tm_mday, now.tm_mon, now.tm_year, now.tm_hour, now.tm_min);
     setSlotDate(title->highID, title->lowID, slot, date);
 }
 
@@ -850,13 +850,13 @@ void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
     bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
-    string srcPath;
-    const string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
+    std::string srcPath;
+    const std::string path = (isWii ? "slc:/title" : (isUSB ? "usb:/usr/save" : "mlc:/usr/save"));
     if (isWii && (slot == 255))
         srcPath = string_format("sd:/savegames/%08x%08x", highID, lowID);
     else
         srcPath = string_format("sd:/wiiu/backups/%08x%08x/%u", highID, lowID, slot);
-    string dstPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
+    std::string dstPath = string_format("%s/%08x/%08x/%s", path.c_str(), highID, lowID, isWii ? "data" : "user");
     createFolder(dstPath.c_str());
 
     if ((sdusers > -1) && !isWii) {

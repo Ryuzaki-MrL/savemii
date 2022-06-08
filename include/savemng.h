@@ -20,8 +20,6 @@
 #include <unistd.h>
 #include <vpad/input.h>
 
-using namespace std;
-
 #define PATH_SIZE 0x400
 
 extern VPADStatus vpad_status;
@@ -70,11 +68,11 @@ extern uint8_t wiiuaccn, sdaccn;
 
 void console_print_pos(int x, int y, const char *format, ...);
 
-bool promptConfirm(Style st, string question);
+bool promptConfirm(Style st, std::string question);
 
 void promptError(const char *message, ...);
 
-string getUserID();
+std::string getUserID();
 
 void getAccountsWiiU();
 
@@ -118,7 +116,7 @@ int32_t loadFilePart(const char *fPath, uint32_t start, uint32_t size, uint8_t *
 
 int32_t loadTitleIcon(Title *title);
 
-void show_file_operation(string file_name, string file_src, string file_dest);
+void show_file_operation(std::string file_name, std::string file_src, std::string file_dest);
 
 void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ...);
 

@@ -1,6 +1,8 @@
 #include "json.h"
 #include "string.hpp"
 
+#define FS_ALIGN(x)  ((x + 0x3F) & ~(0x3F))
+
 json_t *load_json(const char *text) {
     json_t *root;
     json_error_t error;
@@ -27,7 +29,6 @@ auto doit(char *text) -> char * {
 auto dofile(char *filename) -> char * {
     FILE *f = nullptr;
     long len = 0;
-    char *data = nullptr;
 
     /* open in read binary mode */
     f = fopen(filename, "rb");
@@ -36,7 +37,7 @@ auto dofile(char *filename) -> char * {
     len = ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    data = (char *) malloc(len + 1);
+    char* data = (char *) aligned_alloc(0x40, FS_ALIGN(len + 1));
 
     fread(data, 1, len, f);
     data[len] = '\0';
@@ -47,17 +48,17 @@ auto dofile(char *filename) -> char * {
     return stuff;
 }
 
-string getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
-    string path = string_format("sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
+std::string getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
+    std::string path = string_format("sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
     if (checkEntry(path.c_str()) != 0) {
-        string info = dofile((char *) path.c_str());
+        std::string info = dofile((char *) path.c_str());
         return info;
     }
     return "";
 }
 
-auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, string date) -> bool {
-    string path = string_format("sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
+auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, std::string date) -> bool {
+    std::string path = string_format("sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
 
     json_t *config = json_object();
     if (config == nullptr)

@@ -5,8 +5,6 @@
 #include "savemng.h"
 #include "string.hpp"
 
-using namespace std;
-
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 4
 #define VERSION_MICRO 1
@@ -101,7 +99,7 @@ Title *loadWiiUTitles(int run) {
     int tNoSave = usable;
     for (int i = 0; i <= 1; i++) {
         for (uint8_t a = 0; a < 2; a++) {
-            string path = string_format("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
+            std::string path = string_format("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
             DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
                 struct dirent *data;
@@ -140,7 +138,7 @@ Title *loadWiiUTitles(int run) {
 
     for (uint8_t a = 0; a < 2; a++) {
         for (int i = 0; i <= 1; i++) {
-            string path = string_format("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
+            std::string path = string_format("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
             DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
                 struct dirent *data;
@@ -184,7 +182,7 @@ Title *loadWiiUTitles(int run) {
         uint32_t lowID = saves[i].lowID;
         bool isTitleOnUSB = saves[i].dev == 0u;
 
-        const string path = string_format("%s:/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc",
+        const std::string path = string_format("%s:/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc",
                                           saves[i].found ? "title" : "save", highID, lowID);
         titles[titleswiiu].saveInit = !saves[i].found;
 
@@ -199,15 +197,15 @@ Title *loadWiiUTitles(int run) {
             if (strcspn(cptr, "<") == 0)
                 cptr = strchr(strstr(xmlBuf, "shortname_ja"), '>') + 1;
 
-            decodeXMLEscapeLine(string(cptr));
-            strlcpy(titles[titleswiiu].shortName, decodeXMLEscapeLine(string(cptr)).c_str(), strcspn(decodeXMLEscapeLine(string(cptr)).c_str(), "<") + 1);
+            decodeXMLEscapeLine(std::string(cptr));
+            strlcpy(titles[titleswiiu].shortName, decodeXMLEscapeLine(std::string(cptr)).c_str(), strcspn(decodeXMLEscapeLine(std::string(cptr)).c_str(), "<") + 1);
 
             cptr = strchr(strstr(xmlBuf, "longname_en"), '>') + 1;
             memset(titles[i].longName, 0, sizeof(titles[i].longName));
             if (strcspn(cptr, "<") == 0)
                 cptr = strchr(strstr(xmlBuf, "longname_ja"), '>') + 1;
 
-            strlcpy(titles[titleswiiu].longName, decodeXMLEscapeLine(string(cptr)).c_str(), strcspn(decodeXMLEscapeLine(string(cptr)).c_str(), "<") + 1);
+            strlcpy(titles[titleswiiu].longName, decodeXMLEscapeLine(std::string(cptr)).c_str(), strcspn(decodeXMLEscapeLine(std::string(cptr)).c_str(), "<") + 1);
 
             free(xmlBuf);
         }
@@ -257,7 +255,7 @@ Title *loadWiiTitles() {
             {0x00010001, 0x48424344},
             {0x00010001, 0x554E454F}};
 
-    string pathW;
+    std::string pathW;
     for (int k = 0; k < 3; k++) {
         pathW = string_format("slc:/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW.c_str());
@@ -311,7 +309,7 @@ Title *loadWiiTitles() {
                     continue;
                 }
 
-                const string path = string_format("slc:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
+                const std::string path = string_format("slc:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
                 FILE *file = fopen(path.c_str(), "rb");
                 if (file != nullptr) {
                     fseek(file, 0x20, SEEK_SET);
@@ -980,7 +978,7 @@ int main(void) {
                             continue;
                         }
                     }
-                    string path = string_format("%s:/usr/title/000%x/%x/code/fw.img",
+                    std::string path = string_format("%s:/usr/title/000%x/%x/code/fw.img",
                                                 (titles[targ].isTitleOnUSB) ? "usb" : "mlc", titles[targ].highID,
                                                 titles[targ].lowID);
                     if ((mode == 0) && (checkEntry(path.c_str()) != 0))
