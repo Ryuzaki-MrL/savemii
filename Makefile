@@ -29,10 +29,10 @@ DEFS        :=
 # options for code generation
 #-------------------------------------------------------------------------------
 CFLAGS	:=	-std=gnu2x -g -Wall -Ofast -ffunction-sections `freetype-config --cflags` \
-			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__
+			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__ -D__wiiu__
 
 CXXFLAGS	:= -std=gnu++20 -g -Wall -Wno-int-in-bool-context -Wno-format-overflow -Ofast -fpermissive -ffunction-sections `freetype-config --cflags` \
-			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__
+			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__ -D__wiiu__
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)

@@ -399,7 +399,6 @@ void unloadTitles(Title *titles, int count) {
         free(titles);
 }
 
-/* Entry point */
 auto main() -> int {
     WHBProcInit();
     WHBLogFreetypeInit();
