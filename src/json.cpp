@@ -15,18 +15,20 @@ json_t *load_json(const char *text) {
         return (json_t *) 0;
 }
 
-auto doit(char *text) -> char * {
+std::string doit(char *text) {
     char *out = nullptr;
     json_t *root = load_json(text);
     if (root == nullptr)
         return (char *) "";
     out = (char *) json_string_value(json_object_get(root, "Date"));
+    std::string buf;
+    buf.assign(out);
     json_decref(root);
-    return out;
+    return buf;
 }
 
 /* Read a file, parse, render back, etc. */
-auto dofile(char *filename) -> char * {
+std::string dofile(char *filename) {
     FILE *f = nullptr;
     long len = 0;
 
