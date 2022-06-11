@@ -45,7 +45,7 @@ std::string dofile(char *filename) {
     data[len] = '\0';
     fclose(f);
 
-    char *stuff = doit(data);
+    std::string stuff = doit(data);
     free(data);
     return stuff;
 }
