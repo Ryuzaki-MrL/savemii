@@ -13,8 +13,7 @@
  *
  */
 
-#ifndef __TGA_READER_H__
-#define __TGA_READER_H__
+#pragma once
 
 #include <cstdio>
 #include <cstdlib>
@@ -47,5 +46,3 @@ auto tgaRead(const unsigned char *buffer, const TGA_ORDER *order) -> int *;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __TGA_READER_H__ */

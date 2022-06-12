@@ -1,5 +1,4 @@
-#ifndef DRAW_H
-#define DRAW_H
+#pragma once
 
 #include "tga_reader.h"
 #include <coreinit/screen.h>
@@ -54,5 +53,3 @@ auto ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) -> int;
 auto ttfStringWidth(char *string, int8_t part) -> int;
 
 void draw_bitmap(FT_Bitmap *bitmap, FT_Int x, FT_Int y);
-
-#endif /* DRAW_H */

@@ -7,7 +7,7 @@
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 4
-#define VERSION_MICRO 1
+#define VERSION_MICRO 2
 #define M_OFF         1
 
 uint8_t slot = 0;
@@ -17,7 +17,7 @@ int menu = 0, mode = 0, task = 0, targ = 0, tsort = 1, sorta = 1;
 int cursor = 0, scroll = 0;
 int cursorb = 0, cursort = 0, scrollb = 0;
 int titleswiiu = 0, titlesvwii = 0;
-const char *sortn[4] = {"None", "Name", "Storage", "Storage+Name"};
+const std::array<const char*, 4> sortn = {"None", "Name", "Storage", "Storage+Name"};
 
 auto titleSort(const void *c1, const void *c2) -> int {
     switch (tsort) {
@@ -58,8 +58,8 @@ void disclaimer() {
 Title *loadWiiUTitles(int run) {
     static char *tList;
     static uint32_t receivedCount;
-    const char *highIDs[2] = {"00050000", "00050002"};
-    const uint32_t highIDsNumeric[2] = {0x00050000, 0x00050002};
+    const std::array<const char*, 2> highIDs = {"00050000", "00050002"};
+    const std::array<const uint32_t, 2> highIDsNumeric = {0x00050000, 0x00050002};
     // Source: haxchi installer
     if (run == 0) {
         int mcp_handle = MCP_Open();
@@ -244,16 +244,16 @@ Title *loadWiiUTitles(int run) {
 }
 
 Title *loadWiiTitles() {
-    const char *highIDs[3] = {"00010000", "00010001", "00010004"};
+    std::array<const char*, 3> highIDs = {"00010000", "00010001", "00010004"};
     bool found = false;
-    static const uint32_t blacklist[7][2] = {
+    static const std::array<std::array<const uint32_t, 2>, 7> blacklist = {{
             {0x00010000, 0x00555044},
             {0x00010000, 0x00555045},
             {0x00010000, 0x0055504A},
             {0x00010000, 0x524F4E45},
             {0x00010000, 0x52543445},
             {0x00010001, 0x48424344},
-            {0x00010001, 0x554E454F}};
+            {0x00010001, 0x554E454F}}};
 
     std::string pathW;
     for (int k = 0; k < 3; k++) {

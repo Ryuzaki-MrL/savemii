@@ -1,5 +1,4 @@
-#ifndef _SAVEMNG_H_
-#define _SAVEMNG_H_
+#pragma once
 
 #define __STDC_WANT_LIB_EXT2__ 1
 
@@ -121,5 +120,3 @@ void show_file_operation(std::string file_name, std::string file_src, std::strin
 void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ...);
 
 void console_print_pos_aligned(int y, uint16_t offset, uint8_t align, const char *format, ...);
-
-#endif

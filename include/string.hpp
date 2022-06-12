@@ -1,3 +1,5 @@
+#pragma once
+
 #include "savemng.h"
 #include <cstdarg>
 #include <memory>
