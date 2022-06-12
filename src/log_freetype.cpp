@@ -118,7 +118,7 @@ auto ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) -> int {
     FT_Error error;
     int pen_x = x;
     int pen_y = y;
-    FT_UInt previous_glyph;
+    FT_UInt previous_glyph = 0;
 
     while (*string != 0) {
         uint32_t buf = *string++;
@@ -208,7 +208,7 @@ auto ttfStringWidth(char *string, int8_t part) -> int {
     int pen_x = 0;
     int max_x = 0;
     int spart = 1;
-    FT_UInt previous_glyph;
+    FT_UInt previous_glyph = 0;
 
     while (*string != 0) {
         uint32_t buf = *string++;

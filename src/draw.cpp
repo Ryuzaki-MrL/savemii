@@ -32,15 +32,6 @@ void clearBuffers() {
     flipBuffers();
 }
 
-void fillScreen(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    RGBAColor color;
-    color.r = r;
-    color.g = g;
-    color.b = b;
-    color.a = a;
-    clearBuffersEx();
-}
-
 void drawPixel32(int x, int y, RGBAColor color) {
     drawPixel(x, y, color.r, color.g, color.b, color.a);
 }
