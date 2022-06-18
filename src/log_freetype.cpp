@@ -5,28 +5,21 @@
 #define NUM_LINES              (16)
 #define LINE_LENGTH            (128)
 
-char queueBuffer[NUM_LINES][LINE_LENGTH];
-uint32_t newLines = 0;
-char renderedBuffer[NUM_LINES][LINE_LENGTH];
+static bool freetypeHasForeground = false;
 
-bool freetypeHasForeground = false;
+static uint8_t *frameBufferTVFrontPtr = nullptr;
+static uint8_t *frameBufferTVBackPtr = nullptr;
+static uint32_t frameBufferTVSize = 0;
+static uint8_t *frameBufferDRCFrontPtr = nullptr;
+static uint8_t *frameBufferDRCBackPtr = nullptr;
+static uint32_t frameBufferDRCSize = 0;
+static uint8_t *currTVFrameBuffer = nullptr;
+static uint8_t *currDRCFrameBuffer = nullptr;
 
-uint8_t *frameBufferTVFrontPtr = nullptr;
-uint8_t *frameBufferTVBackPtr = nullptr;
-uint32_t frameBufferTVSize = 0;
-uint8_t *frameBufferDRCFrontPtr = nullptr;
-uint8_t *frameBufferDRCBackPtr = nullptr;
-uint32_t frameBufferDRCSize = 0;
-uint8_t *currTVFrameBuffer = nullptr;
-uint8_t *currDRCFrameBuffer = nullptr;
-
-RGBAColor ttfColor = {0xFFFFFFFF};
-uint32_t fontColor = 0xFFFFFFFF;
-uint32_t backgroundColor = 0x0B5D5E00;
-FT_Library fontLibrary;
-FT_Face fontFace;
-uint8_t *fontBuffer;
-FT_Pos cursorSpaceWidth = 0;
+static RGBAColor ttfColor = {0xFFFFFFFF};
+static FT_Library fontLibrary;
+static FT_Face fontFace;
+static uint8_t *fontBuffer;
 
 void drawPixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
     uint8_t opacity = a;
@@ -50,8 +43,7 @@ void drawPixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
     }
 }
 
-auto initScreen() -> uint32_t {
-
+static auto initScreen() -> uint32_t {
     MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
     if (frameBufferTVSize != 0u) {
         frameBufferTVFrontPtr = (uint8_t *) MEMAllocFromFrmHeapEx(heap, frameBufferTVSize, 4);

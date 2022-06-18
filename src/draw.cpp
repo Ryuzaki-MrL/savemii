@@ -2,17 +2,14 @@
 #include "log_freetype.h"
 
 uint8_t *scrBuffer;
-bool cur_buf1;
-size_t tvBufferSize = 0;
-size_t drcBufferSize = 0;
+static bool cur_buf1;
+static size_t tvBufferSize = 0;
+static size_t drcBufferSize = 0;
 
-void *tvBuffer;
-void *drcBuffer;
+static void *tvBuffer;
+static void *drcBuffer;
 
-uint8_t *ttfFont;
-RGBAColor fcolor = {0xFFFFFFFF};
-FT_Library library;
-FT_Face face;
+static RGBAColor fcolor = {0xFFFFFFFF};
 
 void flipBuffers() {
     DCFlushRange(tvBuffer, tvBufferSize);
@@ -32,11 +29,11 @@ void clearBuffers() {
     flipBuffers();
 }
 
-void drawPixel32(int x, int y, RGBAColor color) {
+static void drawPixel32(int x, int y, RGBAColor color) {
     drawPixel(x, y, color.r, color.g, color.b, color.a);
 }
 
-void drawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+static void drawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
     int x;
     int y;
     if (x1 == x2) {
@@ -56,94 +53,14 @@ void drawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b, u
     }
 }
 
-void drawRect(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+static void drawRect(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
     drawLine(x1, y1, x2, y1, r, g, b, a);
     drawLine(x2, y1, x2, y2, r, g, b, a);
     drawLine(x1, y2, x2, y2, r, g, b, a);
     drawLine(x1, y1, x1, y2, r, g, b, a);
 }
 
-void drawFillRect(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    int X1;
-    int X2;
-    int Y1;
-    int Y2;
-    int i;
-    int j;
-
-    if (x1 < x2) {
-        X1 = x1;
-        X2 = x2;
-    } else {
-        X1 = x2;
-        X2 = x1;
-    }
-
-    if (y1 < y2) {
-        Y1 = y1;
-        Y2 = y2;
-    } else {
-        Y1 = y2;
-        Y2 = y1;
-    }
-    for (i = X1; i <= X2; i++)
-        for (j = Y1; j <= Y2; j++)
-            drawPixel(i, j, r, g, b, a);
-}
-
-void drawCircle(int xCen, int yCen, int radius, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    int x = 0;
-    int y = radius;
-    int p = (5 - radius * 4) / 4;
-    drawCircleCircum(xCen, yCen, x, y, r, g, b, a);
-    while (x < y) {
-        x++;
-        if (p < 0) {
-            p += 2 * x + 1;
-        } else {
-            y--;
-            p += 2 * (x - y) + 1;
-        }
-        drawCircleCircum(xCen, yCen, x, y, r, g, b, a);
-    }
-}
-
-void drawFillCircle(int xCen, int yCen, int radius, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    drawCircle(xCen, yCen, radius, r, g, b, a);
-    int x;
-    int y;
-    for (y = -radius; y <= radius; y++)
-        for (x = -radius; x <= radius; x++)
-            if (x * x + y * y <= radius * radius + radius * .8f)
-                drawPixel(xCen + x, yCen + y, r, g, b, a);
-}
-
-void drawCircleCircum(int cx, int cy, int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    if (x == 0) {
-        drawPixel(cx, cy + y, r, g, b, a);
-        drawPixel(cx, cy - y, r, g, b, a);
-        drawPixel(cx + y, cy, r, g, b, a);
-        drawPixel(cx - y, cy, r, g, b, a);
-    }
-    if (x == y) {
-        drawPixel(cx + x, cy + y, r, g, b, a);
-        drawPixel(cx - x, cy + y, r, g, b, a);
-        drawPixel(cx + x, cy - y, r, g, b, a);
-        drawPixel(cx - x, cy - y, r, g, b, a);
-    }
-    if (x < y) {
-        drawPixel(cx + x, cy + y, r, g, b, a);
-        drawPixel(cx - x, cy + y, r, g, b, a);
-        drawPixel(cx + x, cy - y, r, g, b, a);
-        drawPixel(cx - x, cy - y, r, g, b, a);
-        drawPixel(cx + y, cy + x, r, g, b, a);
-        drawPixel(cx - y, cy + x, r, g, b, a);
-        drawPixel(cx + y, cy - x, r, g, b, a);
-        drawPixel(cx - y, cy - x, r, g, b, a);
-    }
-}
-
-void drawPic(int x, int y, uint32_t w, uint32_t h, float scale, uint32_t *pixels) {
+static void drawPic(int x, int y, uint32_t w, uint32_t h, float scale, uint32_t *pixels) {
     uint32_t nw = w, nh = h;
     RGBAColor color;
     if (scale <= 0) scale = 1;

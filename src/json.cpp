@@ -3,7 +3,7 @@
 
 #define FS_ALIGN(x)  ((x + 0x3F) & ~(0x3F))
 
-json_t *load_json(const char *text) {
+static json_t *load_json(const char *text) {
     json_t *root;
     json_error_t error;
 
@@ -15,7 +15,7 @@ json_t *load_json(const char *text) {
         return (json_t *) 0;
 }
 
-std::string doit(char *text) {
+static std::string doit(char *text) {
     char *out = nullptr;
     json_t *root = load_json(text);
     if (root == nullptr)
@@ -28,7 +28,7 @@ std::string doit(char *text) {
 }
 
 /* Read a file, parse, render back, etc. */
-std::string dofile(char *filename) {
+static std::string dofile(char *filename) {
     FILE *f = nullptr;
     long len = 0;
 

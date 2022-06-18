@@ -10,16 +10,16 @@
 #define VERSION_MICRO 2
 #define M_OFF         1
 
-uint8_t slot = 0;
-int8_t allusers = -1, allusers_d = -1, sdusers = -1;
-bool common = true;
-int menu = 0, mode = 0, task = 0, targ = 0, tsort = 1, sorta = 1;
-int cursor = 0, scroll = 0;
-int cursorb = 0, cursort = 0, scrollb = 0;
-int titleswiiu = 0, titlesvwii = 0;
-const std::array<const char*, 4> sortn = {"None", "Name", "Storage", "Storage+Name"};
+static uint8_t slot = 0;
+static int8_t allusers = -1, allusers_d = -1, sdusers = -1;
+static bool common = true;
+static int menu = 0, mode = 0, task = 0, targ = 0, tsort = 1, sorta = 1;
+static int cursor = 0, scroll = 0;
+static int cursorb = 0, cursort = 0, scrollb = 0;
+static int titleswiiu = 0, titlesvwii = 0;
+static const std::array<const char*, 4> sortn = {"None", "Name", "Storage", "Storage+Name"};
 
-auto titleSort(const void *c1, const void *c2) -> int {
+static auto titleSort(const void *c1, const void *c2) -> int {
     switch (tsort) {
         case 0:
             return ((Title *) c1)->listID - ((Title *) c2)->listID;
@@ -49,13 +49,13 @@ auto titleSort(const void *c1, const void *c2) -> int {
     }
 }
 
-void disclaimer() {
+static void disclaimer() {
     console_print_pos(23, 13, "Disclaimer:");
     console_print_pos(13, 14, "There is always the potential for a brick.");
     console_print_pos(1, 15, "Everything you do with this software is your own responsibility");
 }
 
-Title *loadWiiUTitles(int run) {
+static Title *loadWiiUTitles(int run) {
     static char *tList;
     static uint32_t receivedCount;
     const std::array<const char*, 2> highIDs = {"00050000", "00050002"};
@@ -243,7 +243,7 @@ Title *loadWiiUTitles(int run) {
     return titles;
 }
 
-Title *loadWiiTitles() {
+static Title *loadWiiTitles() {
     std::array<const char*, 3> highIDs = {"00010000", "00010001", "00010004"};
     bool found = false;
     static const std::array<std::array<const uint32_t, 2>, 7> blacklist = {{
@@ -391,7 +391,7 @@ Title *loadWiiTitles() {
     return titles;
 }
 
-void unloadTitles(Title *titles, int count) {
+static void unloadTitles(Title *titles, int count) {
     for (int i = 0; i < count; i++)
         if (titles[i].iconBuf != nullptr)
             free(titles[i].iconBuf);

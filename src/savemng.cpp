@@ -7,7 +7,7 @@
 #define IO_MAX_FILE_BUFFER (1024 * 1024) // 1 MB
 
 int fsaFd = -1;
-char *p1;
+static char *p1;
 Account *wiiuacc;
 Account *sdacc;
 uint8_t wiiuaccn = 0, sdaccn = 5;
