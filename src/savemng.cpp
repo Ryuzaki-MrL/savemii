@@ -565,16 +565,20 @@ std::string getUserID() { // Source: loadiine_gx2
     return out;
 }
 
-auto getLoadiineGameSaveDir(char *out, const char *productCode) -> int {
+auto getLoadiineGameSaveDir(char *out, const char *productCode, const char *shortName, const uint32_t highID, const uint32_t lowID) -> int {
     DIR *dir = opendir("sd:/wiiu/saves");
 
-    if (dir == nullptr) {
+    if (dir == nullptr)
         return -1;
-    }
 
     struct dirent *data;
     while ((data = readdir(dir)) != nullptr) {
         if (((data->d_type & DT_DIR) != 0) && (strstr(data->d_name, productCode) != nullptr)) {
+            sprintf(out, "sd:/wiiu/saves/%s", data->d_name);
+            closedir(dir);
+            return 0;
+        }
+        if (((data->d_type & DT_DIR) != 0) && (strstr(data->d_name, string_format("%s [%08x%08x]", shortName, highID, lowID).c_str()) != nullptr)) {
             sprintf(out, "sd:/wiiu/saves/%s", data->d_name);
             closedir(dir);
             return 0;
@@ -669,7 +673,7 @@ auto hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t s
             if (!iine) {
                 sprintf(srcPath, "sd:/wiiu/backups/%08x%08x/%u/%08X", highID, lowID, slot, user);
             } else {
-                if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0) {
+                if (getLoadiineGameSaveDir(srcPath, title->productCode, title->shortName, title->highID, title->lowID) != 0) {
                     return false;
                 }
                 if (version != 0) {
@@ -716,7 +720,7 @@ auto hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version
         if (!iine) {
             srcPath = string_format("sd:/wiiu/backups/%08x%08x/%u/common", highID, lowID, slot);
         } else {
-            if (getLoadiineGameSaveDir(srcPath.data(), title->productCode) != 0)
+            if (getLoadiineGameSaveDir(srcPath.data(), title->productCode, title->shortName, title->highID, title->lowID) != 0)
                 return false;
             if (version != 0)
                 srcPath.append(string_format("/v%u", version));
@@ -920,7 +924,7 @@ void importFromLoadiine(Title *title, bool common, int version) {
     bool isUSB = title->isTitleOnUSB;
     char srcPath[PATH_SIZE];
     char dstPath[PATH_SIZE];
-    if (getLoadiineGameSaveDir(srcPath, title->productCode) != 0)
+    if (getLoadiineGameSaveDir(srcPath, title->productCode, title->shortName, title->highID, title->lowID) != 0)
         return;
     if (version != 0)
         sprintf(srcPath + strlen(srcPath), "/v%i", version);
@@ -931,15 +935,11 @@ void importFromLoadiine(Title *title, bool common, int version) {
     createFolder(dstPath);
     uint32_t dstOffset = strlen(dstPath);
     sprintf(dstPath + dstOffset, "/%s", usrPath);
-    promptError(srcPath);
-    promptError(dstPath);
     if (DumpDir(srcPath, dstPath) != 0)
         promptError("Failed to import savedata from loadiine.");
     if (common) {
         strcpy(srcPath + srcOffset, "/c\0");
         strcpy(dstPath + dstOffset, "/common\0");
-        promptError(srcPath);
-        promptError(dstPath);
         if (DumpDir(srcPath, dstPath) != 0)
             promptError("Common save not found.");
     }
@@ -953,7 +953,7 @@ void exportToLoadiine(Title *title, bool common, int version) {
     bool isUSB = title->isTitleOnUSB;
     char srcPath[PATH_SIZE];
     char dstPath[PATH_SIZE];
-    if (getLoadiineGameSaveDir(dstPath, title->productCode) != 0)
+    if (getLoadiineGameSaveDir(dstPath, title->productCode, title->shortName, title->highID, title->lowID) != 0)
         return;
     if (version != 0)
         sprintf(dstPath + strlen(dstPath), "/v%u", version);
@@ -964,15 +964,11 @@ void exportToLoadiine(Title *title, bool common, int version) {
     uint32_t srcOffset = strlen(srcPath);
     sprintf(srcPath + srcOffset, "/%s", usrPath);
     createFolder(dstPath);
-    promptError(srcPath);
-    promptError(dstPath);
     if (DumpDir(srcPath, dstPath) != 0)
         promptError("Failed to export savedata to loadiine.");
     if (common) {
         strcpy(dstPath + dstOffset, "/c\0");
         strcpy(srcPath + srcOffset, "/common\0");
-        promptError(srcPath);
-        promptError(dstPath);
         if (DumpDir(srcPath, dstPath) != 0)
             promptError("Common save not found.");
     }

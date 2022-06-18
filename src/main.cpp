@@ -1018,14 +1018,20 @@ auto main() -> int {
                     if ((task == 3) || (task == 4)) {
                         char gamePath[PATH_SIZE];
                         memset(versionList, 0, 0x100 * sizeof(int));
-                        if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode) != 0)
+                        if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode, titles[targ].shortName, titles[targ].highID, titles[targ].lowID) != 0)
                             continue;
                         getLoadiineSaveVersionList(versionList, gamePath);
+                        if(task == 3) {
+                            importFromLoadiine(&titles[targ], common, versionList != nullptr ? versionList[slot] : 0);
+                            continue;
+                        }
                         if (task == 4) {
                             if (!titles[targ].saveInit) {
                                 promptError("No save to Export.");
                                 continue;
                             }
+                            exportToLoadiine(&titles[targ], common, versionList != nullptr ? versionList[slot] : 0);
+                            continue;
                         }
                     }
 
@@ -1048,12 +1054,6 @@ auto main() -> int {
                         break;
                     case 2:
                         wipeSavedata(&titles[targ], allusers, common);
-                        break;
-                    case 3:
-                        importFromLoadiine(&titles[targ], common, versionList != nullptr ? versionList[slot] : 0);
-                        break;
-                    case 4:
-                        exportToLoadiine(&titles[targ], common, versionList != nullptr ? versionList[slot] : 0);
                         break;
                     case 5:
                         for (int i = 0; i < count; i++) {
