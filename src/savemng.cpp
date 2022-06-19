@@ -565,7 +565,7 @@ std::string getUserID() { // Source: loadiine_gx2
     return out;
 }
 
-auto getLoadiineGameSaveDir(char *out, const char *productCode, const char *shortName, const uint32_t highID, const uint32_t lowID) -> int {
+auto getLoadiineGameSaveDir(char *out, const char *productCode, const char *longName, const uint32_t highID, const uint32_t lowID) -> int {
     DIR *dir = opendir("sd:/wiiu/saves");
 
     if (dir == nullptr)
@@ -578,7 +578,7 @@ auto getLoadiineGameSaveDir(char *out, const char *productCode, const char *shor
             closedir(dir);
             return 0;
         }
-        if (((data->d_type & DT_DIR) != 0) && (strstr(data->d_name, string_format("%s [%08x%08x]", shortName, highID, lowID).c_str()) != nullptr)) {
+        if (((data->d_type & DT_DIR) != 0) && (strstr(data->d_name, string_format("%s [%08x%08x]", longName, highID, lowID).c_str()) != nullptr)) {
             sprintf(out, "sd:/wiiu/saves/%s", data->d_name);
             closedir(dir);
             return 0;
@@ -673,7 +673,7 @@ auto hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t s
             if (!iine) {
                 sprintf(srcPath, "sd:/wiiu/backups/%08x%08x/%u/%08X", highID, lowID, slot, user);
             } else {
-                if (getLoadiineGameSaveDir(srcPath, title->productCode, title->shortName, title->highID, title->lowID) != 0) {
+                if (getLoadiineGameSaveDir(srcPath, title->productCode, title->longName, title->highID, title->lowID) != 0) {
                     return false;
                 }
                 if (version != 0) {
@@ -720,7 +720,7 @@ auto hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version
         if (!iine) {
             srcPath = string_format("sd:/wiiu/backups/%08x%08x/%u/common", highID, lowID, slot);
         } else {
-            if (getLoadiineGameSaveDir(srcPath.data(), title->productCode, title->shortName, title->highID, title->lowID) != 0)
+            if (getLoadiineGameSaveDir(srcPath.data(), title->productCode, title->longName, title->highID, title->lowID) != 0)
                 return false;
             if (version != 0)
                 srcPath.append(string_format("/v%u", version));
@@ -924,7 +924,7 @@ void importFromLoadiine(Title *title, bool common, int version) {
     bool isUSB = title->isTitleOnUSB;
     char srcPath[PATH_SIZE];
     char dstPath[PATH_SIZE];
-    if (getLoadiineGameSaveDir(srcPath, title->productCode, title->shortName, title->highID, title->lowID) != 0)
+    if (getLoadiineGameSaveDir(srcPath, title->productCode, title->longName, title->highID, title->lowID) != 0)
         return;
     if (version != 0)
         sprintf(srcPath + strlen(srcPath), "/v%i", version);
@@ -953,7 +953,7 @@ void exportToLoadiine(Title *title, bool common, int version) {
     bool isUSB = title->isTitleOnUSB;
     char srcPath[PATH_SIZE];
     char dstPath[PATH_SIZE];
-    if (getLoadiineGameSaveDir(dstPath, title->productCode, title->shortName, title->highID, title->lowID) != 0)
+    if (getLoadiineGameSaveDir(dstPath, title->productCode, title->longName, title->highID, title->lowID) != 0)
         return;
     if (version != 0)
         sprintf(dstPath + strlen(dstPath), "/v%u", version);

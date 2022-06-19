@@ -1018,7 +1018,7 @@ auto main() -> int {
                     if ((task == 3) || (task == 4)) {
                         char gamePath[PATH_SIZE];
                         memset(versionList, 0, 0x100 * sizeof(int));
-                        if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode, titles[targ].shortName, titles[targ].highID, titles[targ].lowID) != 0)
+                        if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode, titles[targ].longName, titles[targ].highID, titles[targ].lowID) != 0)
                             continue;
                         getLoadiineSaveVersionList(versionList, gamePath);
                         if(task == 3) {
