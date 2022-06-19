@@ -573,12 +573,7 @@ auto getLoadiineGameSaveDir(char *out, const char *productCode, const char *long
 
     struct dirent *data;
     while ((data = readdir(dir)) != nullptr) {
-        if (((data->d_type & DT_DIR) != 0) && (strstr(data->d_name, productCode) != nullptr)) {
-            sprintf(out, "sd:/wiiu/saves/%s", data->d_name);
-            closedir(dir);
-            return 0;
-        }
-        if (((data->d_type & DT_DIR) != 0) && (strstr(data->d_name, string_format("%s [%08x%08x]", longName, highID, lowID).c_str()) != nullptr)) {
+        if (((data->d_type & DT_DIR) != 0) && ((strstr(data->d_name, productCode) != nullptr) || (strstr(data->d_name, string_format("%s [%08x%08x]", longName, highID, lowID).c_str()) != nullptr))) {
             sprintf(out, "sd:/wiiu/saves/%s", data->d_name);
             closedir(dir);
             return 0;
