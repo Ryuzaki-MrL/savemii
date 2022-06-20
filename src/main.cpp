@@ -496,8 +496,8 @@ auto main() -> int {
                         console_print_pos(M_OFF, 2 + cursor, "\u2192");
                         console_print_pos_aligned(17, 4, 2, "\ue000: Backup  \ue001: Back");
                     } else {
-                        console_print_pos(40, 0, "\ue084 Sort: %s %s", sortn[tsort],
-                                          (tsort > 0) ? ((sorta == 1) ? "\u2193 \ue083" : "\u2191 \ue083") : "");
+                        console_print_pos(39, 0, "%s Sort: %s \ue084",
+                                          (tsort > 0) ? ((sorta == 1) ? "\ue083 \u2193" : "\ue083 \u2191") : "", sortn[tsort]);
                         entrycount = count;
                         for (int i = 0; i < 14; i++) {
                             if (i + scroll < 0 || i + scroll >= count)
