@@ -38,16 +38,10 @@ void setFSAFD(int fd) {
     fsaFd = fd;
 }
 
-void show_file_operation(std::string file_name, std::string file_src, std::string file_dest) {
+static void show_file_operation(std::string file_name, std::string file_src, std::string file_dest) {
     console_print_pos(-2, 0, "Copying file: %s", file_name.c_str());
     console_print_pos_multiline(-2, 2, '/', "From: %s", file_src.c_str());
     console_print_pos_multiline(-2, 8, '/', "To: %s", file_dest.c_str());
-}
-
-auto FSAR(int result) -> int {
-    if ((result & 0xFFFF0000) == 0xFFFC0000)
-        return (result & 0xFFFF) | 0xFFFF0000;
-    return result;
 }
 
 int32_t loadFile(const char *fPath, uint8_t **buf) {
@@ -70,7 +64,7 @@ int32_t loadFile(const char *fPath, uint8_t **buf) {
     return ret;
 }
 
-int32_t loadFilePart(const char *fPath, uint32_t start, uint32_t size, uint8_t **buf) {
+static int32_t loadFilePart(const char *fPath, uint32_t start, uint32_t size, uint8_t **buf) {
     int ret = 0;
     FILE *file = fopen(fPath, "rb");
     if (file != nullptr) {
@@ -131,7 +125,7 @@ auto checkEntry(const char *fPath) -> int {
     return 1;
 }
 
-auto folderEmpty(const char *fPath) -> int {
+static auto folderEmpty(const char *fPath) -> int {
     DIR *dir = opendir(fPath);
     if (dir == nullptr)
         return -1;
@@ -146,7 +140,7 @@ auto folderEmpty(const char *fPath) -> int {
     return c < 3 ? 1 : 0;
 }
 
-auto createFolder(const char *fPath) -> int { //Adapted from mkdir_p made by JonathonReinhart
+static auto createFolder(const char *fPath) -> int { //Adapted from mkdir_p made by JonathonReinhart
     std::string _path;
     char *p;
     int found = 0;
@@ -407,7 +401,7 @@ void getAccountsSD(Title *title, uint8_t slot) {
     }
 }
 
-auto DumpFile(std::string pPath, std::string oPath) -> int {
+static auto DumpFile(std::string pPath, std::string oPath) -> int {
     FILE *source = fopen(pPath.c_str(), "rb");
     if (source == nullptr)
         return -1;
@@ -475,7 +469,7 @@ auto DumpFile(std::string pPath, std::string oPath) -> int {
     return 0;
 }
 
-auto DumpDir(std::string pPath, std::string tPath) -> int { // Source: ft2sd
+static auto DumpDir(std::string pPath, std::string tPath) -> int { // Source: ft2sd
     DIR *dir = opendir(pPath.c_str());
     if (dir == nullptr) {
         return -1;
@@ -514,7 +508,7 @@ auto DumpDir(std::string pPath, std::string tPath) -> int { // Source: ft2sd
     return 0;
 }
 
-auto DeleteDir(char *pPath) -> int {
+static auto DeleteDir(char *pPath) -> int {
     DIR *dir = opendir(pPath);
     if (dir == NULL)
         return -1;
@@ -554,7 +548,7 @@ auto DeleteDir(char *pPath) -> int {
     return 0;
 }
 
-std::string getUserID() { // Source: loadiine_gx2
+static std::string getUserID() { // Source: loadiine_gx2
     /* get persistent ID - thanks to Maschell */
     nn::act::Initialize();
 
@@ -603,7 +597,7 @@ auto getLoadiineSaveVersionList(int *out, const char *gamePath) -> int {
     return 0;
 }
 
-auto getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID) -> int {
+static auto getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID) -> int {
     DIR *dir = opendir(fullSavePath);
 
     if (dir == nullptr) {
@@ -638,7 +632,7 @@ auto isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) -> bool {
     return ret <= 0;
 }
 
-auto getEmptySlot(uint32_t highID, uint32_t lowID) -> int {
+static auto getEmptySlot(uint32_t highID, uint32_t lowID) -> int {
     for (int i = 0; i < 256; i++)
         if (isSlotEmpty(highID, lowID, i))
             return i;
@@ -729,7 +723,6 @@ auto hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version
 }
 
 void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_d, bool common) {
-
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;

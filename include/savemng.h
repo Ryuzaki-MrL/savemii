@@ -66,57 +66,25 @@ extern Account *sdacc;
 extern uint8_t wiiuaccn, sdaccn;
 
 void console_print_pos(int x, int y, const char *format, ...);
-
 bool promptConfirm(Style st, std::string question);
-
 void promptError(const char *message, ...);
-
-std::string getUserID();
-
 void getAccountsWiiU();
-
 void getAccountsSD(Title *title, uint8_t slot);
-
 bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t slot, int version);
-
 int getLoadiineGameSaveDir(char *out, const char *productCode, const char *longName, const uint32_t highID, const uint32_t lowID);
-
 int getLoadiineSaveVersionList(int *out, const char *gamePath);
-
-int getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID);
-
 bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot);
-
 bool hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version);
-
 void copySavedata(Title *title, Title *titled, int8_t allusers, int8_t allusers_d, bool common);
-
 void backupAllSave(Title *titles, int count, OSCalendarTime *date);
-
 void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common);
-
 void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers, bool common);
-
 void wipeSavedata(Title *title, int8_t allusers, bool common);
-
 void importFromLoadiine(Title *title, bool common, int version);
-
 void exportToLoadiine(Title *title, bool common, int version);
-
 void setFSAFD(int fd);
-
 int checkEntry(const char *fPath);
-
-int folderEmpty(const char *fPath);
-
 int32_t loadFile(const char *fPath, uint8_t **buf);
-
-int32_t loadFilePart(const char *fPath, uint32_t start, uint32_t size, uint8_t **buf);
-
 int32_t loadTitleIcon(Title *title);
-
-void show_file_operation(std::string file_name, std::string file_src, std::string file_dest);
-
 void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ...);
-
 void console_print_pos_aligned(int y, uint16_t offset, uint8_t align, const char *format, ...);
