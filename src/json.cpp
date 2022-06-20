@@ -1,7 +1,7 @@
 #include "json.h"
 #include "string.hpp"
 
-#define FS_ALIGN(x)  ((x + 0x3F) & ~(0x3F))
+#define FS_ALIGN(x) ((x + 0x3F) & ~(0x3F))
 
 static json_t *load_json(const char *text) {
     json_t *root;
@@ -39,7 +39,7 @@ static std::string dofile(char *filename) {
     len = ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    char* data = (char *) aligned_alloc(0x40, FS_ALIGN(len + 1));
+    char *data = (char *) aligned_alloc(0x40, FS_ALIGN(len + 1));
 
     fread(data, 1, len, f);
     data[len] = '\0';

@@ -1,6 +1,6 @@
 #include "string.hpp"
-#include <nn/act/client_cpp.h>
 #include <cstdio>
+#include <nn/act/client_cpp.h>
 
 #include "savemng.h"
 
@@ -775,7 +775,7 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
     }
 
     std::string datetime = string_format("%04d-%02d-%02dT%02d%02d%02d", dateTime.tm_year, dateTime.tm_mon, dateTime.tm_mday,
-                                    dateTime.tm_hour, dateTime.tm_min, dateTime.tm_sec);
+                                         dateTime.tm_hour, dateTime.tm_min, dateTime.tm_sec);
     for (int i = 0; i < count; i++) {
         if (titles[i].highID == 0 || titles[i].lowID == 0 || !titles[i].saveInit)
             continue;

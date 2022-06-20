@@ -1,11 +1,12 @@
 #pragma once
 
-#include <fat.h>
 #include <cstdarg>
 #include <cstdlib>
 #include <cstring>
+#include <fat.h>
 #include <malloc.h>
 
+#include <algorithm>
 #include <array>
 
 #include <coreinit/screen.h>
