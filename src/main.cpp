@@ -19,6 +19,35 @@ static int cursorb = 0, cursort = 0, scrollb = 0;
 static int titleswiiu = 0, titlesvwii = 0;
 static const std::array<const char *, 4> sortn = {"None", "Name", "Storage", "Storage+Name"};
 
+void someFunc(IOSError err, void *arg){(void)arg;}
+
+int mcp_hook_fd = -1;
+int MCPHookOpen()
+{
+	//take over mcp thread
+	mcp_hook_fd = MCP_Open();
+	if(mcp_hook_fd < 0)
+		return -1;
+	IOS_IoctlAsync(mcp_hook_fd, 0x62, (void*)0, 0, (void*)0, 0, someFunc, (void*)0);
+	//let wupserver start up
+	OSSleepTicks(OSMillisecondsToTicks(500));
+	if(IOSUHAX_Open("/dev/mcp") < 0)
+		return -1;
+	return 0;
+}
+
+void MCPHookClose()
+{
+	if(mcp_hook_fd < 0)
+		return;
+	//close down wupserver, return control to mcp
+	IOSUHAX_Close();
+	//wait for mcp to return
+	OSSleepTicks(OSMillisecondsToTicks(500));
+	MCP_Close(mcp_hook_fd);
+	mcp_hook_fd = -1;
+}
+
 template<class It>
 static void sortTitle(It titles, It last, int tsort = 1, int sorta = 1) {
     switch (tsort) {
@@ -417,11 +446,14 @@ auto main() -> int {
     loadWiiUTitles(0);
 
     int res = IOSUHAX_Open(NULL);
-    if (res < 0) {
-        promptError("IOSUHAX_Open failed.");
-        flipBuffers();
-        WHBProcShutdown();
-        return 0;
+    if (res < 0) { // Not Tiramisu/Mocha
+        res = MCPHookOpen();
+        if (res < 0) {
+            promptError("IOSUHAX_Open failed.");
+            flipBuffers();
+            WHBProcShutdown();
+            return 0;
+        }
     }
 
     int fsaFd = IOSUHAX_FSA_Open();
@@ -1098,16 +1130,22 @@ auto main() -> int {
     unloadTitles(wiititles, titlesvwii);
     free(versionList);
 
-    OSScreenShutdown();
-    WHBLogFreetypeFree();
-    WHBProcShutdown();
     fatUnmount("sd");
     unmount_fs("slc");
     unmount_fs("mlc");
     unmount_fs("usb");
 
     IOSUHAX_FSA_Close(fsaFd);
-    IOSUHAX_Close();
+    if(mcp_hook_fd >= 0) {
+        MCPHookClose();
+        SYSRelaunchTitle(0, NULL);
+    } else {
+		IOSUHAX_Close();
+    }
+
+    OSScreenShutdown();
+    WHBLogFreetypeFree();
+    WHBProcShutdown();
 
     return 0;
 }
