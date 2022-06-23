@@ -419,12 +419,16 @@ auto main() -> int {
     int res = IOSUHAX_Open(NULL);
     if (res < 0) {
         promptError("IOSUHAX_Open failed.");
+        flipBuffers();
+        WHBProcShutdown();
         return 0;
     }
 
     int fsaFd = IOSUHAX_FSA_Open();
     if (fsaFd < 0) {
         promptError("IOSUHAX_FSA_Open failed.");
+        flipBuffers();
+        WHBProcShutdown();
         return 0;
     }
 
