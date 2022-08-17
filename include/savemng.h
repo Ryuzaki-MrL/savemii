@@ -5,6 +5,7 @@
 #include "draw.h"
 #include "json.h"
 #include "log_freetype.h"
+#include <coreinit/filesystem.h>
 #include <coreinit/mcp.h>
 #include <coreinit/memdefaultheap.h>
 #include <coreinit/thread.h>
@@ -20,10 +21,16 @@
 #include <vpad/input.h>
 
 #define PATH_SIZE 0x400
+#define FS_ALIGN(x)  ((x + 0x3F) & ~(0x3F))
+
+#define SD		"/vol/app_sd/"
+#define MLC		"/vol/storage_mlc01/"
 
 extern VPADStatus vpad_status;
 extern VPADReadError vpad_error;
 extern KPADStatus kpad_status;
+
+extern FSClient *__wut_devoptab_fs_client;
 
 typedef struct {
     uint32_t highID;
@@ -84,7 +91,7 @@ void importFromLoadiine(Title *title, bool common, int version);
 void exportToLoadiine(Title *title, bool common, int version);
 void setFSAFD(int fd);
 int checkEntry(const char *fPath);
-int32_t loadFile(const char *fPath, uint8_t **buf);
+size_t loadFile(const char *path, uint8_t **buffer);
 int32_t loadTitleIcon(Title *title);
 void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ...);
 void console_print_pos_aligned(int y, uint16_t offset, uint8_t align, const char *format, ...);
