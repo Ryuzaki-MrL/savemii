@@ -72,6 +72,7 @@ extern Account *wiiuacc;
 extern Account *sdacc;
 extern uint8_t wiiuaccn, sdaccn;
 
+FSCmdBlock *getCmdBlk();
 void console_print_pos(int x, int y, const char *format, ...);
 bool promptConfirm(Style st, std::string question);
 void promptError(const char *message, ...);
