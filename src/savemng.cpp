@@ -2,7 +2,9 @@
 #include <cstdio>
 #include <nn/act/client_cpp.h>
 
+#include "LockingQueue.h"
 #include "savemng.h"
+#include <future>
 
 #define IO_MAX_FILE_BUFFER (1024 * 1024) // 1 MB
 
@@ -401,6 +403,67 @@ void getAccountsSD(Title *title, uint8_t slot) {
     }
 }
 
+typedef struct {
+    void *buf;
+    size_t len;
+    size_t buf_size;
+} file_buffer;
+static file_buffer buffers[16];
+static char *fileBuf[2];
+static bool buffersInitialized = false;
+
+static bool readThread(FILE *srcFile, LockingQueue<file_buffer> *ready, LockingQueue<file_buffer> *done) {
+    file_buffer currentBuffer;
+    ready->waitAndPop(currentBuffer);
+    while ((currentBuffer.len = fread(currentBuffer.buf, 1, currentBuffer.buf_size, srcFile)) > 0) {
+        done->push(currentBuffer);
+        ready->waitAndPop(currentBuffer);
+    }
+    done->push(currentBuffer);
+    return ferror(srcFile) == 0;
+}
+
+static bool writeThread(FILE *dstFile, LockingQueue<file_buffer> *ready, LockingQueue<file_buffer> *done, size_t totalSize, std::string pPath, std::string oPath) {
+    uint bytes_written;
+    size_t total_bytes_written = 0;
+    file_buffer currentBuffer;
+    ready->waitAndPop(currentBuffer);
+    while (currentBuffer.len > 0 && (bytes_written = fwrite(currentBuffer.buf, 1, currentBuffer.len, dstFile)) == currentBuffer.len) {
+        done->push(currentBuffer);
+        ready->waitAndPop(currentBuffer);
+        total_bytes_written += bytes_written;
+    }
+    done->push(currentBuffer);
+    return ferror(dstFile) == 0;
+}
+
+static bool copyFileThreaded(FILE *srcFile, FILE *dstFile, size_t totalSize, std::string pPath, std::string oPath) {
+    size_t bufferSize = 1024 * 512;
+
+    LockingQueue<file_buffer> read;
+    LockingQueue<file_buffer> write;
+    for (auto &buffer : buffers) {
+        if (!buffersInitialized) {
+            buffer.buf = aligned_alloc(0x40, bufferSize);
+            buffer.len = 0;
+            buffer.buf_size = bufferSize;
+        }
+        read.push(buffer);
+    }
+    if (!buffersInitialized) {
+        fileBuf[0] = static_cast<char *>(aligned_alloc(0x40, bufferSize));
+        fileBuf[1] = static_cast<char *>(aligned_alloc(0x40, bufferSize));
+    }
+    buffersInitialized = true;
+    setvbuf(srcFile, fileBuf[0], _IOFBF, bufferSize);
+    setvbuf(dstFile, fileBuf[1], _IOFBF, bufferSize);
+
+    std::future<bool> readFut = std::async(std::launch::async, readThread, srcFile, &read, &write);
+    std::future<bool> writeFut = std::async(std::launch::async, writeThread, dstFile, &write, &read, totalSize, pPath, oPath);
+    bool success = readFut.get() && writeFut.get();
+    return success;
+}
+
 static auto copyFile(std::string pPath, std::string oPath) -> int {
     FILE *source = fopen(pPath.c_str(), "rb");
     if (source == nullptr)
@@ -412,48 +475,22 @@ static auto copyFile(std::string pPath, std::string oPath) -> int {
         return -1;
     }
 
-    char *buffer = (char *) aligned_alloc(0x40, IO_MAX_FILE_BUFFER);
-    if (buffer == nullptr) {
-        fclose(source);
-        fclose(dest);
-        return -1;
-    }
-
     struct stat st;
     if (stat(pPath.c_str(), &st) < 0)
         return -1;
     int sizef = st.st_size;
-    int sizew = 0;
-    int size = 0;
-    int bytesWritten = 0;
-    uint32_t passedMs = 1;
-    uint64_t startTime = OSGetTime();
 
-    while ((size = fread(buffer, 1, IO_MAX_FILE_BUFFER, source)) > 0) {
-        bytesWritten = fwrite(buffer, 1, size, dest);
-        if (bytesWritten < size) {
-            promptError("Write %d,%s", bytesWritten, oPath.c_str());
-            fclose(source);
-            fclose(dest);
-            free(buffer);
-            return -1;
-        }
-        passedMs = (uint32_t) OSTicksToMilliseconds(OSGetTime() - startTime);
-        if (passedMs == 0)
-            passedMs = 1; // avoid 0 div
-        clearBuffersEx();
-        sizew += size;
-        showFileOperation(basename(pPath.c_str()), pPath, oPath);
-        consolePrintPos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", sizew, sizef,
-                        (uint32_t) (((uint64_t) sizew * 1000) / ((uint64_t) 1024 * passedMs)));
-        flipBuffers();
-        WHBLogFreetypeDraw();
-    }
-    fclose(source);
-    fclose(dest);
-    free(buffer);
+    clearBuffersEx();
+    showFileOperation(basename(pPath.c_str()), pPath, oPath);
+    flipBuffers();
+    WHBLogFreetypeDraw();
+
+    copyFileThreaded(source, dest, sizef, pPath, oPath);
 
     IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA(oPath).c_str(), 0x666);
+
+    fclose(source);
+    fclose(dest);
 
     return 0;
 }
