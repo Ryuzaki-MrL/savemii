@@ -481,6 +481,7 @@ static auto copyFile(std::string pPath, std::string oPath) -> int {
 
     clearBuffersEx();
     showFileOperation(basename(pPath.c_str()), pPath, oPath);
+    consolePrintPos(-2, 15, "Filesize: %d", sizef);
     flipBuffers();
     WHBLogFreetypeDraw();
 
