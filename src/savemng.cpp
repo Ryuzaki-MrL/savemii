@@ -423,7 +423,7 @@ static bool readThread(FILE *srcFile, LockingQueue<file_buffer> *ready, LockingQ
     return ferror(srcFile) == 0;
 }
 
-static bool writeThread(FILE *dstFile, LockingQueue<file_buffer> *ready, LockingQueue<file_buffer> *done, size_t totalSize, std::string pPath, std::string oPath) {
+static bool writeThread(FILE *dstFile, LockingQueue<file_buffer> *ready, LockingQueue<file_buffer> *done, size_t totalSize) {
     uint bytes_written;
     size_t total_bytes_written = 0;
     file_buffer currentBuffer;
@@ -437,7 +437,7 @@ static bool writeThread(FILE *dstFile, LockingQueue<file_buffer> *ready, Locking
     return ferror(dstFile) == 0;
 }
 
-static bool copyFileThreaded(FILE *srcFile, FILE *dstFile, size_t totalSize, std::string pPath, std::string oPath) {
+static bool copyFileThreaded(FILE *srcFile, FILE *dstFile, size_t totalSize) {
     size_t bufferSize = 1024 * 512;
 
     LockingQueue<file_buffer> read;
@@ -459,7 +459,7 @@ static bool copyFileThreaded(FILE *srcFile, FILE *dstFile, size_t totalSize, std
     setvbuf(dstFile, fileBuf[1], _IOFBF, bufferSize);
 
     std::future<bool> readFut = std::async(std::launch::async, readThread, srcFile, &read, &write);
-    std::future<bool> writeFut = std::async(std::launch::async, writeThread, dstFile, &write, &read, totalSize, pPath, oPath);
+    std::future<bool> writeFut = std::async(std::launch::async, writeThread, dstFile, &write, &read, totalSize);
     bool success = readFut.get() && writeFut.get();
     return success;
 }
@@ -485,7 +485,7 @@ static auto copyFile(std::string pPath, std::string oPath) -> int {
     flipBuffers();
     WHBLogFreetypeDraw();
 
-    copyFileThreaded(source, dest, sizef, pPath, oPath);
+    copyFileThreaded(source, dest, sizef);
 
     IOSUHAX_FSA_ChangeMode(fsaFd, newlibToFSA(oPath).c_str(), 0x666);
 
