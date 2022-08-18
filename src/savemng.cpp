@@ -19,6 +19,16 @@ VPADReadError vpad_error;
 
 KPADStatus kpad[4], kpad_status;
 
+typedef struct {
+    void *buf;
+    size_t len;
+    size_t buf_size;
+} file_buffer;
+
+static file_buffer buffers[16];
+static char *fileBuf[2];
+static bool buffersInitialized = false;
+
 static std::string newlibToFSA(std::string path) {
     if (path[3] == ':') {
         switch (path[0]) {
@@ -402,15 +412,6 @@ void getAccountsSD(Title *title, uint8_t slot) {
         closedir(dir);
     }
 }
-
-typedef struct {
-    void *buf;
-    size_t len;
-    size_t buf_size;
-} file_buffer;
-static file_buffer buffers[16];
-static char *fileBuf[2];
-static bool buffersInitialized = false;
 
 static bool readThread(FILE *srcFile, LockingQueue<file_buffer> *ready, LockingQueue<file_buffer> *done) {
     file_buffer currentBuffer;
