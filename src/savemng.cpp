@@ -19,8 +19,26 @@ KPADStatus kpad[4], kpad_status;
 
 static FSCmdBlock cmdBlk;
 
-FSCmdBlock *getCmdBlk() {
-    return &cmdBlk;
+FSCmdBlock *getCmdBlk()
+{
+	return &cmdBlk;
+}
+
+static std::string newlibToFSA(std::string path) {
+    if (path[3] == ':') {
+        switch (path[0]) {
+            case 'u':
+                replace(path, "usb:", "/vol/storage_usb01");
+                break;
+            case 'm':
+                replace(path, "mlc:", "/vol/storage_mlc01");
+                break;
+            case 's':
+                replace(path, "slc:", "/vol/storage_slccmpt01");
+                break;
+        }
+    }
+    return path;
 }
 
 void setFSAFD(int fd) {
@@ -129,9 +147,11 @@ static auto folderEmpty(const char *fPath) -> int {
     FSDirectoryHandle *dirHandle;
 
     FSStatus dir = FSOpenDir(__wut_devoptab_fs_client, &cmdBlk, fPath, dirHandle, -1);
+    DIR *dir = opendir(fPath);
+    if (dir == nullptr)
+        return -1;
 
     int c = 0;
-    FSDirectoryEntry entry;
     while (FSReadDir(__wut_devoptab_fs_client, &cmdBlk, dir, &entry, FS_ERROR_FLAG_ALL) == FS_STATUS_OK) {
         if (++c > 2)
             break;
@@ -160,10 +180,10 @@ bool createFolder(const char *dir) {
     do {
         needle = strchr(needle, '/');
         if (needle == NULL)
-            return (checkEntry(d) == 2) ? true : createDirectory(d) == FS_STATUS_OK;
+            return dirExists(d) ? true : createDirectory(d) == FS_STATUS_OK;
 
         *needle = '\0';
-        if (!(checkEntry(d) == 2) && createDirectory(d) != FS_STATUS_OK)
+        if (!dirExists(d) && createDirectory(d) != FS_STATUS_OK)
             return false;
 
         *needle = '/';
@@ -409,10 +429,16 @@ void getAccountsSD(Title *title, uint8_t slot) {
 
 static auto DumpFile(std::string pPath, std::string oPath) -> int {
     FSFileHandle source;
-    FSOpenFile(__wut_devoptab_fs_client, &cmdBlk, pPath.c_str(), "r", &source, FS_ERROR_FLAG_ALL);
+    FSOpenFile(__wut_devoptab_fs_client, &cmdBlk, pPath.c_str(), "r", &source,  FS_ERROR_FLAG_ALL);
+    if (source == nullptr)
+        return -1;
 
     FSFileHandle dest;
-    FSOpenFile(__wut_devoptab_fs_client, &cmdBlk, pPath.c_str(), "w", &dest, FS_ERROR_FLAG_ALL);
+    FSOpenFile(__wut_devoptab_fs_client, &cmdBlk, pPath.c_str(), "w", &dest,  FS_ERROR_FLAG_ALL);
+    if (dest == nullptr) {
+        FSCloseFile(__wut_devoptab_fs_client, &cmdBlk, source, FS_ERROR_FLAG_ALL);
+        return -1;
+    }
 
     char *buffer;
     buffer = (char *) aligned_alloc(0x40, IO_MAX_FILE_BUFFER);
@@ -425,7 +451,7 @@ static auto DumpFile(std::string pPath, std::string oPath) -> int {
     }
 
     FSStat stat;
-    if (FSGetStat(__wut_devoptab_fs_client, &cmdBlk, pPath.c_str(), &stat, FS_ERROR_FLAG_ALL) < 0)
+    if (FSGetStat(__wut_devoptab_fs_client, &cmdBlk, pPath.c_str(), &stat, FS_ERROR_FLAG_ALL), &st < 0)
         return -1;
     int sizef = stat.size;
     int sizew = 0;
@@ -439,7 +465,7 @@ static auto DumpFile(std::string pPath, std::string oPath) -> int {
         if (bytesWritten < size) {
             promptError("Write %d,%s", bytesWritten, oPath.c_str());
             FSCloseFile(__wut_devoptab_fs_client, &cmdBlk, source, FS_ERROR_FLAG_ALL);
-            FSCloseFile(__wut_devoptab_fs_client, &cmdBlk, dest, FS_ERROR_FLAG_ALL);
+        FSCloseFile(__wut_devoptab_fs_client, &cmdBlk, dest, FS_ERROR_FLAG_ALL);
             free(buffer);
             return -1;
         }

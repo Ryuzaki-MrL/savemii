@@ -463,10 +463,10 @@ auto main() -> int {
     }
 
     setFSAFD(fsaFd);
-
+    
     FSInit();
-    FSInitCmdBlock(getCmdBlk());
-    FSSetCmdPriority(getCmdBlk(), 0);
+	FSInitCmdBlock(getCmdBlk());
+	FSSetCmdPriority(getCmdBlk(), 0);
 
     fatMountSimple("sd", &IOSUHAX_sdio_disc_interface);
     mount_fs("slc", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
