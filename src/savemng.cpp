@@ -439,25 +439,23 @@ static bool writeThread(FILE *dstFile, LockingQueue<file_buffer> *ready, Locking
 }
 
 static bool copyFileThreaded(FILE *srcFile, FILE *dstFile, size_t totalSize) {
-    size_t bufferSize = 1024 * 512;
-
     LockingQueue<file_buffer> read;
     LockingQueue<file_buffer> write;
     for (auto &buffer : buffers) {
         if (!buffersInitialized) {
-            buffer.buf = aligned_alloc(0x40, bufferSize);
+            buffer.buf = aligned_alloc(0x40, IO_MAX_FILE_BUFFER);
             buffer.len = 0;
-            buffer.buf_size = bufferSize;
+            buffer.buf_size = IO_MAX_FILE_BUFFER;
         }
         read.push(buffer);
     }
     if (!buffersInitialized) {
-        fileBuf[0] = static_cast<char *>(aligned_alloc(0x40, bufferSize));
-        fileBuf[1] = static_cast<char *>(aligned_alloc(0x40, bufferSize));
+        fileBuf[0] = static_cast<char *>(aligned_alloc(0x40, IO_MAX_FILE_BUFFER));
+        fileBuf[1] = static_cast<char *>(aligned_alloc(0x40, IO_MAX_FILE_BUFFER));
     }
     buffersInitialized = true;
-    setvbuf(srcFile, fileBuf[0], _IOFBF, bufferSize);
-    setvbuf(dstFile, fileBuf[1], _IOFBF, bufferSize);
+    setvbuf(srcFile, fileBuf[0], _IOFBF, IO_MAX_FILE_BUFFER);
+    setvbuf(dstFile, fileBuf[1], _IOFBF, IO_MAX_FILE_BUFFER);
 
     std::future<bool> readFut = std::async(std::launch::async, readThread, srcFile, &read, &write);
     std::future<bool> writeFut = std::async(std::launch::async, writeThread, dstFile, &write, &read, totalSize);
