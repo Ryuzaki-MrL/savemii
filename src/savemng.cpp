@@ -116,7 +116,7 @@ int32_t loadTitleIcon(Title *title) {
 
 auto checkEntry(const char *fPath) -> int {
     FSStat stat;
-    if (FSGetStat(__wut_devoptab_fs_client, &cmdBlk, fPath, &stat, FS_ERROR_FLAG_ALL) == FS_STATUS_OK && (stat.flags & FS_STAT_FILE))
+    if (FSGetStat(__wut_devoptab_fs_client, &cmdBlk, fPath, &stat, FS_ERROR_FLAG_ALL) == FS_STATUS_OK)
         return 0;
 
     if (FSGetStat(__wut_devoptab_fs_client, &cmdBlk, fPath, &stat, FS_ERROR_FLAG_ALL) == FS_STATUS_OK && (stat.flags & FS_STAT_DIRECTORY))
