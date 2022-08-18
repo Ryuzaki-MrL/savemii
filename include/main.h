@@ -11,9 +11,9 @@
 
 #include <coreinit/ios.h>
 #include <coreinit/mcp.h>
+#include <coreinit/screen.h>
 #include <coreinit/thread.h>
 #include <coreinit/time.h>
-#include <coreinit/screen.h>
 #include <padscore/kpad.h>
 #include <sysapp/launch.h>
 #include <sysapp/title.h>

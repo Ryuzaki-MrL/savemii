@@ -19,33 +19,31 @@ static int cursorb = 0, cursort = 0, scrollb = 0;
 static int titleswiiu = 0, titlesvwii = 0;
 static const std::array<const char *, 4> sortn = {"None", "Name", "Storage", "Storage+Name"};
 
-void someFunc(IOSError err, void *arg){(void)arg;}
+void someFunc(IOSError err, void *arg) { (void) arg; }
 
-int mcp_hook_fd = -1;
-int MCPHookOpen()
-{
-	//take over mcp thread
-	mcp_hook_fd = MCP_Open();
-	if(mcp_hook_fd < 0)
-		return -1;
-	IOS_IoctlAsync(mcp_hook_fd, 0x62, (void*)0, 0, (void*)0, 0, someFunc, (void*)0);
-	//let wupserver start up
-	OSSleepTicks(OSMillisecondsToTicks(500));
-	if(IOSUHAX_Open("/dev/mcp") < 0)
-		return -1;
-	return 0;
+int MCPHookFd = -1;
+int MCPHookOpen() {
+    //take over mcp thread
+    MCPHookFd = MCP_Open();
+    if (MCPHookFd < 0)
+        return -1;
+    IOS_IoctlAsync(MCPHookFd, 0x62, (void *) 0, 0, (void *) 0, 0, someFunc, (void *) 0);
+    //let wupserver start up
+    OSSleepTicks(OSMillisecondsToTicks(500));
+    if (IOSUHAX_Open("/dev/mcp") < 0)
+        return -1;
+    return 0;
 }
 
-void MCPHookClose()
-{
-	if(mcp_hook_fd < 0)
-		return;
-	//close down wupserver, return control to mcp
-	IOSUHAX_Close();
-	//wait for mcp to return
-	OSSleepTicks(OSMillisecondsToTicks(500));
-	MCP_Close(mcp_hook_fd);
-	mcp_hook_fd = -1;
+void MCPHookClose() {
+    if (MCPHookFd < 0)
+        return;
+    //close down wupserver, return control to mcp
+    IOSUHAX_Close();
+    //wait for mcp to return
+    OSSleepTicks(OSMillisecondsToTicks(500));
+    MCP_Close(MCPHookFd);
+    MCPHookFd = -1;
 }
 
 template<class It>
@@ -88,9 +86,9 @@ static void sortTitle(It titles, It last, int tsort = 1, int sorta = 1) {
 }
 
 static void disclaimer() {
-    console_print_pos(23, 13, "Disclaimer:");
-    console_print_pos(13, 14, "There is always the potential for a brick.");
-    console_print_pos(1, 15, "Everything you do with this software is your own responsibility");
+    consolePrintPos(23, 13, "Disclaimer:");
+    consolePrintPos(13, 14, "There is always the potential for a brick.");
+    consolePrintPos(1, 15, "Everything you do with this software is your own responsibility");
 }
 
 static Title *loadWiiUTitles(int run) {
@@ -137,7 +135,7 @@ static Title *loadWiiUTitles(int run) {
     int tNoSave = usable;
     for (int i = 0; i <= 1; i++) {
         for (uint8_t a = 0; a < 2; a++) {
-            std::string path = string_format("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
+            std::string path = stringFormat("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
             DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
                 struct dirent *data;
@@ -145,10 +143,10 @@ static Title *loadWiiUTitles(int run) {
                     if (data->d_name[0] == '.')
                         continue;
 
-                    path = string_format("%s:/usr/save/%s/%s/user", (i == 0) ? "usb" : "mlc", highIDs[a], data->d_name);
+                    path = stringFormat("%s:/usr/save/%s/%s/user", (i == 0) ? "usb" : "mlc", highIDs[a], data->d_name);
                     if (checkEntry(path.c_str()) == 2) {
-                        path = string_format("%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
-                                             data->d_name);
+                        path = stringFormat("%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
+                                            data->d_name);
                         if (checkEntry(path.c_str()) == 1) {
                             for (int i = 0; i < usable; i++) {
                                 if ((savesl[i].highID == (0x00050000 | 0x00050002)) &&
@@ -176,7 +174,7 @@ static Title *loadWiiUTitles(int run) {
 
     for (uint8_t a = 0; a < 2; a++) {
         for (int i = 0; i <= 1; i++) {
-            std::string path = string_format("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
+            std::string path = stringFormat("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
             DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
                 struct dirent *data;
@@ -184,8 +182,8 @@ static Title *loadWiiUTitles(int run) {
                     if (data->d_name[0] == '.')
                         continue;
 
-                    path = string_format("%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
-                                         data->d_name);
+                    path = stringFormat("%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
+                                        data->d_name);
                     if (checkEntry(path.c_str()) == 1) {
                         saves[pos].highID = highIDsNumeric[a];
                         saves[pos].lowID = strtoul(data->d_name, nullptr, 16);
@@ -220,8 +218,8 @@ static Title *loadWiiUTitles(int run) {
         uint32_t lowID = saves[i].lowID;
         bool isTitleOnUSB = saves[i].dev == 0u;
 
-        const std::string path = string_format("%s:/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc",
-                                               saves[i].found ? "title" : "save", highID, lowID);
+        const std::string path = stringFormat("%s:/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc",
+                                              saves[i].found ? "title" : "save", highID, lowID);
         titles[titleswiiu].saveInit = !saves[i].found;
 
         char *xmlBuf = nullptr;
@@ -270,7 +268,7 @@ static Title *loadWiiUTitles(int run) {
         clearBuffersEx();
         drawTGA(285, 144, 1, icon_tga);
         disclaimer();
-        console_print_pos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
+        consolePrintPos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
         flipBuffers();
         WHBLogFreetypeDraw();
     }
@@ -294,7 +292,7 @@ static Title *loadWiiTitles() {
 
     std::string pathW;
     for (int k = 0; k < 3; k++) {
-        pathW = string_format("slc:/title/%s", highIDs[k]);
+        pathW = stringFormat("slc:/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW.c_str());
         if (dir != nullptr) {
             struct dirent *data;
@@ -328,7 +326,7 @@ static Title *loadWiiTitles() {
 
     int i = 0;
     for (int k = 0; k < 3; k++) {
-        pathW = string_format("slc:/title/%s", highIDs[k]);
+        pathW = stringFormat("slc:/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW.c_str());
         if (dir != nullptr) {
             struct dirent *data;
@@ -346,7 +344,7 @@ static Title *loadWiiTitles() {
                     continue;
                 }
 
-                const std::string path = string_format("slc:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
+                const std::string path = stringFormat("slc:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
                 FILE *file = fopen(path.c_str(), "rb");
                 if (file != nullptr) {
                     fseek(file, 0x20, SEEK_SET);
@@ -416,8 +414,8 @@ static Title *loadWiiTitles() {
                 clearBuffersEx();
                 drawTGA(285, 144, 1, icon_tga);
                 disclaimer();
-                console_print_pos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
-                console_print_pos(21, 11, "Loaded %i Wii titles.", i);
+                consolePrintPos(20, 10, "Loaded %i Wii U titles.", titleswiiu);
+                consolePrintPos(21, 11, "Loaded %i Wii titles.", i);
                 flipBuffers();
                 WHBLogFreetypeDraw();
             }
@@ -506,34 +504,34 @@ auto main() -> int {
         int count = mode != 0 ? titlesvwii : titleswiiu;
 
         if (redraw) {
-            console_print_pos(0, 0, "SaveMii v%u.%u.%u", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
-            console_print_pos(0, 1, "----------------------------------------------------------------------------");
+            consolePrintPos(0, 0, "SaveMii v%u.%u.%u", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
+            consolePrintPos(0, 1, "----------------------------------------------------------------------------");
 
             switch (menu) {
                 case 0: { // Main Menu
                     entrycount = 3;
-                    console_print_pos(M_OFF, 2, "   Wii U Save Management (%u Title%s)", titleswiiu,
-                                      (titleswiiu > 1) ? "s" : "");
-                    console_print_pos(M_OFF, 3, "   vWii Save Management (%u Title%s)", titlesvwii,
-                                      (titlesvwii > 1) ? "s" : "");
-                    console_print_pos(M_OFF, 4, "   Batch Backup");
-                    console_print_pos(M_OFF, 2 + cursor, "\u2192");
-                    console_print_pos_aligned(17, 4, 2, "\ue000: Select Mode");
+                    consolePrintPos(M_OFF, 2, "   Wii U Save Management (%u Title%s)", titleswiiu,
+                                    (titleswiiu > 1) ? "s" : "");
+                    consolePrintPos(M_OFF, 3, "   vWii Save Management (%u Title%s)", titlesvwii,
+                                    (titlesvwii > 1) ? "s" : "");
+                    consolePrintPos(M_OFF, 4, "   Batch Backup");
+                    consolePrintPos(M_OFF, 2 + cursor, "\u2192");
+                    consolePrintPosAligned(17, 4, 2, "\ue000: Select Mode");
                 } break;
                 case 1: { // Select Title
                     if (mode == 2) {
                         entrycount = 3;
-                        console_print_pos(M_OFF, 2, "   Backup All (%u Title%s)", titleswiiu + titlesvwii,
-                                          ((titleswiiu + titlesvwii) > 1) ? "s" : "");
-                        console_print_pos(M_OFF, 3, "   Backup Wii U (%u Title%s)", titleswiiu,
-                                          (titleswiiu > 1) ? "s" : "");
-                        console_print_pos(M_OFF, 4, "   Backup vWii (%u Title%s)", titlesvwii,
-                                          (titlesvwii > 1) ? "s" : "");
-                        console_print_pos(M_OFF, 2 + cursor, "\u2192");
-                        console_print_pos_aligned(17, 4, 2, "\ue000: Backup  \ue001: Back");
+                        consolePrintPos(M_OFF, 2, "   Backup All (%u Title%s)", titleswiiu + titlesvwii,
+                                        ((titleswiiu + titlesvwii) > 1) ? "s" : "");
+                        consolePrintPos(M_OFF, 3, "   Backup Wii U (%u Title%s)", titleswiiu,
+                                        (titleswiiu > 1) ? "s" : "");
+                        consolePrintPos(M_OFF, 4, "   Backup vWii (%u Title%s)", titlesvwii,
+                                        (titlesvwii > 1) ? "s" : "");
+                        consolePrintPos(M_OFF, 2 + cursor, "\u2192");
+                        consolePrintPosAligned(17, 4, 2, "\ue000: Backup  \ue001: Back");
                     } else {
-                        console_print_pos(39, 0, "%s Sort: %s \ue084",
-                                          (tsort > 0) ? ((sorta == 1) ? "\ue083 \u2193" : "\ue083 \u2191") : "", sortn[tsort]);
+                        consolePrintPos(39, 0, "%s Sort: %s \ue084",
+                                        (tsort > 0) ? ((sorta == 1) ? "\ue083 \u2193" : "\ue083 \u2191") : "", sortn[tsort]);
                         entrycount = count;
                         for (int i = 0; i < 14; i++) {
                             if (i + scroll < 0 || i + scroll >= count)
@@ -544,13 +542,13 @@ auto main() -> int {
                             if (strcmp(titles[i + scroll].shortName, "DONT TOUCH ME") == 0)
                                 ttfFontColor32(0xFF0000FF);
                             if (strlen(titles[i + scroll].shortName) != 0u)
-                                console_print_pos(M_OFF, i + 2, "   %s %s%s%s", titles[i + scroll].shortName,
-                                                  titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""),
-                                                  titles[i + scroll].isTitleDupe ? " [D]" : "",
-                                                  titles[i + scroll].saveInit ? "" : " [Not Init]");
+                                consolePrintPos(M_OFF, i + 2, "   %s %s%s%s", titles[i + scroll].shortName,
+                                                titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""),
+                                                titles[i + scroll].isTitleDupe ? " [D]" : "",
+                                                titles[i + scroll].saveInit ? "" : " [Not Init]");
                             else
-                                console_print_pos(M_OFF, i + 2, "   %08lx%08lx", titles[i + scroll].highID,
-                                                  titles[i + scroll].lowID);
+                                consolePrintPos(M_OFF, i + 2, "   %08lx%08lx", titles[i + scroll].highID,
+                                                titles[i + scroll].lowID);
                             ttfFontColor32(0xFFFFFFFF);
                             if (mode == 0) {
                                 if (titles[i + scroll].iconBuf != nullptr) {
@@ -564,128 +562,128 @@ auto main() -> int {
                             }
                         }
                         if (mode == 0)
-                            console_print_pos(-1, 2 + cursor, "\u2192");
+                            consolePrintPos(-1, 2 + cursor, "\u2192");
                         else if (mode == 1)
-                            console_print_pos(-3, 2 + cursor, "\u2192");
-                        console_print_pos_aligned(17, 4, 2, "\ue000: Select Game  \ue001: Back");
+                            consolePrintPos(-3, 2 + cursor, "\u2192");
+                        consolePrintPosAligned(17, 4, 2, "\ue000: Select Game  \ue001: Back");
                     }
                 } break;
                 case 2: { // Select Task
                     entrycount = 3 + 2 * static_cast<int>(mode == 0) + 1 * static_cast<int>((mode == 0) && (titles[targ].isTitleDupe));
-                    console_print_pos(M_OFF, 2, "   [%08X-%08X] [%s]", titles[targ].highID, titles[targ].lowID,
-                                      titles[targ].productCode);
-                    console_print_pos(M_OFF, 3, "   %s", titles[targ].shortName);
-                    console_print_pos(M_OFF, 5, "   Backup savedata");
-                    console_print_pos(M_OFF, 6, "   Restore savedata");
-                    console_print_pos(M_OFF, 7, "   Wipe savedata");
+                    consolePrintPos(M_OFF, 2, "   [%08X-%08X] [%s]", titles[targ].highID, titles[targ].lowID,
+                                    titles[targ].productCode);
+                    consolePrintPos(M_OFF, 3, "   %s", titles[targ].shortName);
+                    consolePrintPos(M_OFF, 5, "   Backup savedata");
+                    consolePrintPos(M_OFF, 6, "   Restore savedata");
+                    consolePrintPos(M_OFF, 7, "   Wipe savedata");
                     if (mode == 0) {
-                        console_print_pos(M_OFF, 8, "   Import from loadiine");
-                        console_print_pos(M_OFF, 9, "   Export to loadiine");
+                        consolePrintPos(M_OFF, 8, "   Import from loadiine");
+                        consolePrintPos(M_OFF, 9, "   Export to loadiine");
                         if (titles[targ].isTitleDupe)
-                            console_print_pos(M_OFF, 10, "   Copy Savedata to Title in %s",
-                                              titles[targ].isTitleOnUSB ? "NAND" : "USB");
+                            consolePrintPos(M_OFF, 10, "   Copy Savedata to Title in %s",
+                                            titles[targ].isTitleOnUSB ? "NAND" : "USB");
                         if (titles[targ].iconBuf != nullptr)
                             drawTGA(660, 80, 1, titles[targ].iconBuf);
                     } else if (mode == 1)
                         if (titles[targ].iconBuf != nullptr)
                             drawRGB5A3(645, 80, 1, titles[targ].iconBuf);
-                    console_print_pos(M_OFF, 2 + 3 + cursor, "\u2192");
-                    console_print_pos_aligned(17, 4, 2, "\ue000: Select Task  \ue001: Back");
+                    consolePrintPos(M_OFF, 2 + 3 + cursor, "\u2192");
+                    consolePrintPosAligned(17, 4, 2, "\ue000: Select Task  \ue001: Back");
                 } break;
                 case 3: { // Select Options
                     entrycount = 3;
-                    console_print_pos(M_OFF, 2, "[%08X-%08X] %s", titles[targ].highID, titles[targ].lowID,
-                                      titles[targ].shortName);
+                    consolePrintPos(M_OFF, 2, "[%08X-%08X] %s", titles[targ].highID, titles[targ].lowID,
+                                    titles[targ].shortName);
 
                     if (task == 5) {
-                        console_print_pos(M_OFF, 4, "Destination:");
-                        console_print_pos(M_OFF, 5, "    (%s)", titles[targ].isTitleOnUSB ? "NAND" : "USB");
+                        consolePrintPos(M_OFF, 4, "Destination:");
+                        consolePrintPos(M_OFF, 5, "    (%s)", titles[targ].isTitleOnUSB ? "NAND" : "USB");
                     } else if (task > 2) {
                         entrycount = 2;
-                        console_print_pos(M_OFF, 4, "Select %s:", "version");
-                        console_print_pos(M_OFF, 5, "   < v%u >", versionList != nullptr ? versionList[slot] : 0);
+                        consolePrintPos(M_OFF, 4, "Select %s:", "version");
+                        consolePrintPos(M_OFF, 5, "   < v%u >", versionList != nullptr ? versionList[slot] : 0);
                     } else if (task == 2) {
-                        console_print_pos(M_OFF, 4, "Delete from:");
-                        console_print_pos(M_OFF, 5, "    (%s)", titles[targ].isTitleOnUSB ? "USB" : "NAND");
+                        consolePrintPos(M_OFF, 4, "Delete from:");
+                        consolePrintPos(M_OFF, 5, "    (%s)", titles[targ].isTitleOnUSB ? "USB" : "NAND");
                     } else {
-                        console_print_pos(M_OFF, 4, "Select %s:", "slot");
+                        consolePrintPos(M_OFF, 4, "Select %s:", "slot");
 
                         if (((titles[targ].highID & 0xFFFFFFF0) == 0x00010000) && (slot == 255))
-                            console_print_pos(M_OFF, 5, "   < SaveGame Manager GX > (%s)",
-                                              isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot) ? "Empty"
-                                                                                                         : "Used");
+                            consolePrintPos(M_OFF, 5, "   < SaveGame Manager GX > (%s)",
+                                            isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot) ? "Empty"
+                                                                                                       : "Used");
                         else
-                            console_print_pos(M_OFF, 5, "   < %03u > (%s)", slot,
-                                              isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot) ? "Empty"
-                                                                                                         : "Used");
+                            consolePrintPos(M_OFF, 5, "   < %03u > (%s)", slot,
+                                            isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot) ? "Empty"
+                                                                                                       : "Used");
                     }
 
                     if (mode == 0) {
                         if (task == 1) {
                             if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
                                 entrycount++;
-                                console_print_pos(M_OFF, 7, "Select SD user to copy from:");
+                                consolePrintPos(M_OFF, 7, "Select SD user to copy from:");
                                 if (sdusers == -1)
-                                    console_print_pos(M_OFF, 8, "   < %s >", "all users");
+                                    consolePrintPos(M_OFF, 8, "   < %s >", "all users");
                                 else
-                                    console_print_pos(M_OFF, 8, "   < %s > (%s)", sdacc[sdusers].persistentID,
-                                                      hasAccountSave(&titles[targ], true, false, sdacc[sdusers].pID,
-                                                                     slot, 0)
-                                                              ? "Has Save"
-                                                              : "Empty");
+                                    consolePrintPos(M_OFF, 8, "   < %s > (%s)", sdacc[sdusers].persistentID,
+                                                    hasAccountSave(&titles[targ], true, false, sdacc[sdusers].pID,
+                                                                   slot, 0)
+                                                            ? "Has Save"
+                                                            : "Empty");
                             }
                         }
 
                         if (task == 2) {
-                            console_print_pos(M_OFF, 7, "Select Wii U user to delete from:");
+                            consolePrintPos(M_OFF, 7, "Select Wii U user to delete from:");
                             if (allusers == -1)
-                                console_print_pos(M_OFF, 8, "   < %s >", "all users");
+                                consolePrintPos(M_OFF, 8, "   < %s >", "all users");
                             else
-                                console_print_pos(M_OFF, 8, "   < %s (%s) > (%s)", wiiuacc[allusers].miiName,
-                                                  wiiuacc[allusers].persistentID,
-                                                  hasAccountSave(&titles[targ], false, false, wiiuacc[allusers].pID,
-                                                                 slot, 0)
-                                                          ? "Has Save"
-                                                          : "Empty");
+                                consolePrintPos(M_OFF, 8, "   < %s (%s) > (%s)", wiiuacc[allusers].miiName,
+                                                wiiuacc[allusers].persistentID,
+                                                hasAccountSave(&titles[targ], false, false, wiiuacc[allusers].pID,
+                                                               slot, 0)
+                                                        ? "Has Save"
+                                                        : "Empty");
                         }
 
                         if ((task == 0) || (task == 1) || (task == 5)) {
                             if ((task == 1) && isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
                                 entrycount--;
                             else {
-                                console_print_pos(M_OFF, (task == 1) ? 10 : 7, "Select Wii U user%s:",
-                                                  (task == 5) ? " to copy from" : ((task == 1) ? " to copy to" : ""));
+                                consolePrintPos(M_OFF, (task == 1) ? 10 : 7, "Select Wii U user%s:",
+                                                (task == 5) ? " to copy from" : ((task == 1) ? " to copy to" : ""));
                                 if (allusers == -1)
-                                    console_print_pos(M_OFF, (task == 1) ? 11 : 8, "   < %s >", "all users");
+                                    consolePrintPos(M_OFF, (task == 1) ? 11 : 8, "   < %s >", "all users");
                                 else
-                                    console_print_pos(M_OFF, (task == 1) ? 11 : 8, "   < %s (%s) > (%s)",
-                                                      wiiuacc[allusers].miiName, wiiuacc[allusers].persistentID,
-                                                      hasAccountSave(&titles[targ],
-                                                                     (!((task == 0) || (task == 1) || (task == 5))),
-                                                                     (!((task < 3) || (task == 5))),
-                                                                     wiiuacc[allusers].pID, slot,
-                                                                     versionList != nullptr ? versionList[slot] : 0)
-                                                              ? "Has Save"
-                                                              : "Empty");
+                                    consolePrintPos(M_OFF, (task == 1) ? 11 : 8, "   < %s (%s) > (%s)",
+                                                    wiiuacc[allusers].miiName, wiiuacc[allusers].persistentID,
+                                                    hasAccountSave(&titles[targ],
+                                                                   (!((task == 0) || (task == 1) || (task == 5))),
+                                                                   (!((task < 3) || (task == 5))),
+                                                                   wiiuacc[allusers].pID, slot,
+                                                                   versionList != nullptr ? versionList[slot] : 0)
+                                                            ? "Has Save"
+                                                            : "Empty");
                             }
                         }
                         if ((task == 0) || (task == 1))
                             if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
-                                console_print_pos(M_OFF, 15, "Date: %s",
-                                                  getSlotDate(titles[targ].highID, titles[targ].lowID, slot).c_str());
+                                consolePrintPos(M_OFF, 15, "Date: %s",
+                                                getSlotDate(titles[targ].highID, titles[targ].lowID, slot).c_str());
 
                         if (task == 5) {
                             entrycount++;
-                            console_print_pos(M_OFF, 10, "Select Wii U user%s:", (task == 5) ? " to copy to" : "");
+                            consolePrintPos(M_OFF, 10, "Select Wii U user%s:", (task == 5) ? " to copy to" : "");
                             if (allusers_d == -1)
-                                console_print_pos(M_OFF, 11, "   < %s >", "all users");
+                                consolePrintPos(M_OFF, 11, "   < %s >", "all users");
                             else
-                                console_print_pos(M_OFF, 11, "   < %s (%s) > (%s)", wiiuacc[allusers_d].miiName,
-                                                  wiiuacc[allusers_d].persistentID,
-                                                  hasAccountSave(&titles[titles[targ].dupeID], false, false,
-                                                                 wiiuacc[allusers_d].pID, 0, 0)
-                                                          ? "Has Save"
-                                                          : "Empty");
+                                consolePrintPos(M_OFF, 11, "   < %s (%s) > (%s)", wiiuacc[allusers_d].miiName,
+                                                wiiuacc[allusers_d].persistentID,
+                                                hasAccountSave(&titles[titles[targ].dupeID], false, false,
+                                                               wiiuacc[allusers_d].pID, 0, 0)
+                                                        ? "Has Save"
+                                                        : "Empty");
                         }
 
                         if ((task != 3) && (task != 4)) {
@@ -694,14 +692,14 @@ auto main() -> int {
                                                   (!((task == 0) || (task == 2) || (task == 5))),
                                                   (!((task < 3) || (task == 5))), slot,
                                                   versionList != nullptr ? versionList[slot] : 0)) {
-                                    console_print_pos(M_OFF, (task == 1) || (task == 5) ? 13 : 10,
-                                                      "Include 'common' save?");
-                                    console_print_pos(M_OFF, (task == 1) || (task == 5) ? 14 : 11, "   < %s >",
-                                                      common ? "yes" : "no ");
+                                    consolePrintPos(M_OFF, (task == 1) || (task == 5) ? 13 : 10,
+                                                    "Include 'common' save?");
+                                    consolePrintPos(M_OFF, (task == 1) || (task == 5) ? 14 : 11, "   < %s >",
+                                                    common ? "yes" : "no ");
                                 } else {
                                     common = false;
-                                    console_print_pos(M_OFF, (task == 1) || (task == 5) ? 13 : 10,
-                                                      "No 'common' save found.");
+                                    consolePrintPos(M_OFF, (task == 1) || (task == 5) ? 13 : 10,
+                                                    "No 'common' save found.");
                                     entrycount--;
                                 }
                             } else {
@@ -710,16 +708,16 @@ auto main() -> int {
                             }
                         } else {
                             if (hasCommonSave(&titles[targ], true, true, slot, versionList != nullptr ? versionList[slot] : 0)) {
-                                console_print_pos(M_OFF, 7, "Include 'common' save?");
-                                console_print_pos(M_OFF, 8, "   < %s >", common ? "yes" : "no ");
+                                consolePrintPos(M_OFF, 7, "Include 'common' save?");
+                                consolePrintPos(M_OFF, 8, "   < %s >", common ? "yes" : "no ");
                             } else {
                                 common = false;
-                                console_print_pos(M_OFF, 7, "No 'common' save found.");
+                                consolePrintPos(M_OFF, 7, "No 'common' save found.");
                                 entrycount--;
                             }
                         }
 
-                        console_print_pos(M_OFF, 5 + cursor * 3, "\u2192");
+                        consolePrintPos(M_OFF, 5 + cursor * 3, "\u2192");
                         if (titles[targ].iconBuf != nullptr)
                             drawTGA(660, 100, 1, titles[targ].iconBuf);
                     } else if (mode == 1) {
@@ -727,34 +725,34 @@ auto main() -> int {
                         if (titles[targ].iconBuf != nullptr)
                             drawRGB5A3(650, 100, 1, titles[targ].iconBuf);
                         if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
-                            console_print_pos(M_OFF, 15, "Date: %s",
-                                              getSlotDate(titles[targ].highID, titles[targ].lowID, slot).c_str());
+                            consolePrintPos(M_OFF, 15, "Date: %s",
+                                            getSlotDate(titles[targ].highID, titles[targ].lowID, slot).c_str());
                     }
 
                     switch (task) {
                         case 0:
-                            console_print_pos_aligned(17, 4, 2, "\ue000: Backup  \ue001: Back");
+                            consolePrintPosAligned(17, 4, 2, "\ue000: Backup  \ue001: Back");
                             break;
                         case 1:
-                            console_print_pos_aligned(17, 4, 2, "\ue000: Restore  \ue001: Back");
+                            consolePrintPosAligned(17, 4, 2, "\ue000: Restore  \ue001: Back");
                             break;
                         case 2:
-                            console_print_pos_aligned(17, 4, 2, "\ue000: Wipe  \ue001: Back");
+                            consolePrintPosAligned(17, 4, 2, "\ue000: Wipe  \ue001: Back");
                             break;
                         case 3:
-                            console_print_pos_aligned(17, 4, 2, "\ue000: Import  \ue001: Back");
+                            consolePrintPosAligned(17, 4, 2, "\ue000: Import  \ue001: Back");
                             break;
                         case 4:
-                            console_print_pos_aligned(17, 4, 2, "\ue000: Export  \ue001: Back");
+                            consolePrintPosAligned(17, 4, 2, "\ue000: Export  \ue001: Back");
                             break;
                         case 5:
-                            console_print_pos_aligned(17, 4, 2, "\ue000: Copy  \ue001: Back");
+                            consolePrintPosAligned(17, 4, 2, "\ue000: Copy  \ue001: Back");
                             break;
                     }
                 } break;
             }
-            console_print_pos(0, 16, "----------------------------------------------------------------------------");
-            console_print_pos(0, 17, "Press \ue044 to exit.");
+            consolePrintPos(0, 16, "----------------------------------------------------------------------------");
+            consolePrintPos(0, 17, "Press \ue044 to exit.");
 
             flipBuffers();
             WHBLogFreetypeDraw();
@@ -1021,9 +1019,9 @@ auto main() -> int {
                             continue;
                         }
                     }
-                    std::string path = string_format("%s:/usr/title/000%x/%x/code/fw.img",
-                                                     (titles[targ].isTitleOnUSB) ? "usb" : "mlc", titles[targ].highID,
-                                                     titles[targ].lowID);
+                    std::string path = stringFormat("%s:/usr/title/000%x/%x/code/fw.img",
+                                                    (titles[targ].isTitleOnUSB) ? "usb" : "mlc", titles[targ].highID,
+                                                    titles[targ].lowID);
                     if ((mode == 0) && (checkEntry(path.c_str()) != 0))
                         if (!promptConfirm(ST_ERROR, "vWii saves are in the vWii section. Continue?"))
                             continue;
@@ -1136,11 +1134,11 @@ auto main() -> int {
     unmount_fs("usb");
 
     IOSUHAX_FSA_Close(fsaFd);
-    if(mcp_hook_fd >= 0) {
+    if (MCPHookFd >= 0) {
         MCPHookClose();
         SYSRelaunchTitle(0, NULL);
     } else {
-		IOSUHAX_Close();
+        IOSUHAX_Close();
     }
 
     OSScreenShutdown();

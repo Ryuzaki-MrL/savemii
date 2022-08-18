@@ -65,7 +65,7 @@ extern Account *wiiuacc;
 extern Account *sdacc;
 extern uint8_t wiiuaccn, sdaccn;
 
-void console_print_pos(int x, int y, const char *format, ...);
+void consolePrintPos(int x, int y, const char *format, ...);
 bool promptConfirm(Style st, std::string question);
 void promptError(const char *message, ...);
 void getAccountsWiiU();
@@ -86,5 +86,5 @@ void setFSAFD(int fd);
 int checkEntry(const char *fPath);
 int32_t loadFile(const char *fPath, uint8_t **buf);
 int32_t loadTitleIcon(Title *title);
-void console_print_pos_multiline(int x, int y, char cdiv, const char *format, ...);
-void console_print_pos_aligned(int y, uint16_t offset, uint8_t align, const char *format, ...);
+void consolePrintPosMultiline(int x, int y, char cdiv, const char *format, ...);
+void consolePrintPosAligned(int y, uint16_t offset, uint8_t align, const char *format, ...);

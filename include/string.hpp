@@ -10,7 +10,7 @@ auto replace(std::string &str, const std::string &from, const std::string &to) -
 auto decodeXMLEscapeLine(std::string xmlString) -> std::string;
 
 template<typename... Args>
-auto string_format(const std::string &format, Args... args) -> std::string {
+auto stringFormat(const std::string &format, Args... args) -> std::string {
     int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
     if (size_s <= 0) { throw std::runtime_error("Error during formatting."); }
     auto size = static_cast<size_t>(size_s);
