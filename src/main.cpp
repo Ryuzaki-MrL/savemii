@@ -7,7 +7,7 @@
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 4
-#define VERSION_MICRO 2
+#define VERSION_MICRO 3
 #define M_OFF         1
 
 static uint8_t slot = 0;
