@@ -70,7 +70,12 @@
     "fstream": "cpp",
     "iostream": "cpp",
     "shared_mutex": "cpp",
-    "valarray": "cpp"
+    "valarray": "cpp",
+    "future": "cpp",
+    "mutex": "cpp",
+    "semaphore": "cpp",
+    "stop_token": "cpp",
+    "thread": "cpp"
   },
   "cmake.configureOnOpen": false
 }

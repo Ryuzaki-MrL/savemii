@@ -7,7 +7,7 @@
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 4
-#define VERSION_MICRO 3
+#define VERSION_MICRO 4
 #define M_OFF         1
 
 static uint8_t slot = 0;
@@ -18,33 +18,6 @@ static int cursor = 0, scroll = 0;
 static int cursorb = 0, cursort = 0, scrollb = 0;
 static int titleswiiu = 0, titlesvwii = 0;
 static const std::array<const char *, 4> sortn = {"None", "Name", "Storage", "Storage+Name"};
-
-void someFunc(IOSError err, void *arg) { (void) arg; }
-
-int MCPHookFd = -1;
-int MCPHookOpen() {
-    //take over mcp thread
-    MCPHookFd = MCP_Open();
-    if (MCPHookFd < 0)
-        return -1;
-    IOS_IoctlAsync(MCPHookFd, 0x62, (void *) 0, 0, (void *) 0, 0, someFunc, (void *) 0);
-    //let wupserver start up
-    OSSleepTicks(OSMillisecondsToTicks(500));
-    if (IOSUHAX_Open("/dev/mcp") < 0)
-        return -1;
-    return 0;
-}
-
-void MCPHookClose() {
-    if (MCPHookFd < 0)
-        return;
-    //close down wupserver, return control to mcp
-    IOSUHAX_Close();
-    //wait for mcp to return
-    OSSleepTicks(OSMillisecondsToTicks(500));
-    MCP_Close(MCPHookFd);
-    MCPHookFd = -1;
-}
 
 template<class It>
 static void sortTitle(It titles, It last, int tsort = 1, int sorta = 1) {
@@ -135,7 +108,7 @@ static Title *loadWiiUTitles(int run) {
     int tNoSave = usable;
     for (int i = 0; i <= 1; i++) {
         for (uint8_t a = 0; a < 2; a++) {
-            std::string path = stringFormat("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
+            std::string path = stringFormat("%s/usr/save/%s", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a]);
             DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
                 struct dirent *data;
@@ -143,9 +116,9 @@ static Title *loadWiiUTitles(int run) {
                     if (data->d_name[0] == '.')
                         continue;
 
-                    path = stringFormat("%s:/usr/save/%s/%s/user", (i == 0) ? "usb" : "mlc", highIDs[a], data->d_name);
+                    path = stringFormat("%s/usr/save/%s/%s/user", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a], data->d_name);
                     if (checkEntry(path.c_str()) == 2) {
-                        path = stringFormat("%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
+                        path = stringFormat("%s/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a],
                                             data->d_name);
                         if (checkEntry(path.c_str()) == 1) {
                             for (int i = 0; i < usable; i++) {
@@ -174,7 +147,7 @@ static Title *loadWiiUTitles(int run) {
 
     for (uint8_t a = 0; a < 2; a++) {
         for (int i = 0; i <= 1; i++) {
-            std::string path = stringFormat("%s:/usr/save/%s", (i == 0) ? "usb" : "mlc", highIDs[a]);
+            std::string path = stringFormat("%s/usr/save/%s", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a]);
             DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
                 struct dirent *data;
@@ -182,7 +155,7 @@ static Title *loadWiiUTitles(int run) {
                     if (data->d_name[0] == '.')
                         continue;
 
-                    path = stringFormat("%s:/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "usb" : "mlc", highIDs[a],
+                    path = stringFormat("%s/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a],
                                         data->d_name);
                     if (checkEntry(path.c_str()) == 1) {
                         saves[pos].highID = highIDsNumeric[a];
@@ -218,7 +191,7 @@ static Title *loadWiiUTitles(int run) {
         uint32_t lowID = saves[i].lowID;
         bool isTitleOnUSB = saves[i].dev == 0u;
 
-        const std::string path = stringFormat("%s:/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "usb" : "mlc",
+        const std::string path = stringFormat("%s/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "/vol/storage_usb01" : "/vol/storage_mlc01",
                                               saves[i].found ? "title" : "save", highID, lowID);
         titles[titleswiiu].saveInit = !saves[i].found;
 
@@ -292,7 +265,7 @@ static Title *loadWiiTitles() {
 
     std::string pathW;
     for (int k = 0; k < 3; k++) {
-        pathW = stringFormat("slc:/title/%s", highIDs[k]);
+        pathW = stringFormat("/vol/storage_slccmpt01/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW.c_str());
         if (dir != nullptr) {
             struct dirent *data;
@@ -326,7 +299,7 @@ static Title *loadWiiTitles() {
 
     int i = 0;
     for (int k = 0; k < 3; k++) {
-        pathW = stringFormat("slc:/title/%s", highIDs[k]);
+        pathW = stringFormat("/vol/storage_slccmpt01/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW.c_str());
         if (dir != nullptr) {
             struct dirent *data;
@@ -344,7 +317,7 @@ static Title *loadWiiTitles() {
                     continue;
                 }
 
-                const std::string path = stringFormat("slc:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
+                const std::string path = stringFormat("/vol/storage_slccmpt01/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
                 FILE *file = fopen(path.c_str(), "rb");
                 if (file != nullptr) {
                     fseek(file, 0x20, SEEK_SET);
@@ -443,31 +416,12 @@ auto main() -> int {
     WPADEnableURCC(1);
     loadWiiUTitles(0);
 
-    int res = IOSUHAX_Open(NULL);
-    if (res < 0) { // Not Tiramisu/Mocha
-        res = MCPHookOpen();
-        if (res < 0) {
-            promptError("IOSUHAX_Open failed.");
-            flipBuffers();
-            WHBProcShutdown();
-            return 0;
-        }
-    }
-
-    int fsaFd = IOSUHAX_FSA_Open();
-    if (fsaFd < 0) {
-        promptError("IOSUHAX_FSA_Open failed.");
+    if (!initFS()) {
+        promptError("initFS failed. Please make sure your MochaPayload is up-to-date");
         flipBuffers();
         WHBProcShutdown();
         return 0;
     }
-
-    setFSAFD(fsaFd);
-
-    fatMountSimple("sd", &IOSUHAX_sdio_disc_interface);
-    mount_fs("slc", fsaFd, "/dev/slccmpt01", "/vol/storage_slccmpt01");
-    mount_fs("mlc", fsaFd, NULL, "/vol/storage_mlc01");
-    mount_fs("usb", fsaFd, NULL, "/vol/storage_usb01");
 
     clearBuffers();
     Title *wiiutitles = loadWiiUTitles(1);
@@ -1019,8 +973,8 @@ auto main() -> int {
                             continue;
                         }
                     }
-                    std::string path = stringFormat("%s:/usr/title/000%x/%x/code/fw.img",
-                                                    (titles[targ].isTitleOnUSB) ? "usb" : "mlc", titles[targ].highID,
+                    std::string path = stringFormat("%s/usr/title/000%x/%x/code/fw.img",
+                                                    (titles[targ].isTitleOnUSB) ? "/vol/storage_usb01" : "/vol/storage_mlc01", titles[targ].highID,
                                                     titles[targ].lowID);
                     if ((mode == 0) && (checkEntry(path.c_str()) != 0))
                         if (!promptConfirm(ST_ERROR, "vWii saves are in the vWii section. Continue?"))
@@ -1128,18 +1082,7 @@ auto main() -> int {
     unloadTitles(wiititles, titlesvwii);
     free(versionList);
 
-    fatUnmount("sd");
-    unmount_fs("slc");
-    unmount_fs("mlc");
-    unmount_fs("usb");
-
-    IOSUHAX_FSA_Close(fsaFd);
-    if (MCPHookFd >= 0) {
-        MCPHookClose();
-        SYSRelaunchTitle(0, NULL);
-    } else {
-        IOSUHAX_Close();
-    }
+    deinitFS();
 
     OSScreenShutdown();
     WHBLogFreetypeFree();

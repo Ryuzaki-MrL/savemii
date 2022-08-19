@@ -5,19 +5,22 @@
 #include "draw.h"
 #include "json.h"
 #include "log_freetype.h"
+#include <coreinit/filesystem.h>
 #include <coreinit/mcp.h>
 #include <coreinit/memdefaultheap.h>
 #include <coreinit/thread.h>
 #include <cstdio>
 #include <dirent.h>
 #include <fcntl.h>
-#include <iosuhax.h>
-#include <iosuhax_devoptab.h>
 #include <padscore/kpad.h>
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <vpad/input.h>
+
+#include <fat.h>
+#include <mocha/mocha.h>
+#include <mocha/disc_interface.h>
 
 #define PATH_SIZE 0x400
 
@@ -65,6 +68,8 @@ extern Account *wiiuacc;
 extern Account *sdacc;
 extern uint8_t wiiuaccn, sdaccn;
 
+bool initFS() __attribute__((__cold__));
+void deinitFS() __attribute__((__cold__));
 void consolePrintPos(int x, int y, const char *format, ...) __attribute__((hot));
 bool promptConfirm(Style st, std::string question);
 void promptError(const char *message, ...);
@@ -82,7 +87,6 @@ void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers
 void wipeSavedata(Title *title, int8_t allusers, bool common) __attribute__((hot));
 void importFromLoadiine(Title *title, bool common, int version);
 void exportToLoadiine(Title *title, bool common, int version);
-void setFSAFD(int fd);
 int checkEntry(const char *fPath);
 int32_t loadFile(const char *fPath, uint8_t **buf) __attribute__((hot));
 int32_t loadTitleIcon(Title *title) __attribute__((hot));

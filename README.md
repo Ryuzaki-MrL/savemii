@@ -23,7 +23,7 @@ Reasons to use this over original mod:
 Credits:
 
 - Bruno Vinicius, for the icon
-- Maschell, for libiosuhax
+- Maschell, for libmocha
 - Crementif for help with freetype
 - V10lator for helping with a lot of stuff
 - Vague Rant for testing

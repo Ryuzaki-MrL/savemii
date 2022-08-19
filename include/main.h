@@ -3,7 +3,6 @@
 #include <cstdarg>
 #include <cstdlib>
 #include <cstring>
-#include <fat.h>
 #include <malloc.h>
 
 #include <algorithm>
