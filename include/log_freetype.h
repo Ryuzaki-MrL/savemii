@@ -16,9 +16,9 @@
 #define max1(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
-auto WHBLogFreetypeInit() -> bool;
-void WHBLogFreetypeFree();
+bool WHBLogFreetypeInit() __attribute__((cold));
+void WHBLogFreetypeFree() __attribute__((cold));
 void drawPixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 void ttfFontColor32(uint32_t color);
 void ttfFontColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-void WHBLogFreetypeDraw();
+void WHBLogFreetypeDraw() __attribute__((hot));
