@@ -77,7 +77,7 @@ void getAccountsWiiU();
 void getAccountsSD(Title *title, uint8_t slot);
 bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t slot, int version);
 int getLoadiineGameSaveDir(char *out, const char *productCode, const char *longName, const uint32_t highID, const uint32_t lowID);
-int getLoadiineSaveVersionList(int *out, const char *gamePath);
+bool getLoadiineSaveVersionList(int *out, const char *gamePath);
 bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot);
 bool hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version);
 void copySavedata(Title *title, Title *titled, int8_t allusers, int8_t allusers_d, bool common) __attribute__((hot));

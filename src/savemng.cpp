@@ -129,7 +129,7 @@ int32_t loadTitleIcon(Title *title) {
     return -23;
 }
 
-auto checkEntry(const char *fPath) -> int {
+int checkEntry(const char *fPath) {
     struct stat st;
     if (stat(fPath, &st) == -1)
         return 0;
@@ -140,10 +140,10 @@ auto checkEntry(const char *fPath) -> int {
     return 1;
 }
 
-static auto folderEmpty(const char *fPath) -> int {
+static bool folderEmpty(const char *fPath) {
     DIR *dir = opendir(fPath);
     if (dir == nullptr)
-        return -1;
+        return false;
 
     int c = 0;
     struct dirent *data;
@@ -152,10 +152,10 @@ static auto folderEmpty(const char *fPath) -> int {
             break;
 
     closedir(dir);
-    return c < 3 ? 1 : 0;
+    return c < 3 ? true : false;
 }
 
-static auto createFolder(const char *fPath) -> int { //Adapted from mkdir_p made by JonathonReinhart
+static bool createFolder(const char *fPath) { //Adapted from mkdir_p made by JonathonReinhart
     std::string _path;
     char *p;
     int found = 0;
@@ -169,7 +169,7 @@ static auto createFolder(const char *fPath) -> int { //Adapted from mkdir_p made
                 *p = '\0';
                 if (checkEntry(_path.c_str()) == 0)
                     if (mkdir(_path.c_str(), DEFFILEMODE) == -1)
-                        return -1;
+                        return false;
                 *p = '/';
             }
         }
@@ -177,9 +177,9 @@ static auto createFolder(const char *fPath) -> int { //Adapted from mkdir_p made
 
     if (checkEntry(_path.c_str()) == 0)
         if (mkdir(_path.c_str(), DEFFILEMODE) == -1)
-            return -1;
+            return false;
 
-    return 0;
+    return true;
 }
 
 void consolePrintPosAligned(int y, uint16_t offset, uint8_t align, const char *format, ...) {
@@ -262,7 +262,7 @@ void consolePrintPosMultiline(int x, int y, char cdiv, const char *format, ...) 
         free(tmp);
 }
 
-auto promptConfirm(Style st, std::string question) -> bool {
+bool promptConfirm(Style st, std::string question) {
     clearBuffers();
     WHBLogFreetypeDraw();
     const std::string msg1 = "\ue000 Yes - \ue001 No";
@@ -466,22 +466,22 @@ static bool copyFileThreaded(FILE *srcFile, FILE *dstFile, size_t totalSize) {
     return success;
 }
 
-static auto copyFile(std::string pPath, std::string oPath) -> int {
+static bool copyFile(std::string pPath, std::string oPath) {
     if (pPath.find("savemiiMeta.json") != std::string::npos)
-        return 0;
+        return true;
     FILE *source = fopen(pPath.c_str(), "rb");
     if (source == nullptr)
-        return -1;
+        return false;
 
     FILE *dest = fopen(oPath.c_str(), "wb");
     if (dest == nullptr) {
         fclose(source);
-        return -1;
+        return false;
     }
 
     struct stat st;
     if (stat(pPath.c_str(), &st) < 0)
-        return -1;
+        return false;
     int sizef = st.st_size;
 
     clearBuffersEx();
@@ -497,10 +497,10 @@ static auto copyFile(std::string pPath, std::string oPath) -> int {
     fclose(source);
     fclose(dest);
 
-    return 0;
+    return true;
 }
 
-static auto copyDir(std::string pPath, std::string tPath) -> int { // Source: ft2sd
+static int copyDir(std::string pPath, std::string tPath) { // Source: ft2sd
     DIR *dir = opendir(pPath.c_str());
     if (dir == nullptr) {
         return -1;
@@ -527,7 +527,7 @@ static auto copyDir(std::string pPath, std::string tPath) -> int { // Source: ft
             p1 = data->d_name;
             showFileOperation(data->d_name, pPath + stringFormat("/%s", data->d_name), targetPath);
 
-            if (copyFile(pPath + stringFormat("/%s", data->d_name), targetPath) != 0) {
+            if (!copyFile(pPath + stringFormat("/%s", data->d_name), targetPath)) {
                 closedir(dir);
                 return -3;
             }
@@ -539,10 +539,10 @@ static auto copyDir(std::string pPath, std::string tPath) -> int { // Source: ft
     return 0;
 }
 
-static auto removeDir(char *pPath) -> int {
+static bool removeDir(char *pPath) {
     DIR *dir = opendir(pPath);
     if (dir == NULL)
-        return -1;
+        return false;
 
     struct dirent *data;
 
@@ -576,7 +576,7 @@ static auto removeDir(char *pPath) -> int {
     }
 
     closedir(dir);
-    return 0;
+    return true;
 }
 
 static std::string getUserID() { // Source: loadiine_gx2
@@ -590,7 +590,7 @@ static std::string getUserID() { // Source: loadiine_gx2
     return out;
 }
 
-auto getLoadiineGameSaveDir(char *out, const char *productCode, const char *longName, const uint32_t highID, const uint32_t lowID) -> int {
+int getLoadiineGameSaveDir(char *out, const char *productCode, const char *longName, const uint32_t highID, const uint32_t lowID) {
     DIR *dir = opendir("sd:/wiiu/saves");
 
     if (dir == nullptr)
@@ -610,12 +610,12 @@ auto getLoadiineGameSaveDir(char *out, const char *productCode, const char *long
     return -2;
 }
 
-auto getLoadiineSaveVersionList(int *out, const char *gamePath) -> int {
+bool getLoadiineSaveVersionList(int *out, const char *gamePath) {
     DIR *dir = opendir(gamePath);
 
     if (dir == nullptr) {
         promptError("Loadiine game folder not found.");
-        return -1;
+        return false;
     }
 
     int i = 0;
@@ -625,15 +625,15 @@ auto getLoadiineSaveVersionList(int *out, const char *gamePath) -> int {
             out[++i] = strtol((data->d_name) + 1, nullptr, 10);
 
     closedir(dir);
-    return 0;
+    return true;
 }
 
-static auto getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID) -> int {
+static bool getLoadiineUserDir(char *out, const char *fullSavePath, const char *userID) {
     DIR *dir = opendir(fullSavePath);
 
     if (dir == nullptr) {
         promptError("Failed to open Loadiine game save directory.");
-        return -1;
+        return false;
     }
 
     struct dirent *data;
@@ -641,19 +641,18 @@ static auto getLoadiineUserDir(char *out, const char *fullSavePath, const char *
         if (((data->d_type & DT_DIR) != 0) && ((strstr(data->d_name, userID)) != nullptr)) {
             sprintf(out, "%s/%s", fullSavePath, data->d_name);
             closedir(dir);
-            return 0;
+            return true;
         }
     }
 
     sprintf(out, "%s/u", fullSavePath);
     closedir(dir);
-    if (checkEntry(out) <= 0) {
-        return -1;
-    }
-    return 0;
+    if (checkEntry(out) <= 0)
+        return false;
+    return true;
 }
 
-auto isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) -> bool {
+bool isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) {
     std::string path;
     if (((highID & 0xFFFFFFF0) == 0x00010000) && (slot == 255))
         path = stringFormat("sd:/savegames/%08x%08x", highID, lowID);
@@ -663,14 +662,14 @@ auto isSlotEmpty(uint32_t highID, uint32_t lowID, uint8_t slot) -> bool {
     return ret <= 0;
 }
 
-static auto getEmptySlot(uint32_t highID, uint32_t lowID) -> int {
+static int getEmptySlot(uint32_t highID, uint32_t lowID) {
     for (int i = 0; i < 256; i++)
         if (isSlotEmpty(highID, lowID, i))
             return i;
     return -1;
 }
 
-auto hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t slot, int version) -> bool {
+bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t slot, int version) {
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
@@ -717,14 +716,14 @@ auto hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t s
         }
     }
     if (checkEntry(srcPath) == 2) {
-        if (folderEmpty(srcPath) == 0) {
+        if (!folderEmpty(srcPath)) {
             return true;
         }
     }
     return false;
 }
 
-auto hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version) -> bool {
+bool hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version) {
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
     bool isUSB = title->isTitleOnUSB;
@@ -748,7 +747,7 @@ auto hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version
         }
     }
     if (checkEntry(srcPath.c_str()) == 2)
-        if (folderEmpty(srcPath.c_str()) == 0)
+        if (!folderEmpty(srcPath.c_str()))
             return true;
     return false;
 }
@@ -915,7 +914,7 @@ void wipeSavedata(Title *title, int8_t allusers, bool common) {
         if (common) {
             strcpy(srcPath + offset, "/common");
             sprintf(origPath, "%s", srcPath);
-            if (removeDir(srcPath) != 0)
+            if (!removeDir(srcPath))
                 promptError("Common save not found.");
             if (unlink(origPath) == -1)
                 promptError("Failed to delete common folder.\n%s", strerror(errno));
@@ -924,7 +923,7 @@ void wipeSavedata(Title *title, int8_t allusers, bool common) {
         sprintf(origPath, "%s", srcPath);
     }
 
-    if (removeDir(srcPath) != 0)
+    if (!removeDir(srcPath))
         promptError("Failed to delete savefile.");
     if ((allusers > -1) && !isWii) {
         if (unlink(origPath) == -1)

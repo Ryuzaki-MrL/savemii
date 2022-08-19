@@ -407,7 +407,7 @@ static void unloadTitles(Title *titles, int count) {
         free(titles);
 }
 
-auto main() -> int {
+int main() {
     WHBProcInit();
     WHBLogFreetypeInit();
     VPADInit();

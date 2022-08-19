@@ -43,7 +43,7 @@ void drawPixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
     }
 }
 
-static auto initScreen() -> uint32_t {
+static bool initScreen() {
     MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
     if (frameBufferTVSize != 0u) {
         frameBufferTVFrontPtr = (uint8_t *) MEMAllocFromFrmHeapEx(heap, frameBufferTVSize, 4);
@@ -67,10 +67,10 @@ static auto initScreen() -> uint32_t {
     OSScreenFlipBuffersEx(SCREEN_TV);
     OSScreenFlipBuffersEx(SCREEN_DRC);
 
-    return 0;
+    return true;
 }
 
-auto WHBLogFreetypeInit() -> bool {
+bool WHBLogFreetypeInit() {
     // Initialize screen
     OSScreenInit();
     frameBufferTVSize = OSScreenGetBufferSizeEx(SCREEN_TV);
@@ -105,7 +105,7 @@ void WHBLogFreetypeFree() {
     OSScreenShutdown();
 }
 
-auto ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) -> int {
+int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) {
     FT_GlyphSlot slot = fontFace->glyph;
     FT_Error error;
     int pen_x = x;
@@ -194,7 +194,7 @@ auto ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) -> int {
     return pen_x;
 }
 
-auto ttfStringWidth(char *string, int8_t part) -> int {
+int ttfStringWidth(char *string, int8_t part) {
     FT_GlyphSlot slot = fontFace->glyph;
     FT_Error error;
     int pen_x = 0;

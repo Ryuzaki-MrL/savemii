@@ -59,7 +59,7 @@ std::string getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot) {
     return "";
 }
 
-auto setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, std::string date) -> bool {
+bool setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, std::string date) {
     std::string path = stringFormat("sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
 
     json_t *config = json_object();

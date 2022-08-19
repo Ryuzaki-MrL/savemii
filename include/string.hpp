@@ -6,11 +6,11 @@
 #include <stdexcept>
 #include <string>
 
-auto replace(std::string &str, const std::string &from, const std::string &to) -> bool;
-auto decodeXMLEscapeLine(std::string xmlString) -> std::string;
+bool replace(std::string &str, const std::string &from, const std::string &to);
+std::string decodeXMLEscapeLine(std::string xmlString);
 
 template<typename... Args>
-auto stringFormat(const std::string &format, Args... args) -> std::string {
+std::string stringFormat(const std::string &format, Args... args) {
     int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
     if (size_s <= 0) { throw std::runtime_error("Error during formatting."); }
     auto size = static_cast<size_t>(size_s);
