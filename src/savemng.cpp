@@ -464,6 +464,8 @@ static bool copyFileThreaded(FILE *srcFile, FILE *dstFile, size_t totalSize) {
 }
 
 static auto copyFile(std::string pPath, std::string oPath) -> int {
+    if (pPath.find("savemiiMeta.json") != std::string::npos)
+        return 0;
     FILE *source = fopen(pPath.c_str(), "rb");
     if (source == nullptr)
         return -1;
