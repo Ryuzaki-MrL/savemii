@@ -410,7 +410,6 @@ static void unloadTitles(Title *titles, int count) {
 int main() {
     WHBProcInit();
     WHBLogFreetypeInit();
-    VPADInit();
     WPADInit();
     KPADInit();
     WPADEnableURCC(1);
@@ -432,29 +431,16 @@ int main() {
     sortTitle(wiiutitles, wiiutitles + titleswiiu, tsort, sorta);
     sortTitle(wiititles, wiititles + titlesvwii, tsort, sorta);
 
-    uint8_t *tgaBufDRC = nullptr;
-    uint8_t *tgaBufTV = nullptr;
-    uint32_t wDRC = 0;
-    uint32_t hDRC = 0;
-    uint32_t wTV = 0;
-    uint32_t hTV = 0;
     bool redraw = true;
     int entrycount = 0;
     while (WHBProcIsRunning()) {
-        if (tgaBufDRC)
-            drawBackgroundDRC(wDRC, hDRC, tgaBufDRC);
-        else
-            OSScreenClearBufferEx(SCREEN_DRC, 0x00006F00);
-
-        if (tgaBufTV)
-            drawBackgroundTV(wTV, hTV, tgaBufTV);
-        else
-            OSScreenClearBufferEx(SCREEN_TV, 0x00006F00);
-
         Title *titles = mode != 0 ? wiititles : wiiutitles;
         int count = mode != 0 ? titlesvwii : titleswiiu;
 
         if (redraw) {
+            OSScreenClearBufferEx(SCREEN_DRC, 0x00006F00);
+            OSScreenClearBufferEx(SCREEN_TV, 0x00006F00);
+
             consolePrintPos(0, 0, "SaveMii v%u.%u.%u", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
             consolePrintPos(0, 1, "----------------------------------------------------------------------------");
 
