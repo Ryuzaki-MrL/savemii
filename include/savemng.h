@@ -3,6 +3,7 @@
 #define __STDC_WANT_LIB_EXT2__ 1
 
 #include "draw.h"
+#include "input.h"
 #include "json.h"
 #include "log_freetype.h"
 #include <coreinit/filesystem.h>
@@ -12,21 +13,15 @@
 #include <cstdio>
 #include <dirent.h>
 #include <fcntl.h>
-#include <padscore/kpad.h>
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <vpad/input.h>
 
 #include <fat.h>
 #include <mocha/mocha.h>
 #include <mocha/disc_interface.h>
 
 #define PATH_SIZE 0x400
-
-extern VPADStatus vpad_status;
-extern VPADReadError vpad_error;
-extern KPADStatus kpad_status;
 
 typedef struct {
     uint32_t highID;

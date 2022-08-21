@@ -55,13 +55,15 @@ static int *createPixelsFromColormap(int width, int height, int depth, const uns
                                      const unsigned char *palette, int colormapOrigin, int descriptor,
                                      const TGA_ORDER *order);
 
-static int 
-*createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
-                    const TGA_ORDER *order);
+static int
+        *
+        createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
+                            const TGA_ORDER *order);
 
 static int
-*createPixelsFromGrayscale(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
-                          const TGA_ORDER *order);
+        *
+        createPixelsFromGrayscale(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
+                                  const TGA_ORDER *order);
 
 int *tgaRead(const unsigned char *buffer, const TGA_ORDER *order) {
 
@@ -334,8 +336,9 @@ static int *createPixelsFromColormap(int width, int height, int depth, const uns
 }
 
 static int
-*createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
-                    const TGA_ORDER *order) {
+        *
+        createPixelsFromRGB(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
+                            const TGA_ORDER *order) {
     int *pixels = nullptr;
     int rs = order->redShift;
     int gs = order->greenShift;
@@ -479,8 +482,9 @@ static int
 }
 
 static int
-*createPixelsFromGrayscale(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
-                          const TGA_ORDER *order) {
+        *
+        createPixelsFromGrayscale(int width, int height, int depth, const unsigned char *bytes, int offset, int descriptor,
+                                  const TGA_ORDER *order) {
     int *pixels = nullptr;
     int rs = order->redShift;
     int gs = order->greenShift;

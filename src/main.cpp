@@ -438,9 +438,6 @@ int main() {
     uint32_t hDRC = 0;
     uint32_t wTV = 0;
     uint32_t hTV = 0;
-    KPADStatus kpad_status;
-    VPADStatus vpad_status;
-    VPADReadError vpad_error;
     bool redraw = true;
     int entrycount = 0;
     while (WHBProcIsRunning()) {
@@ -713,26 +710,12 @@ int main() {
             redraw = false;
         }
 
-        VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
-        if (vpad_error != VPAD_READ_SUCCESS)
-            memset(&vpad_status, 0, sizeof(VPADStatus));
+        readInput();
 
-        memset(&kpad_status, 0, sizeof(KPADStatus));
-        WPADExtensionType controllerType;
-        for (int i = 0; i < 4; i++) {
-            if (WPADProbe((WPADChan) i, &controllerType) == 0) {
-                KPADRead((WPADChan) i, &kpad_status, 1);
-                break;
-            }
-        }
-
-        if (vpad_status.trigger | kpad_status.trigger | kpad_status.classic.trigger | kpad_status.pro.trigger)
+        if (getInput(TRIGGER, PAD_BUTTON_ANY) || getInput(HOLD, PAD_BUTTON_ANY))
             redraw = true;
 
-        if ((vpad_status.trigger & (VPAD_BUTTON_DOWN | VPAD_STICK_L_EMULATION_DOWN)) |
-            (kpad_status.trigger & (WPAD_BUTTON_DOWN)) |
-            (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_DOWN | WPAD_CLASSIC_STICK_L_EMULATION_DOWN)) |
-            (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_DOWN | WPAD_PRO_STICK_L_EMULATION_DOWN))) {
+        if (getInput(HOLD, PAD_BUTTON_DOWN)) {
             if (entrycount <= 14)
                 cursor = (cursor + 1) % entrycount;
             else if (cursor < 6)
@@ -741,10 +724,7 @@ int main() {
                 scroll++;
             else
                 cursor = scroll = 0;
-        } else if ((vpad_status.trigger & (VPAD_BUTTON_UP | VPAD_STICK_L_EMULATION_UP)) |
-                   (kpad_status.trigger & (WPAD_BUTTON_UP)) |
-                   (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_UP | WPAD_CLASSIC_STICK_L_EMULATION_UP)) |
-                   (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_UP | WPAD_PRO_STICK_L_EMULATION_UP))) {
+        } else if (getInput(HOLD, PAD_BUTTON_UP)) {
             if (scroll > 0)
                 cursor -= (cursor > 6) ? 1 : 0 * (scroll--);
             else if (cursor > 0)
@@ -755,10 +735,7 @@ int main() {
                 cursor = entrycount - 1;
         }
 
-        if ((vpad_status.trigger & (VPAD_BUTTON_LEFT | VPAD_STICK_L_EMULATION_LEFT)) |
-            (kpad_status.trigger & (WPAD_BUTTON_LEFT)) |
-            (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_LEFT | WPAD_CLASSIC_STICK_L_EMULATION_LEFT)) |
-            (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_LEFT | WPAD_PRO_STICK_L_EMULATION_LEFT))) {
+        if (getInput(HOLD, PAD_BUTTON_LEFT)) {
             if (menu == 3) {
                 if (task == 5) {
                     switch (cursor) {
@@ -828,10 +805,7 @@ int main() {
                     }
                 }
             }
-        } else if ((vpad_status.trigger & (VPAD_BUTTON_RIGHT | VPAD_STICK_L_EMULATION_RIGHT)) |
-                   (kpad_status.trigger & (WPAD_BUTTON_RIGHT)) |
-                   (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_RIGHT | WPAD_CLASSIC_STICK_L_EMULATION_RIGHT)) |
-                   (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_RIGHT | WPAD_PRO_STICK_L_EMULATION_RIGHT))) {
+        } else if (getInput(HOLD, PAD_BUTTON_RIGHT)) {
             if (menu == 3) {
                 if (task == 5) {
                     switch (cursor) {
@@ -903,9 +877,7 @@ int main() {
             }
         }
 
-        if ((vpad_status.trigger & VPAD_BUTTON_R) | (kpad_status.trigger & (WPAD_BUTTON_PLUS)) |
-            (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_R)) |
-            (kpad_status.pro.trigger & (WPAD_PRO_TRIGGER_R))) {
+        if (getInput(TRIGGER, PAD_BUTTON_R)) {
             if (menu == 1) {
                 tsort = (tsort + 1) % 4;
                 sortTitle(titles, titles + count, tsort, sorta);
@@ -913,9 +885,7 @@ int main() {
                 targ = (targ + 1) % count;
         }
 
-        if ((vpad_status.trigger & VPAD_BUTTON_L) | (kpad_status.trigger & (WPAD_BUTTON_MINUS)) |
-            (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_L)) |
-            (kpad_status.pro.trigger & (WPAD_PRO_TRIGGER_L))) {
+        if (getInput(TRIGGER, PAD_BUTTON_L)) {
             if ((menu == 1) && (tsort > 0)) {
                 sorta *= -1;
                 sortTitle(titles, titles + count, tsort, sorta);
@@ -926,9 +896,7 @@ int main() {
             }
         }
 
-        if ((vpad_status.trigger & VPAD_BUTTON_A) |
-            ((kpad_status.trigger & (WPAD_BUTTON_A)) | (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) |
-             (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A)))) {
+        if (getInput(TRIGGER, PAD_BUTTON_A)) {
             clearBuffers();
             WHBLogFreetypeDraw();
             if (menu < 3) {
@@ -1061,9 +1029,7 @@ int main() {
                         break;
                 }
             }
-        } else if (((vpad_status.trigger & VPAD_BUTTON_B) |
-                    ((kpad_status.trigger & WPAD_BUTTON_B) | (kpad_status.classic.trigger & WPAD_CLASSIC_BUTTON_B) |
-                     (kpad_status.pro.trigger & WPAD_PRO_BUTTON_B))) &&
+        } else if (getInput(TRIGGER, PAD_BUTTON_B) &&
                    menu > 0) {
             clearBuffers();
             WHBLogFreetypeDraw();

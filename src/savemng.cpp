@@ -13,11 +13,6 @@ Account *wiiuacc;
 Account *sdacc;
 uint8_t wiiuaccn = 0, sdaccn = 5;
 
-VPADStatus vpad_status;
-VPADReadError vpad_error;
-
-KPADStatus kpad[4], kpad_status;
-
 extern FSClient *__wut_devoptab_fs_client;
 static FSCmdBlock cmdBlk;
 
@@ -297,16 +292,7 @@ bool promptConfirm(Style st, std::string question) {
     flipBuffers();
     WHBLogFreetypeDraw();
     while (true) {
-        VPADRead(VPAD_CHAN_0, &vpad_status, 1, &vpad_error);
-        for (int i = 0; i < 4; i++) {
-            WPADExtensionType controllerType;
-            // check if the controller is connected
-            if (WPADProbe((WPADChan) i, &controllerType) != 0)
-                continue;
-
-            KPADRead((WPADChan) i, &(kpad[i]), 1);
-            kpad_status = kpad[i];
-        }
+        readInput();
         if ((vpad_status.trigger & (VPAD_BUTTON_A)) | (kpad_status.trigger & (WPAD_BUTTON_A)) |
             (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A))) {
             ret = 1;
