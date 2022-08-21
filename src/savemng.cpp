@@ -293,13 +293,11 @@ bool promptConfirm(Style st, std::string question) {
     WHBLogFreetypeDraw();
     while (true) {
         readInput();
-        if ((vpad_status.trigger & (VPAD_BUTTON_A)) | (kpad_status.trigger & (WPAD_BUTTON_A)) |
-            (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_A)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_A))) {
+        if (getInput(TRIGGER, PAD_BUTTON_A)) {
             ret = 1;
             break;
         }
-        if ((vpad_status.trigger & (VPAD_BUTTON_B)) | (kpad_status.trigger & (WPAD_BUTTON_B)) |
-            (kpad_status.classic.trigger & (WPAD_CLASSIC_BUTTON_B)) | (kpad_status.pro.trigger & (WPAD_PRO_BUTTON_B))) {
+        if (getInput(TRIGGER, PAD_BUTTON_B)) {
             ret = 0;
             break;
         }
