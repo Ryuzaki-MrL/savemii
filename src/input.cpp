@@ -19,7 +19,7 @@ void readInput() {
     }
 }
 
-bool getInput(ButtonStates state, Buttons button) {
+bool getInput(ButtonState state, Button button) {
     uint32_t vpadState = 0;
     uint32_t kpadState = 0;
 
