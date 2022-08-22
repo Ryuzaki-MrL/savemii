@@ -26,5 +26,5 @@ typedef enum ButtonState {
     RELEASE
 } ButtonState;
 
-void readInput();
-bool getInput(ButtonState state, Button button);
+void readInput() __attribute__((hot));
+bool getInput(ButtonState state, Button button) __attribute__((hot));
