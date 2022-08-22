@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <nn/act/client_cpp.h>
 
+#include "language.h"
 #include "LockingQueue.h"
 #include "savemng.h"
 #include <future>
@@ -49,9 +50,9 @@ void deinitFS() {
 }
 
 static void showFileOperation(std::string file_name, std::string file_src, std::string file_dest) {
-    consolePrintPos(-2, 0, "Copying file: %s", file_name.c_str());
-    consolePrintPosMultiline(-2, 2, '/', "From: %s", file_src.c_str());
-    consolePrintPosMultiline(-2, 8, '/', "To: %s", file_dest.c_str());
+    consolePrintPos(-2, 0, gettext("Copying file: %s"), file_name.c_str());
+    consolePrintPosMultiline(-2, 2, '/', gettext("From: %s"), file_src.c_str());
+    consolePrintPosMultiline(-2, 8, '/', gettext("To: %s"), file_dest.c_str());
 }
 
 int32_t loadFile(const char *fPath, uint8_t **buf) {
@@ -260,8 +261,8 @@ void consolePrintPosMultiline(int x, int y, char cdiv, const char *format, ...) 
 bool promptConfirm(Style st, std::string question) {
     clearBuffers();
     WHBLogFreetypeDraw();
-    const std::string msg1 = "\ue000 Yes - \ue001 No";
-    const std::string msg2 = "\ue000 Confirm - \ue001 Cancel";
+    const std::string msg1 = gettext("\ue000 Yes - \ue001 No");
+    const std::string msg2 = gettext("\ue000 Confirm - \ue001 Cancel");
     std::string msg;
     switch (st & 0x0F) {
         case ST_YES_NO:
@@ -470,7 +471,7 @@ static bool copyFile(std::string pPath, std::string oPath) {
 
     clearBuffersEx();
     showFileOperation(basename(pPath.c_str()), pPath, oPath);
-    consolePrintPos(-2, 15, "Filesize: %d bytes", sizef);
+    consolePrintPos(-2, 15, gettext("Filesize: %d bytes"), sizef);
     flipBuffers();
     WHBLogFreetypeDraw();
 
@@ -486,9 +487,8 @@ static bool copyFile(std::string pPath, std::string oPath) {
 
 static int copyDir(std::string pPath, std::string tPath) { // Source: ft2sd
     DIR *dir = opendir(pPath.c_str());
-    if (dir == nullptr) {
+    if (dir == nullptr)
         return -1;
-    }
 
     mkdir(tPath.c_str(), DEFFILEMODE);
     auto *data = (dirent *) malloc(sizeof(dirent));
@@ -545,13 +545,13 @@ static bool removeDir(char *pPath) {
 
             clearBuffersEx();
 
-            consolePrintPos(-2, 0, "Deleting folder %s", data->d_name);
-            consolePrintPosMultiline(-2, 2, '/', "From: \n%s", origPath);
-            if (unlink(origPath) == -1) promptError("Failed to delete folder %s\n%s", origPath, strerror(errno));
+            consolePrintPos(-2, 0, gettext("Deleting folder %s"), data->d_name);
+            consolePrintPosMultiline(-2, 2, '/', gettext("From: \n%s"), origPath);
+            if (unlink(origPath) == -1) promptError(gettext("Failed to delete folder %s\n%s"), origPath, strerror(errno));
         } else {
-            consolePrintPos(-2, 0, "Deleting file %s", data->d_name);
-            consolePrintPosMultiline(-2, 2, '/', "From: \n%s", pPath);
-            if (unlink(pPath) == -1) promptError("Failed to delete file %s\n%s", pPath, strerror(errno));
+            consolePrintPos(-2, 0, gettext("Deleting file %s"), data->d_name);
+            consolePrintPosMultiline(-2, 2, '/', gettext("From: \n%s"), pPath);
+            if (unlink(pPath) == -1) promptError(gettext("Failed to delete file %s\n%s"), pPath, strerror(errno));
         }
 
         flipBuffers();
@@ -589,7 +589,7 @@ int getLoadiineGameSaveDir(char *out, const char *productCode, const char *longN
         }
     }
 
-    promptError("Loadiine game folder not found.");
+    promptError(gettext("Loadiine game folder not found."));
     closedir(dir);
     return -2;
 }
@@ -598,7 +598,7 @@ bool getLoadiineSaveVersionList(int *out, const char *gamePath) {
     DIR *dir = opendir(gamePath);
 
     if (dir == nullptr) {
-        promptError("Loadiine game folder not found.");
+        promptError(gettext("Loadiine game folder not found."));
         return false;
     }
 
@@ -616,7 +616,7 @@ static bool getLoadiineUserDir(char *out, const char *fullSavePath, const char *
     DIR *dir = opendir(fullSavePath);
 
     if (dir == nullptr) {
-        promptError("Failed to open Loadiine game save directory.");
+        promptError(gettext("Failed to open Loadiine game save directory."));
         return false;
     }
 
@@ -744,12 +744,12 @@ void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_
     uint32_t lowIDb = titleb->lowID;
     bool isUSBb = titleb->isTitleOnUSB;
 
-    if (!promptConfirm(ST_WARNING, "Are you sure?"))
+    if (!promptConfirm(ST_WARNING, gettext("Are you sure?")))
         return;
     int slotb = getEmptySlot(titleb->highID, titleb->lowID);
-    if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first to next empty slot?")) {
+    if ((slotb >= 0) && promptConfirm(ST_YES_NO, gettext("Backup current savedata first to next empty slot?"))) {
         backupSavedata(titleb, slotb, allusers, common);
-        promptError("Backup done. Now copying Savedata.");
+        promptError(gettext("Backup done. Now copying Savedata."));
     }
 
     std::string path = (isUSB ? "/vol/storage_usb01/usr/save" : "/vol/storage_mlc01/usr/save");
@@ -761,11 +761,11 @@ void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_
     if (allusers > -1)
         if (common)
             if (copyDir(srcPath + "/common", dstPath + "/common") != 0)
-                promptError("Common save not found.");
+                promptError(gettext("Common save not found."));
 
     if (copyDir(srcPath + stringFormat("/%s", wiiuacc[allusers].persistentID),
                 dstPath + stringFormat("/%s", wiiuacc[allusers_d].persistentID)) != 0)
-        promptError("Copy failed.");
+        promptError(gettext("Copy failed."));
 }
 
 void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
@@ -797,13 +797,13 @@ void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
 
         createFolder(dstPath.c_str());
         if (copyDir(srcPath, dstPath) != 0)
-            promptError("Backup failed.");
+            promptError(gettext("Backup failed."));
     }
 }
 
 void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
     if (!isSlotEmpty(title->highID, title->lowID, slot) &&
-        !promptConfirm(ST_WARNING, "Backup found on this slot. Overwrite it?")) {
+        !promptConfirm(ST_WARNING, gettext("Backup found on this slot. Overwrite it?"))) {
         return;
     }
     uint32_t highID = title->highID;
@@ -824,17 +824,17 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
             srcPath.append("/common");
             dstPath.append("/common");
             if (copyDir(srcPath, dstPath) != 0)
-                promptError("Common save not found.");
+                promptError(gettext("Common save not found."));
         }
         srcPath.append(stringFormat("/%s", wiiuacc[allusers].persistentID));
         dstPath.append(stringFormat("/%s", wiiuacc[allusers].persistentID));
         if (checkEntry(srcPath.c_str()) == 0) {
-            promptError("No save found for this user.");
+            promptError(gettext("No save found for this user."));
             return;
         }
     }
     if (copyDir(srcPath, dstPath) != 0)
-        promptError("Backup failed. DO NOT restore from this slot.");
+        promptError(gettext("Backup failed. DO NOT restore from this slot."));
     OSCalendarTime now;
     OSTicksToCalendarTime(OSGetTime(), &now);
     std::string date = stringFormat("%02d/%02d/%d %02d:%02d", now.tm_mday, now.tm_mon, now.tm_year, now.tm_hour, now.tm_min);
@@ -843,13 +843,13 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
 
 void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers, bool common) {
     if (isSlotEmpty(title->highID, title->lowID, slot)) {
-        promptError("No backup found on selected slot.");
+        promptError(gettext("No backup found on selected slot."));
         return;
     }
-    if (!promptConfirm(ST_WARNING, "Are you sure?"))
+    if (!promptConfirm(ST_WARNING, gettext("Are you sure?")))
         return;
     int slotb = getEmptySlot(title->highID, title->lowID);
-    if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first to next empty slot?"))
+    if ((slotb >= 0) && promptConfirm(ST_YES_NO, gettext("Backup current savedata first to next empty slot?")))
         backupSavedata(title, slotb, allusers, common);
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
@@ -869,21 +869,21 @@ void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers
             srcPath.append("/common");
             dstPath.append("/common");
             if (copyDir(srcPath, dstPath) != 0)
-                promptError("Common save not found.");
+                promptError(gettext("Common save not found."));
         }
         srcPath.append(stringFormat("/%s", sdacc[sdusers].persistentID));
         dstPath.append(stringFormat("/%s", wiiuacc[allusers].persistentID));
     }
 
     if (copyDir(srcPath, dstPath) != 0)
-        promptError("Restore failed.");
+        promptError(gettext("Restore failed."));
 }
 
 void wipeSavedata(Title *title, int8_t allusers, bool common) {
-    if (!promptConfirm(ST_WARNING, "Are you sure?") || !promptConfirm(ST_WARNING, "Hm, are you REALLY sure?"))
+    if (!promptConfirm(ST_WARNING, gettext("Are you sure?")) || !promptConfirm(ST_WARNING, gettext("Hm, are you REALLY sure?")))
         return;
     int slotb = getEmptySlot(title->highID, title->lowID);
-    if ((slotb >= 0) && promptConfirm(ST_YES_NO, "Backup current savedata first?"))
+    if ((slotb >= 0) && promptConfirm(ST_YES_NO, gettext("Backup current savedata first?")))
         backupSavedata(title, slotb, allusers, common);
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
@@ -899,27 +899,27 @@ void wipeSavedata(Title *title, int8_t allusers, bool common) {
             strcpy(srcPath + offset, "/common");
             sprintf(origPath, "%s", srcPath);
             if (!removeDir(srcPath))
-                promptError("Common save not found.");
+                promptError(gettext("Common save not found."));
             if (unlink(origPath) == -1)
-                promptError("Failed to delete common folder.\n%s", strerror(errno));
+                promptError(gettext("Failed to delete common folder.\n%s"), strerror(errno));
         }
         sprintf(srcPath + offset, "/%s", wiiuacc[allusers].persistentID);
         sprintf(origPath, "%s", srcPath);
     }
 
     if (!removeDir(srcPath))
-        promptError("Failed to delete savefile.");
+        promptError(gettext("Failed to delete savefile."));
     if ((allusers > -1) && !isWii) {
         if (unlink(origPath) == -1)
-            promptError("Failed to delete user folder.\n%s", strerror(errno));
+            promptError(gettext("Failed to delete user folder.\n%s"), strerror(errno));
     }
 }
 
 void importFromLoadiine(Title *title, bool common, int version) {
-    if (!promptConfirm(ST_WARNING, "Are you sure?"))
+    if (!promptConfirm(ST_WARNING, gettext("Are you sure?")))
         return;
     int slotb = getEmptySlot(title->highID, title->lowID);
-    if (slotb >= 0 && promptConfirm(ST_YES_NO, "Backup current savedata first?"))
+    if (slotb >= 0 && promptConfirm(ST_YES_NO, gettext("Backup current savedata first?")))
         backupSavedata(title, slotb, 0, common);
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
@@ -938,17 +938,17 @@ void importFromLoadiine(Title *title, bool common, int version) {
     uint32_t dstOffset = strlen(dstPath);
     sprintf(dstPath + dstOffset, "/%s", usrPath);
     if (copyDir(srcPath, dstPath) != 0)
-        promptError("Failed to import savedata from loadiine.");
+        promptError(gettext("Failed to import savedata from loadiine."));
     if (common) {
         strcpy(srcPath + srcOffset, "/c\0");
         strcpy(dstPath + dstOffset, "/common\0");
         if (copyDir(srcPath, dstPath) != 0)
-            promptError("Common save not found.");
+            promptError(gettext("Common save not found."));
     }
 }
 
 void exportToLoadiine(Title *title, bool common, int version) {
-    if (!promptConfirm(ST_WARNING, "Are you sure?"))
+    if (!promptConfirm(ST_WARNING, gettext("Are you sure?")))
         return;
     uint32_t highID = title->highID;
     uint32_t lowID = title->lowID;
@@ -967,11 +967,11 @@ void exportToLoadiine(Title *title, bool common, int version) {
     sprintf(srcPath + srcOffset, "/%s", usrPath);
     createFolder(dstPath);
     if (copyDir(srcPath, dstPath) != 0)
-        promptError("Failed to export savedata to loadiine.");
+        promptError(gettext("Failed to export savedata to loadiine."));
     if (common) {
         strcpy(dstPath + dstOffset, "/c\0");
         strcpy(srcPath + srcOffset, "/common\0");
         if (copyDir(srcPath, dstPath) != 0)
-            promptError("Common save not found.");
+            promptError(gettext("Common save not found."));
     }
 }

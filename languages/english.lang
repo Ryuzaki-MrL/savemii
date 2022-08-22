@@ -1,3 +1,463 @@
-#: src/main.cpp:431
+msgid "\\ue000 Confirm - \\ue001 Cancel"
+msgstr ""
+
+msgid "\\ue000 Yes - \\ue001 No"
+msgstr ""
+
+msgid "\\ue000: Select Task  \\ue001: Back"
+msgstr ""
+
+msgid "\\ue000: Select Game  \\ue001: Back"
+msgstr ""
+
+msgid "\\ue000: Backup  \\ue001: Back"
+msgstr ""
+
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "\\ue000: Restore  \\ue001: Back"
+msgstr ""
+
+msgid "\\ue000: Wipe  \\ue001: Back"
+msgstr ""
+
+msgid "\\ue000: Import  \\ue001: Back"
+msgstr ""
+
+msgid "\\ue000: Export  \\ue001: Back"
+msgstr ""
+
+msgid "\\ue000: Copy  \\ue001: Back"
+msgstr ""
+
+msgid "Press \\ue044 to exit."
+msgstr ""
+
+#: src/main.cpp:63
+msgid "Disclaimer:"
+msgstr ""
+
+#: src/main.cpp:64
+msgid "There is always the potential for a brick."
+msgstr ""
+
+#: src/main.cpp:65
+msgid "Everything you do with this software is your own responsibility"
+msgstr ""
+
+#: src/main.cpp:90 src/main.cpp:145 src/main.cpp:186 src/main.cpp:297
+msgid "Out of memory."
+msgstr ""
+
+#: src/main.cpp:245 src/main.cpp:391
+#, c-format
+msgid "Loaded %i Wii U titles."
+msgstr ""
+
+#: src/main.cpp:367
+#, c-format
+msgid "%s%s (No banner.bin)"
+msgstr ""
+
+#: src/main.cpp:392
+#, c-format
+msgid "Loaded %i Wii titles."
+msgstr ""
+
+#: src/main.cpp:430
+msgid "Name"
+msgstr ""
+
+#: src/main.cpp:430
+msgid "None"
+msgstr ""
+
+#: src/main.cpp:430
+msgid "Storage"
+msgstr ""
+
+#: src/main.cpp:430
+msgid "Storage+Name"
+msgstr ""
+
+#: src/main.cpp:433
 msgid "initFS failed. Please make sure your MochaPayload is up-to-date"
+msgstr ""
+
+#: src/main.cpp:464
+#, c-format
+msgid "   Wii U Save Management (%u Title%s)"
+msgstr ""
+
+#: src/main.cpp:466
+#, c-format
+msgid "   vWii Save Management (%u Title%s)"
+msgstr ""
+
+#: src/main.cpp:468
+msgid "   Batch Backup"
+msgstr ""
+
+#: src/main.cpp:470
+msgid ": Select Mode"
+msgstr ""
+
+#: src/main.cpp:475
+#, c-format
+msgid "   Backup All (%u Title%s)"
+msgstr ""
+
+#: src/main.cpp:477
+#, c-format
+msgid "   Backup Wii U (%u Title%s)"
+msgstr ""
+
+#: src/main.cpp:479
+#, c-format
+msgid "   Backup vWii (%u Title%s)"
+msgstr ""
+
+#: src/main.cpp:482 src/main.cpp:685
+msgid ": Backup  : Back"
+msgstr ""
+
+#: src/main.cpp:484
+#, c-format
+msgid "%s Sort: %s "
+msgstr ""
+
+#: src/main.cpp:499
+msgid " [Not Init]"
+msgstr ""
+
+#: src/main.cpp:519
+msgid ": Select Game  : Back"
+msgstr ""
+
+#: src/main.cpp:527
+msgid "   Backup savedata"
+msgstr ""
+
+#: src/main.cpp:528
+msgid "   Restore savedata"
+msgstr ""
+
+#: src/main.cpp:529
+msgid "   Wipe savedata"
+msgstr ""
+
+#: src/main.cpp:531
+msgid "   Import from loadiine"
+msgstr ""
+
+#: src/main.cpp:532
+msgid "   Export to loadiine"
+msgstr ""
+
+#: src/main.cpp:534
+#, c-format
+msgid "   Copy Savedata to Title in %s"
+msgstr ""
+
+#: src/main.cpp:542
+msgid ": Select Task  : Back"
+msgstr ""
+
+#: src/main.cpp:550
+msgid "Destination:"
+msgstr ""
+
+#: src/main.cpp:554 src/main.cpp:560
+#, c-format
+msgid "Select %s:"
+msgstr ""
+
+#: src/main.cpp:554
+msgid "version"
+msgstr ""
+
+#: src/main.cpp:557
+msgid "Delete from:"
+msgstr ""
+
+#: src/main.cpp:560
+msgid "slot"
+msgstr ""
+
+#: src/main.cpp:564 src/main.cpp:568 src/main.cpp:584 src/main.cpp:598
+#: src/main.cpp:618 src/main.cpp:637
+msgid "Empty"
+msgstr ""
+
+#: src/main.cpp:565 src/main.cpp:569
+msgid "Used"
+msgstr ""
+
+#: src/main.cpp:576
+msgid "Select SD user to copy from:"
+msgstr ""
+
+#: src/main.cpp:578 src/main.cpp:591 src/main.cpp:608 src/main.cpp:630
+msgid "all users"
+msgstr ""
+
+#: src/main.cpp:583 src/main.cpp:597 src/main.cpp:617 src/main.cpp:636
+msgid "Has Save"
+msgstr ""
+
+#: src/main.cpp:589
+msgid "Select Wii U user to delete from:"
+msgstr ""
+
+#: src/main.cpp:605 src/main.cpp:628
+#, c-format
+msgid "Select Wii U user%s:"
+msgstr ""
+
+#: src/main.cpp:606
+msgid " to copy from"
+msgstr ""
+
+#: src/main.cpp:606 src/main.cpp:628
+msgid " to copy to"
+msgstr ""
+
+#: src/main.cpp:623 src/main.cpp:679
+#, c-format
+msgid "Date: %s"
+msgstr ""
+
+#: src/main.cpp:647 src/main.cpp:662
+msgid "Include 'common' save?"
+msgstr ""
+
+#: src/main.cpp:649 src/main.cpp:663
+msgid "no "
+msgstr ""
+
+#: src/main.cpp:649 src/main.cpp:663
+msgid "yes"
+msgstr ""
+
+#: src/main.cpp:653 src/main.cpp:666
+msgid "No 'common' save found."
+msgstr ""
+
+#: src/main.cpp:688
+msgid ": Restore  : Back"
+msgstr ""
+
+#: src/main.cpp:691
+msgid ": Wipe  : Back"
+msgstr ""
+
+#: src/main.cpp:694
+msgid ": Import  : Back"
+msgstr ""
+
+#: src/main.cpp:697
+msgid ": Export  : Back"
+msgstr ""
+
+#: src/main.cpp:700
+msgid ": Copy  : Back"
+msgstr ""
+
+#: src/main.cpp:706
+msgid "Press  to exit."
+msgstr ""
+
+#: src/main.cpp:906
+msgid "No Wii U titles found."
+msgstr ""
+
+#: src/main.cpp:910
+msgid "No vWii saves found."
+msgstr ""
+
+#: src/main.cpp:939
+msgid "CBHC save. Could be dangerous to modify. Continue?"
+msgstr ""
+
+#: src/main.cpp:940 src/main.cpp:952
+msgid "Are you REALLY sure?"
+msgstr ""
+
+#: src/main.cpp:948
+msgid "vWii saves are in the vWii section. Continue?"
+msgstr ""
+
+#: src/main.cpp:951
+msgid "Recommended to run Game at least one time. Continue?"
+msgstr ""
+
+#: src/main.cpp:964
+msgid "No save to Backup."
+msgstr ""
+
+#: src/main.cpp:977
+msgid "No save to Wipe."
+msgstr ""
+
+#: src/main.cpp:994
+msgid "No save to Export."
+msgstr ""
+
+#: src/main.cpp:1004
+msgid "No save to Copy."
+msgstr ""
+
+#: src/savemng.cpp:53
+#, c-format
+msgid "Copying file: %s"
+msgstr ""
+
+#: src/savemng.cpp:54
+#, c-format
+msgid "From: %s"
+msgstr ""
+
+#: src/savemng.cpp:55
+#, c-format
+msgid "To: %s"
+msgstr ""
+
+#: src/savemng.cpp:264
+msgid " Yes -  No"
+msgstr ""
+
+#: src/savemng.cpp:265
+msgid " Confirm -  Cancel"
+msgstr ""
+
+#: src/savemng.cpp:474
+#, c-format
+msgid "Filesize: %d bytes"
+msgstr ""
+
+#: src/savemng.cpp:548
+#, c-format
+msgid "Deleting folder %s"
+msgstr ""
+
+#: src/savemng.cpp:549 src/savemng.cpp:553
+#, c-format
+msgid ""
+"From: \n"
+"%s"
+msgstr ""
+
+#: src/savemng.cpp:550
+#, c-format
+msgid ""
+"Failed to delete folder %s\n"
+"%s"
+msgstr ""
+
+#: src/savemng.cpp:552
+#, c-format
+msgid "Deleting file %s"
+msgstr ""
+
+#: src/savemng.cpp:554
+#, c-format
+msgid ""
+"Failed to delete file %s\n"
+"%s"
+msgstr ""
+
+#: src/savemng.cpp:592 src/savemng.cpp:601
+msgid "Loadiine game folder not found."
+msgstr ""
+
+#: src/savemng.cpp:619
+msgid "Failed to open Loadiine game save directory."
+msgstr ""
+
+#: src/savemng.cpp:747 src/savemng.cpp:849 src/savemng.cpp:883
+#: src/savemng.cpp:919 src/savemng.cpp:951
+msgid "Are you sure?"
+msgstr ""
+
+#: src/savemng.cpp:750 src/savemng.cpp:852
+msgid "Backup current savedata first to next empty slot?"
+msgstr ""
+
+#: src/savemng.cpp:752
+msgid "Backup done. Now copying Savedata."
+msgstr ""
+
+#: src/savemng.cpp:764 src/savemng.cpp:827 src/savemng.cpp:872
+#: src/savemng.cpp:902 src/savemng.cpp:946 src/savemng.cpp:975
+msgid "Common save not found."
+msgstr ""
+
+#: src/savemng.cpp:768
+msgid "Copy failed."
+msgstr ""
+
+#: src/savemng.cpp:800
+msgid "Backup failed."
+msgstr ""
+
+#: src/savemng.cpp:806
+msgid "Backup found on this slot. Overwrite it?"
+msgstr ""
+
+#: src/savemng.cpp:832
+msgid "No save found for this user."
+msgstr ""
+
+#: src/savemng.cpp:837
+msgid "Backup failed. DO NOT restore from this slot."
+msgstr ""
+
+#: src/savemng.cpp:846
+msgid "No backup found on selected slot."
+msgstr ""
+
+#: src/savemng.cpp:879
+msgid "Restore failed."
+msgstr ""
+
+#: src/savemng.cpp:883
+msgid "Hm, are you REALLY sure?"
+msgstr ""
+
+#: src/savemng.cpp:886 src/savemng.cpp:922
+msgid "Backup current savedata first?"
+msgstr ""
+
+#: src/savemng.cpp:904
+#, c-format
+msgid ""
+"Failed to delete common folder.\n"
+"%s"
+msgstr ""
+
+#: src/savemng.cpp:911
+msgid "Failed to delete savefile."
+msgstr ""
+
+#: src/savemng.cpp:914
+#, c-format
+msgid ""
+"Failed to delete user folder.\n"
+"%s"
+msgstr ""
+
+#: src/savemng.cpp:941
+msgid "Failed to import savedata from loadiine."
+msgstr ""
+
+#: src/savemng.cpp:970
+msgid "Failed to export savedata to loadiine."
 msgstr ""
