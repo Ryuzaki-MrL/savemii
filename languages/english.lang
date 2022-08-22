@@ -1,0 +1,3 @@
+#: src/main.cpp:431
+msgid "initFS failed. Please make sure your MochaPayload is up-to-date"
+msgstr ""

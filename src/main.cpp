@@ -1,6 +1,7 @@
 #include "main.h"
 #include "icon.h"
 #include "json.h"
+#include "language.h"
 #include "log_freetype.h"
 #include "savemng.h"
 #include "string.hpp"
@@ -415,8 +416,19 @@ int main() {
     WPADEnableURCC(1);
     loadWiiUTitles(0);
 
+    int res = romfsInit();
+	if (res) {
+		promptError("Failed to init romfs: %d", res);
+        flipBuffers();
+        WHBProcShutdown();
+		return 0;
+	}
+
+    Swkbd_LanguageType systemLanguage = getSystemLanguage();
+    loadLanguage(systemLanguage);
+
     if (!initFS()) {
-        promptError("initFS failed. Please make sure your MochaPayload is up-to-date");
+        promptError(gettext("initFS failed. Please make sure your MochaPayload is up-to-date"));
         flipBuffers();
         WHBProcShutdown();
         return 0;
@@ -1015,8 +1027,7 @@ int main() {
                         break;
                 }
             }
-        } else if (getInput(TRIGGER, PAD_BUTTON_B) &&
-                   menu > 0) {
+        } else if (getInput(TRIGGER, PAD_BUTTON_B) && menu > 0) {
             clearBuffers();
             WHBLogFreetypeDraw();
             menu--;

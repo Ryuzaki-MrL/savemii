@@ -21,10 +21,11 @@ include $(DEVKITPRO)/wut/share/wut_rules
 #-------------------------------------------------------------------------------
 TARGET		:=	savemii
 BUILD		:=	build
-SOURCES		:=	src
+SOURCES		:=	src src/fs src/language src/utils
 DATA		:=  
-INCLUDES	:=  src include
+INCLUDES	:=  include
 DEFS        :=  
+ROMFS 		:= 	languages
 #-------------------------------------------------------------------------------
 # options for code generation
 #-------------------------------------------------------------------------------
@@ -38,6 +39,12 @@ ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)
 
 LIBS	:= -lfat -lwut -lmocha -ljansson `freetype-config --libs`
+
+include $(PORTLIBS_PATH)/wiiu/share/romfs-wiiu.mk
+CFLAGS		+=	$(ROMFS_CFLAGS)
+CXXFLAGS	+=	$(ROMFS_CFLAGS)
+LIBS		+=	$(ROMFS_LIBS)
+OFILES		+=	$(ROMFS_TARGET)
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level
@@ -60,6 +67,7 @@ export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
+LANGUAGES	:=	$(shell bash ./updatelang.sh)
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 sFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
