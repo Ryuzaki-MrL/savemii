@@ -2,7 +2,6 @@
 #include "log_freetype.h"
 
 uint8_t *scrBuffer;
-static bool cur_buf1;
 static size_t tvBufferSize = 0;
 static size_t drcBufferSize = 0;
 
@@ -139,26 +138,6 @@ void drawRGB5A3(int x, int y, float scale, uint8_t *fileContent) {
             drawRect(x - 3, y - 3, x + nw + 2, y + nh + 2, 255, 255, 255, 128);
         }
     }
-}
-
-void drawBackgroundDRC(uint32_t w, uint32_t h, uint8_t *out) {
-    uint32_t *screen2 = nullptr;
-    int otherBuff1 = drcBufferSize / 2;
-
-    if (cur_buf1)
-        screen2 = (uint32_t *) scrBuffer + tvBufferSize + otherBuff1;
-    else
-        screen2 = (uint32_t *) scrBuffer + tvBufferSize;
-    memcpy(screen2, out, w * h * 4);
-}
-
-void drawBackgroundTV(uint32_t w, uint32_t h, uint8_t *out) {
-    auto *screen1 = (uint32_t *) scrBuffer;
-    int otherBuff0 = tvBufferSize / 2;
-
-    if (cur_buf1)
-        screen1 = (uint32_t *) scrBuffer + otherBuff0;
-    memcpy(screen1, out, w * h * 4);
 }
 
 void draw_bitmap(FT_Bitmap *bitmap, FT_Int x, FT_Int y) {
