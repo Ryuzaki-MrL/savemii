@@ -698,10 +698,10 @@ int main() {
 
         readInput();
 
-        if (getInput(TRIGGER, PAD_BUTTON_ANY) || getInput(HOLD, PAD_BUTTON_ANY))
+        if (getInput(TRIGGER, PAD_BUTTON_ANY))
             redraw = true;
 
-        if (getInput(HOLD, PAD_BUTTON_DOWN)) {
+        if (getInput(TRIGGER, PAD_BUTTON_DOWN)) {
             if (entrycount <= 14)
                 cursor = (cursor + 1) % entrycount;
             else if (cursor < 6)
@@ -710,7 +710,7 @@ int main() {
                 scroll++;
             else
                 cursor = scroll = 0;
-        } else if (getInput(HOLD, PAD_BUTTON_UP)) {
+        } else if (getInput(TRIGGER, PAD_BUTTON_UP)) {
             if (scroll > 0)
                 cursor -= (cursor > 6) ? 1 : 0 * (scroll--);
             else if (cursor > 0)
@@ -721,7 +721,7 @@ int main() {
                 cursor = entrycount - 1;
         }
 
-        if (getInput(HOLD, PAD_BUTTON_LEFT)) {
+        if (getInput(TRIGGER, PAD_BUTTON_LEFT)) {
             if (menu == 3) {
                 if (task == 5) {
                     switch (cursor) {
@@ -791,7 +791,7 @@ int main() {
                     }
                 }
             }
-        } else if (getInput(HOLD, PAD_BUTTON_RIGHT)) {
+        } else if (getInput(TRIGGER, PAD_BUTTON_RIGHT)) {
             if (menu == 3) {
                 if (task == 5) {
                     switch (cursor) {
