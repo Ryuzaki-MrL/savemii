@@ -1048,6 +1048,7 @@ int main() {
     free(versionList);
 
     deinitFS();
+    gettextCleanUp();
 
     OSScreenShutdown();
     WHBLogFreetypeFree();
