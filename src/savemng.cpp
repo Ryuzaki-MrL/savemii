@@ -179,29 +179,30 @@ static bool createFolder(const char *fPath) { //Adapted from mkdir_p made by Jon
 }
 
 void consolePrintPosAligned(int y, uint16_t offset, uint8_t align, const char *format, ...) {
-    int x = 0;
-    va_list va;
-    va_start(va, format);
-    std::string tmp = stringFormat(format, va);
-    if (!tmp.empty()) {
+    char* tmp = NULL;
+	int x = 0;
+
+	va_list va;
+	va_start(va, format);
+	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
         switch (align) {
             case 0:
                 x = (offset * 12);
                 break;
             case 1:
-                x = (853 - ttfStringWidth((char *) tmp.c_str(), -2)) / 2;
+                x = (853 - ttfStringWidth((char *) tmp, -2)) / 2;
                 break;
             case 2:
-                x = 853 - (offset * 12) - ttfStringWidth((char *) tmp.c_str(), 0);
+                x = 853 - (offset * 12) - ttfStringWidth((char *) tmp, 0);
                 break;
             default:
-                x = (853 - ttfStringWidth((char *) tmp.c_str(), -2)) / 2;
+                x = (853 - ttfStringWidth((char *) tmp, -2)) / 2;
                 break;
         }
-        ttfPrintString(x, (y + 1) * 24, (char *) tmp.c_str(), false, false);
+        ttfPrintString(x, (y + 1) * 24, (char *) tmp, false, false);
     }
-    if (!tmp.empty())
-        tmp.clear();
+    va_end(va);
+	if (tmp) free(tmp);
 }
 
 void consolePrintPos(int x, int y, const char *format, ...) { // Source: ftpiiu

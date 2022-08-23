@@ -60,9 +60,9 @@ static void sortTitle(It titles, It last, int tsort = 1, int sorta = 1) {
 }
 
 static void disclaimer() {
-    consolePrintPos(23, 13, gettext("Disclaimer:"));
-    consolePrintPos(13, 14, gettext("There is always the potential for a brick."));
-    consolePrintPos(1, 15, gettext("Everything you do with this software is your own responsibility"));
+    consolePrintPosAligned(14, 0, 1, gettext("Disclaimer:"));
+    consolePrintPosAligned(15, 0, 1, gettext("There is always the potential for a brick."));
+    consolePrintPosAligned(16, 0, 1, gettext("Everything you do with this software is your own responsibility"));
 }
 
 static Title *loadWiiUTitles(int run) {
@@ -240,9 +240,9 @@ static Title *loadWiiUTitles(int run) {
         titleswiiu++;
 
         clearBuffersEx();
-        drawTGA(285, 144, 1, icon_tga);
         disclaimer();
-        consolePrintPos(20, 10, gettext("Loaded %i Wii U titles."), titleswiiu);
+        drawTGA(298, 144, 1, icon_tga);
+        consolePrintPosAligned(10, 0, 1, gettext("Loaded %i Wii U titles."), titleswiiu);
         flipBuffers();
         WHBLogFreetypeDraw();
     }
@@ -386,10 +386,10 @@ static Title *loadWiiTitles() {
                 i++;
 
                 clearBuffersEx();
-                drawTGA(285, 144, 1, icon_tga);
                 disclaimer();
-                consolePrintPos(20, 10, gettext("Loaded %i Wii U titles."), titleswiiu);
-                consolePrintPos(21, 11, gettext("Loaded %i Wii titles."), i);
+                drawTGA(298, 144, 1, icon_tga);
+                consolePrintPosAligned(10, 0, 1, gettext("Loaded %i Wii U titles."), titleswiiu);
+                consolePrintPosAligned(11, 0, 1, gettext("Loaded %i Wii titles."), i);
                 flipBuffers();
                 WHBLogFreetypeDraw();
             }
