@@ -1049,6 +1049,7 @@ int main() {
 
     deinitFS();
     gettextCleanUp();
+    romfsExit();
 
     OSScreenShutdown();
     WHBLogFreetypeFree();
