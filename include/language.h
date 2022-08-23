@@ -26,5 +26,5 @@ typedef enum
    Swkbd_LanguageType__Invalid   = 12
 } Swkbd_LanguageType;
 
-void loadLanguage(Swkbd_LanguageType language);
-Swkbd_LanguageType getSystemLanguage();
+void loadLanguage(Swkbd_LanguageType language) __attribute__((cold));
+Swkbd_LanguageType getSystemLanguage() __attribute__((cold));

@@ -14,8 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
-#ifndef _GETTEXT_H_
-#define _GETTEXT_H_
+#pragma once
 
 #include <wut_types.h>
 
@@ -33,12 +32,10 @@ void gettextCleanUp(void);
  * input msg = a text in ASCII
  * output = the translated msg in utf-8
  */
-const char *gettext(const char *msg);
+const char *gettext(const char *msg) __attribute__((hot));
 #define tr(s) gettext(s)
 #define trNOOP(s)   s
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* _GETTEXT_H_ */

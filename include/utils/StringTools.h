@@ -23,8 +23,7 @@
  *
  * for WiiXplorer 2010
  ***************************************************************************/
-#ifndef __STRING_TOOLS_H
-#define __STRING_TOOLS_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -77,6 +76,4 @@ class StringTools{
 
         static std::vector<std::string> stringSplit(const std::string & value, const std::string & splitter);
 };
-
-#endif /* __STRING_TOOLS_H */
 

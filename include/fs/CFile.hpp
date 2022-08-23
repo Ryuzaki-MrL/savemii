@@ -1,5 +1,4 @@
-#ifndef CFILE_HPP_
-#define CFILE_HPP_
+#pragma once
 
 #include <stdio.h>
 #include <string>
@@ -57,5 +56,3 @@ protected:
     uint64_t filesize;
     uint64_t pos;
 };
-
-#endif
