@@ -1,19 +1,16 @@
-msgid "Press \\ue044 to exit."
+msgid "\\ue000 Confirm - \\ue001 Cancel"
 msgstr ""
 
-msgid "\\ue000: Copy  \\ue001: Back"
+msgid "\\ue000 Yes - \\ue001 No"
 msgstr ""
 
-msgid "\\ue000: Export  \\ue001: Back"
+msgid "\\ue000: Select Task  \\ue001: Back"
 msgstr ""
 
-msgid "\\ue000: Import  \\ue001: Back"
+msgid "\\ue000: Select Game  \\ue001: Back"
 msgstr ""
 
-msgid "\\ue000: Wipe  \\ue001: Back"
-msgstr ""
-
-msgid "\\ue000: Restore  \\ue001: Back"
+msgid "\\ue000: Backup  \\ue001: Back"
 msgstr ""
 
 msgid ""
@@ -26,19 +23,22 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "\\ue000: Backup  \\ue001: Back"
+msgid "\\ue000: Restore  \\ue001: Back"
 msgstr ""
 
-msgid "\\ue000: Select Game  \\ue001: Back"
+msgid "\\ue000: Wipe  \\ue001: Back"
 msgstr ""
 
-msgid "\\ue000: Select Task  \\ue001: Back"
+msgid "\\ue000: Import  \\ue001: Back"
 msgstr ""
 
-msgid "\\ue000 Yes - \\ue001 No"
+msgid "\\ue000: Export  \\ue001: Back"
 msgstr ""
 
-msgid "\\ue000 Confirm - \\ue001 Cancel"
+msgid "\\ue000: Copy  \\ue001: Back"
+msgstr ""
+
+msgid "Press \\ue044 to exit."
 msgstr ""
 
 #: src/main.cpp:63

@@ -1,20 +1,17 @@
-msgid "Press \\ue044 to exit."
-msgstr "Presiona \\ue044 para salir."
+msgid "\\ue000 Confirm - \\ue001 Cancel"
+msgstr "\\ue000 Confirmar - \\ue001 Cancelar"
 
-msgid "\\ue000: Copy  \\ue001: Back"
+msgid "\\ue000 Yes - \\ue001 No"
+msgstr "\\ue000 Sí - \\ue001 No"
+
+msgid "\\ue000: Select Task  \\ue001: Back"
+msgstr "\\ue000: Seleccionar Tarea  \\ue001: Atrás"
+
+msgid "\\ue000: Select Game  \\ue001: Back"
+msgstr "\\ue000: Seleccionar Juego  \\ue001: Atrás"
+
+msgid "\\ue000: Backup  \\ue001: Back"
 msgstr "\\ue000: Copiar  \\ue001: Atrás"
-
-msgid "\\ue000: Export  \\ue001: Back"
-msgstr "\\ue000: Exportar  \\ue001: Atrás"
-
-msgid "\\ue000: Import  \\ue001: Back"
-msgstr "\\ue000: Importar  \\ue001: Atrás"
-
-msgid "\\ue000: Wipe  \\ue001: Back"
-msgstr "\\ue000: Borrar  \\ue001: Atrás"
-
-msgid "\\ue000: Restore  \\ue001: Back"
-msgstr "\\ue000: Restaurar  \\ue001: Atrás"
 
 msgid ""
 msgstr ""
@@ -26,20 +23,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "\\ue000: Backup  \\ue001: Back"
+msgid "\\ue000: Restore  \\ue001: Back"
+msgstr "\\ue000: Restaurar  \\ue001: Atrás"
+
+msgid "\\ue000: Wipe  \\ue001: Back"
+msgstr "\\ue000: Borrar  \\ue001: Atrás"
+
+msgid "\\ue000: Import  \\ue001: Back"
+msgstr "\\ue000: Importar  \\ue001: Atrás"
+
+msgid "\\ue000: Export  \\ue001: Back"
+msgstr "\\ue000: Exportar  \\ue001: Atrás"
+
+msgid "\\ue000: Copy  \\ue001: Back"
 msgstr "\\ue000: Copiar  \\ue001: Atrás"
 
-msgid "\\ue000: Select Game  \\ue001: Back"
-msgstr "\\ue000: Seleccionar Juego  \\ue001: Atrás"
-
-msgid "\\ue000: Select Task  \\ue001: Back"
-msgstr "\\ue000: Seleccionar Tarea  \\ue001: Atrás"
-
-msgid "\\ue000 Yes - \\ue001 No"
-msgstr "\\ue000 Sí - \\ue001 No"
-
-msgid "\\ue000 Confirm - \\ue001 Cancel"
-msgstr "\\ue000 Confirmar - \\ue001 Cancelar"
+msgid "Press \\ue044 to exit."
+msgstr "Presiona \\ue044 para salir."
 
 #: src/main.cpp:63
 msgid "Disclaimer:"

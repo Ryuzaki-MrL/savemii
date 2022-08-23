@@ -43,16 +43,27 @@ typedef struct _MSG {
 } MSG;
 static MSG *baseMSG = NULL;
 
-#define HASHMULTIPLIER 31 // or 37
+#define HASHWORDBITS 32
 
-// Hashing function from https://stackoverflow.com/a/2351171
+/* Defines the so called `hashpjw' function by P.J. Weinberger
+ [see Aho/Sethi/Ullman, COMPILERS: Principles, Techniques and Tools,
+ 1986, 1987 Bell Telephone Laboratories, Inc.]  */
 static inline uint32_t hash_string(const char *str_param) {
-    uint32_t hash = 0;
-    unsigned char *p;
+    uint32_t hval, g;
+    const char *str = str_param;
 
-    while(*str_param != '\0')
-        hash = HASHMULTIPLIER * hash + *p++;
-    return hash;
+    /* Compute the hash value for the given string.  */
+    hval = 0;
+    while (*str != '\0') {
+        hval <<= 4;
+        hval += (uint8_t) *str++;
+        g = hval & ((uint32_t) 0xf << (HASHWORDBITS - 4));
+        if (g != 0) {
+            hval ^= g >> (HASHWORDBITS - 8);
+            hval ^= g;
+        }
+    }
+    return hval;
 }
 
 /* Expand some escape sequences found in the argument string.  */
