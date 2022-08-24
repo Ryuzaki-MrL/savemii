@@ -84,13 +84,13 @@ void gettextCleanUp()
 
 bool gettextLoadLanguage(const char* langFile)
 {
-	void *buffer;
-	size_t size = loadFile(langFile, &buffer);
-	if(buffer == NULL)
+	uint8_t *buffer;
+	int32_t size = loadFile(langFile, &buffer);
+	if(buffer == nullptr)
 		return false;
 
 	bool ret = true;
-	json_t *json = json_loadb(buffer, size, 0, NULL);
+	json_t *json = json_loadb(buffer, size, 0, nullptr);
 	if(json)
 	{
 		size = json_object_size(json);
