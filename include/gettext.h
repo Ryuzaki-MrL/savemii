@@ -23,18 +23,9 @@ extern "C"
 {
 #endif
 
-#define tr(s) gettext(s)
-#define trNOOP(s) s
-
-BOOL gettextLoadLanguage(const char* langFile);
-void gettextCleanUp(void);
-/*
- * input msg = a text in ASCII
- * output = the translated msg in utf-8
- */
-const char *gettext(const char *msg) __attribute__((hot));
-#define tr(s) gettext(s)
-#define trNOOP(s)   s
+bool gettextLoadLanguage(const char* langFile);
+void gettextCleanUp() __attribute__((__cold__));
+const char *gettext(const char *msg) __attribute__((__hot__));
 
 #ifdef __cplusplus
 }

@@ -5,43 +5,43 @@ Swkbd_LanguageType sysLang;
 void loadLanguage(Swkbd_LanguageType language) {
 	switch(language) {
         /*case Swkbd_LanguageType__Japanese:
-			gettextLoadLanguage("romfs:/japanese.lang");
+			gettextLoadLanguage("romfs:/japanese.json");
             break;*/
 		case Swkbd_LanguageType__English:
-			gettextLoadLanguage("romfs:/english.lang");
+			gettextLoadLanguage("romfs:/english.json");
             break;
 		/*case Swkbd_LanguageType__French:
-			gettextLoadLanguage("romfs:/french.lang");
+			gettextLoadLanguage("romfs:/french.json");
             break;
 		case Swkbd_LanguageType__German:
-			gettextLoadLanguage("romfs:/german.lang");
+			gettextLoadLanguage("romfs:/german.json");
             break;
 		case Swkbd_LanguageType__Italian:
-			gettextLoadLanguage("romfs:/italian.lang");
+			gettextLoadLanguage("romfs:/italian.json");
             break;*/
 		case Swkbd_LanguageType__Spanish:
-			gettextLoadLanguage("romfs:/spanish.lang");
+			gettextLoadLanguage("romfs:/spanish.json");
             break;
 		/*case Swkbd_LanguageType__Chinese1:
-			gettextLoadLanguage("romfs:/chinese1.lang");
+			gettextLoadLanguage("romfs:/chinese1.json");
             break;
 		case Swkbd_LanguageType__Korean:
-			gettextLoadLanguage("romfs:/korean.lang");
+			gettextLoadLanguage("romfs:/korean.json");
             break;
 		case Swkbd_LanguageType__Dutch:
-			gettextLoadLanguage("romfs:/dutch.lang");
+			gettextLoadLanguage("romfs:/dutch.json");
             break;
 		case Swkbd_LanguageType__Potuguese:
-			gettextLoadLanguage("romfs:/portuguese.lang");
+			gettextLoadLanguage("romfs:/portuguese.json");
             break;
 		case Swkbd_LanguageType__Russian:
-			gettextLoadLanguage("romfs:/russian.lang");
+			gettextLoadLanguage("romfs:/russian.json");
             break;
 		case Swkbd_LanguageType__Chinese2:
-			gettextLoadLanguage("romfs:/chinese2.lang");
+			gettextLoadLanguage("romfs:/chinese2.json");
             break;*/
 		default:
-			gettextLoadLanguage("romfs:/english.lang");
+			gettextLoadLanguage("romfs:/english.json");
             break;
 	}
 }

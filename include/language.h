@@ -1,6 +1,6 @@
 #pragma once
 
-#include <language/gettext.h>
+#include "gettext.h"
 #include <romfs-wiiu.h>
 
 #include <coreinit/memdefaultheap.h>
