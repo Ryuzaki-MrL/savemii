@@ -3,7 +3,7 @@ FROM wiiuenv/devkitppc:20220806 AS final
 RUN apt -y install gettext
 CMD dkp-pacman -Syyu --noconfirm ppc-freetype
 
-RUN git clone --recursive https://github.com/wiiu-env/libmocha -b devoptab --single-branch && \
+RUN git clone --recursive https://github.com/wiiu-env/libmocha --single-branch && \
  cd libmocha && \
  make -j$(nproc) && \
  make install && \
