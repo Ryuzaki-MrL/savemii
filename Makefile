@@ -32,7 +32,7 @@ ROMFS 		:= 	languages
 CFLAGS	:=	-std=gnu2x -g -Wall -Ofast -ffunction-sections `freetype-config --cflags` \
 			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__ -D__wiiu__
 
-CXXFLAGS	:= -std=gnu++20 -g -Wall -Wno-int-in-bool-context -Wno-deprecated-enum-enum-conversion -Wno-format-overflow -Ofast -fpermissive -ffunction-sections `freetype-config --cflags` \
+CXXFLAGS	:= -std=gnu++20 -g -Wall -Wno-int-in-bool-context -Wno-builtin-declaration-mismatch -Wno-format-overflow -Ofast -fpermissive -ffunction-sections `freetype-config --cflags` \
 			$(MACHDEP) $(INCLUDE) -D__WIIU__ -D__WUT__ -D__wiiu__
 
 ASFLAGS	:=	-g $(ARCH)
