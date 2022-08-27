@@ -1,8 +1,8 @@
 #pragma once
 
+#include <cstring>
 #include <padscore/kpad.h>
 #include <vpad/input.h>
-#include <cstring>
 
 extern VPADStatus vpad_status;
 extern VPADReadError vpad_error;

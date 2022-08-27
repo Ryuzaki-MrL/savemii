@@ -2,8 +2,8 @@
 #include <cstdio>
 #include <nn/act/client_cpp.h>
 
-#include "language.h"
 #include "LockingQueue.h"
+#include "language.h"
 #include "savemng.h"
 #include <future>
 
@@ -179,12 +179,12 @@ static bool createFolder(const char *fPath) { //Adapted from mkdir_p made by Jon
 }
 
 void consolePrintPosAligned(int y, uint16_t offset, uint8_t align, const char *format, ...) {
-    char* tmp = NULL;
-	int x = 0;
+    char *tmp = NULL;
+    int x = 0;
 
-	va_list va;
-	va_start(va, format);
-	if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
+    va_list va;
+    va_start(va, format);
+    if ((vasprintf(&tmp, format, va) >= 0) && tmp) {
         switch (align) {
             case 0:
                 x = (offset * 12);
@@ -202,7 +202,7 @@ void consolePrintPosAligned(int y, uint16_t offset, uint8_t align, const char *f
         ttfPrintString(x, (y + 1) * 24, (char *) tmp, false, false);
     }
     va_end(va);
-	if (tmp) free(tmp);
+    if (tmp) free(tmp);
 }
 
 void consolePrintPos(int x, int y, const char *format, ...) { // Source: ftpiiu

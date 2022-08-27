@@ -417,12 +417,12 @@ int main() {
     loadWiiUTitles(0);
 
     int res = romfsInit();
-	if (res) {
-		promptError("Failed to init romfs: %d", res);
+    if (res) {
+        promptError("Failed to init romfs: %d", res);
         flipBuffers();
         WHBProcShutdown();
-		return 0;
-	}
+        return 0;
+    }
 
     Swkbd_LanguageType systemLanguage = getSystemLanguage();
     loadLanguage(systemLanguage);
