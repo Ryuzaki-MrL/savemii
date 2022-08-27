@@ -15,10 +15,10 @@ void loadLanguage(Swkbd_LanguageType language) {
             break;
 		case Swkbd_LanguageType__German:
 			gettextLoadLanguage("romfs:/german.json");
-            break;
+            break;*/
 		case Swkbd_LanguageType__Italian:
 			gettextLoadLanguage("romfs:/italian.json");
-            break;*/
+            break;
 		case Swkbd_LanguageType__Spanish:
 			gettextLoadLanguage("romfs:/spanish.json");
             break;
