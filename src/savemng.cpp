@@ -45,7 +45,7 @@ bool initFS() {
 void deinitFS() {
     fatUnmount("sd");
     Mocha_UnmountFS("slc");
-    Mocha_DeinitLibrary();
+    Mocha_DeInitLibrary();
     FSShutdown();
 }
 
