@@ -5,11 +5,17 @@
 ifeq ($(strip $(DEVKITPRO)),)
 $(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
 endif
-export LIBOGC_INC	:=	$(DEVKITPRO)/libogc/include
-export LIBOGC_LIB	:=	$(DEVKITPRO)/libogc/lib/wii
-export PORTLIBS		:=	$(DEVKITPRO)/portlibs/ppc
 
 TOPDIR ?= $(CURDIR)
+
+#-------------------------------------------------------------------------------
+# APP_NAME sets the long name of the application
+# APP_SHORTNAME sets the short name of the application
+# APP_AUTHOR sets the author of the application
+#-------------------------------------------------------------------------------
+APP_NAME	    := SaveMii WUT Port
+APP_SHORTNAME	:= SaveMii
+APP_AUTHOR	    := DaThinkingChair
 
 include $(DEVKITPRO)/wut/share/wut_rules
 
@@ -17,15 +23,24 @@ include $(DEVKITPRO)/wut/share/wut_rules
 # TARGET is the name of the output
 # BUILD is the directory where object files & intermediate files will be placed
 # SOURCES is a list of directories containing source code
+# DATA is a list of directories containing data files
 # INCLUDES is a list of directories containing header files
+# CONTENT is the path to the bundled folder that will be mounted as /vol/content/
+# ICON is the game icon, leave blank to use default rule
+# TV_SPLASH is the image displayed during bootup on the TV, leave blank to use default rule
+# DRC_SPLASH is the image displayed during bootup on the DRC, leave blank to use default rule
 #-------------------------------------------------------------------------------
 TARGET		:=	savemii
 BUILD		:=	build
 SOURCES		:=	src
-DATA		:=  
-INCLUDES	:=  include
-DEFS        :=  
+DATA		:=	data
+INCLUDES	:=	include
+CONTENT		:=
+ICON		:=  meta/wuhb/icon.png
+TV_SPLASH	:=
+DRC_SPLASH	:=
 ROMFS 		:= 	languages
+
 #-------------------------------------------------------------------------------
 # options for code generation
 #-------------------------------------------------------------------------------
@@ -69,9 +84,8 @@ export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
-sFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
-SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.S)))
-BINFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.bin)))
+SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
+BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
 #-------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -87,18 +101,44 @@ else
 endif
 #-------------------------------------------------------------------------------
 
-export OFILES	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) \
-					$(sFILES:.s=.o) $(SFILES:.S=.o) \
-					$(BINFILES:.bin=.o)
+export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
+export OFILES_SRC	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+export OFILES 	:=	$(OFILES_BIN) $(OFILES_SRC)
 export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)  \
-			-I/opt/devkitpro/portlibs/ppc/include/freetype2/
+			-I$(CURDIR)/$(BUILD)
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
+ifneq (,$(strip $(CONTENT)))
+	export APP_CONTENT := $(TOPDIR)/$(CONTENT)
+endif
+
+ifneq (,$(strip $(ICON)))
+	export APP_ICON := $(TOPDIR)/$(ICON)
+else ifneq (,$(wildcard $(TOPDIR)/$(TARGET).png))
+	export APP_ICON := $(TOPDIR)/$(TARGET).png
+else ifneq (,$(wildcard $(TOPDIR)/icon.png))
+	export APP_ICON := $(TOPDIR)/icon.png
+endif
+
+ifneq (,$(strip $(TV_SPLASH)))
+	export APP_TV_SPLASH := $(TOPDIR)/$(TV_SPLASH)
+else ifneq (,$(wildcard $(TOPDIR)/tv-splash.png))
+	export APP_TV_SPLASH := $(TOPDIR)/tv-splash.png
+else ifneq (,$(wildcard $(TOPDIR)/splash.png))
+	export APP_TV_SPLASH := $(TOPDIR)/splash.png
+endif
+
+ifneq (,$(strip $(DRC_SPLASH)))
+	export APP_DRC_SPLASH := $(TOPDIR)/$(DRC_SPLASH)
+else ifneq (,$(wildcard $(TOPDIR)/drc-splash.png))
+	export APP_DRC_SPLASH := $(TOPDIR)/drc-splash.png
+else ifneq (,$(wildcard $(TOPDIR)/splash.png))
+	export APP_DRC_SPLASH := $(TOPDIR)/splash.png
+endif
 
 .PHONY: $(BUILD) clean all
 
@@ -112,7 +152,7 @@ $(BUILD):
 #-------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).rpx $(TARGET).elf $(OUTPUT).bin
+	@rm -fr $(BUILD) $(TARGET).wuhb $(TARGET).rpx $(TARGET).elf
 
 #-------------------------------------------------------------------------------
 else
@@ -123,77 +163,24 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #-------------------------------------------------------------------------------
 # main targets
 #-------------------------------------------------------------------------------
-all	:	$(OUTPUT).rpx
+all	:	$(OUTPUT).wuhb
 
+$(OUTPUT).wuhb	:	$(OUTPUT).rpx
 $(OUTPUT).rpx	:	$(OUTPUT).elf
 $(OUTPUT).elf	:	$(OFILES)
 
 $(OFILES_SRC)	: $(HFILES_BIN)
 
-#---------------------------------------------------------------------------------
-%.a:
-#---------------------------------------------------------------------------------
-	@echo $(notdir $@)
-	@rm -f $@
-	@$(AR) -rc $@ $^
-
-#---------------------------------------------------------------------------------
-%.o: %.cpp
+#-------------------------------------------------------------------------------
+# you need a rule like this for each extension you use as binary data
+#-------------------------------------------------------------------------------
+%.bin.o	%_bin.h :	%.bin
+#-------------------------------------------------------------------------------
 	@echo $(notdir $<)
-	@$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(CXXFLAGS) -c $< -o $@ $(ERROR_FILTER)
-
-#---------------------------------------------------------------------------------
-%.o: %.c
-	@echo $(notdir $<)
-	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(CFLAGS) -c $< -o $@ $(ERROR_FILTER)
-
-#---------------------------------------------------------------------------------
-%.o: %.S
-	@echo $(notdir $<)
-	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d -x assembler-with-cpp $(ASFLAGS) -c $< -o $@ $(ERROR_FILTER)
-
-#---------------------------------------------------------------------------------
-%.png.o : %.png
-	@echo $(notdir $<)
-	@bin2s -a 32 $< | $(AS) -o $(@)
-
-#---------------------------------------------------------------------------------
-%.jpg.o : %.jpg
-	@echo $(notdir $<)
-	@bin2s -a 32 $< | $(AS) -o $(@)
-
-#---------------------------------------------------------------------------------
-%.ttf.o : %.ttf
-	@echo $(notdir $<)
-	@bin2s -a 32 $< | $(AS) -o $(@)
-
-#---------------------------------------------------------------------------------
-%.bin.o : %.bin
-	@echo $(notdir $<)
-	@bin2s -a 32 $< | $(AS) -o $(@)
-
-#---------------------------------------------------------------------------------
-%.wav.o : %.wav
-	@echo $(notdir $<)
-	@bin2s -a 32 $< | $(AS) -o $(@)
-
-#---------------------------------------------------------------------------------
-%.mp3.o : %.mp3
-	@echo $(notdir $<)
-	@bin2s -a 32 $< | $(AS) -o $(@)
-
-#---------------------------------------------------------------------------------
-%.ogg.o : %.ogg
-	@echo $(notdir $<)
-	@bin2s -a 32 $< | $(AS) -o $(@)
-
-#---------------------------------------------------------------------------------
-%.zip.o : %.zip
-	@echo $(notdir $<)
-	@bin2s -a 32 $< | $(AS) -o $(@)
+	@$(bin2o)
 
 -include $(DEPENDS)
 
-#---------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 endif
-#---------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
