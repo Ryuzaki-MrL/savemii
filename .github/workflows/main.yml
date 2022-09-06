@@ -22,12 +22,12 @@ jobs:
       - name: Upload Aroma version
         uses: actions/upload-artifact@v3
         with:
-          name: savemii.wuhb
-          path: .
+          name: SaveMii-Aroma
+          path: savemii.wuhb
           if-no-files-found: warn
       - name: Upload HBL version
         uses: actions/upload-artifact@v3
         with:
-          name: savemii.rpx
-          path: .
+          name: SaveMii-HBL
+          path: savemii.rpx
           if-no-files-found: warn
