@@ -10,7 +10,7 @@ RUN git clone --recursive https://github.com/wiiu-env/libmocha --single-branch &
  cd .. && \
  rm -rf libmocha
 
-RUN git clone --recursive https://github.com/Xpl0itU/libfat && \
+RUN git clone --recursive https://github.com/Xpl0itU/libfat --single-branch && \
   cd libfat && \
   make -j$(nproc) wiiu-install && \
   cd .. && \

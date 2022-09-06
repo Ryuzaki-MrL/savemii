@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-binary:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - name: build binary
@@ -22,7 +22,7 @@ jobs:
           path: "*.rpx"
   deploy-binary:
     needs: build-binary
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Get environment variables
         id: get_repository_name
@@ -31,7 +31,13 @@ jobs:
           echo DATETIME=$(echo $(date '+%Y%m%d-%H%M%S')) >> $GITHUB_ENV
       - uses: actions/download-artifact@master
         with:
-          name: binary
+          name: savemii
           path: wiiu/apps/SaveMiiModWUTPort
       - name: zip artifact
         run: zip -r ${{ env.REPOSITORY_NAME }}_${{ env.DATETIME }}.zip wiiu
+      - name: Upload Aroma version
+            uses: actions/upload-artifact@v3
+            with:
+              name: savemii.wuhb
+              path: ./
+              if-no-files-found: warn
