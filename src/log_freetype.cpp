@@ -43,6 +43,47 @@ void drawPixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
     }
 }
 
+static uint32_t FreetypeProcCallbackAcquired(void *context) {
+    if (freetypeHasForeground) return 0;
+    freetypeHasForeground = true;
+
+    MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
+    if (frameBufferTVSize) {
+        frameBufferTVFrontPtr = (uint8_t*)MEMAllocFromFrmHeapEx(heap, frameBufferTVSize, 0x100);
+        frameBufferTVBackPtr = (uint8_t*)frameBufferTVFrontPtr + (1*(1280*720*4));
+    }
+
+    if (frameBufferDRCSize) {
+        frameBufferDRCFrontPtr = (uint8_t*)MEMAllocFromFrmHeapEx(heap, frameBufferDRCSize, 0x100);
+        frameBufferDRCBackPtr = (uint8_t*)frameBufferDRCFrontPtr + (1*(896*480*4));
+    }
+
+    OSScreenSetBufferEx(SCREEN_TV, frameBufferTVFrontPtr);
+    OSScreenSetBufferEx(SCREEN_DRC, frameBufferDRCFrontPtr);
+
+    OSScreenPutPixelEx(SCREEN_TV, 0, 0, 0xABCDEFFF);
+    OSScreenPutPixelEx(SCREEN_DRC, 0, 0, 0xABCDEFFF);
+    DCFlushRange(frameBufferTVFrontPtr, frameBufferTVSize);
+    DCFlushRange(frameBufferDRCFrontPtr, frameBufferDRCSize);
+    currTVFrameBuffer = (((uint32_t*)frameBufferTVFrontPtr)[0] == 0xABCDEFFF) ? frameBufferTVFrontPtr : frameBufferTVBackPtr;
+    currDRCFrameBuffer = (((uint32_t*)frameBufferTVFrontPtr)[0] == 0xABCDEFFF) ? frameBufferDRCFrontPtr : frameBufferDRCBackPtr;
+    return 0;
+}
+
+static uint32_t FreetypeProcCallbackReleased(void *context) {
+    if (!freetypeHasForeground) return 0;
+    freetypeHasForeground = false;
+    MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
+    MEMFreeByStateToFrmHeap(heap, CONSOLE_FRAME_HEAP_TAG);
+    currTVFrameBuffer = NULL;
+    frameBufferTVFrontPtr = NULL;
+    frameBufferTVBackPtr = NULL;
+    currDRCFrameBuffer = NULL;
+    frameBufferDRCFrontPtr = NULL;
+    frameBufferDRCBackPtr = NULL;
+    return 0;
+}
+
 static bool initScreen() {
     MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
     if (frameBufferTVSize != 0u) {
@@ -77,14 +118,17 @@ bool WHBLogFreetypeInit() {
     frameBufferDRCSize = OSScreenGetBufferSizeEx(SCREEN_DRC);
 
     initScreen();
+    FreetypeProcCallbackAcquired(NULL);
     OSScreenEnableEx(SCREEN_TV, 1);
     OSScreenEnableEx(SCREEN_DRC, 1);
 
+    ProcUIRegisterCallback(PROCUI_CALLBACK_ACQUIRE, FreetypeProcCallbackAcquired, NULL, 100);
+    ProcUIRegisterCallback(PROCUI_CALLBACK_RELEASE, FreetypeProcCallbackReleased, NULL, 100);
+
     // Initialize freetype2
     FT_Error result;
-    if ((result = FT_Init_FreeType(&fontLibrary)) != 0) {
+    if ((result = FT_Init_FreeType(&fontLibrary)) != 0)
         return true;
-    }
 
     uint32_t fontSize;
     OSGetSharedData(OS_SHAREDDATATYPE_FONT_STANDARD, 0, (void **) &fontBuffer, &fontSize);
@@ -102,7 +146,11 @@ bool WHBLogFreetypeInit() {
 void WHBLogFreetypeFree() {
     FT_Done_Face(fontFace);
     FT_Done_FreeType(fontLibrary);
-    OSScreenShutdown();
+
+    if (freetypeHasForeground) {
+        OSScreenShutdown();
+        FreetypeProcCallbackReleased(NULL);
+    }
 }
 
 int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX) {

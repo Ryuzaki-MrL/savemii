@@ -8,6 +8,7 @@
 #include <coreinit/memheap.h>
 #include <coreinit/memory.h>
 #include <coreinit/screen.h>
+#include <proc_ui/procui.h>
 
 #include <freetype2/ft2build.h>
 #include FT_FREETYPE_H
