@@ -9,35 +9,25 @@ on:
 
 jobs:
   build-binary:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - name: build binary
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Build artifacts
         run: |
           docker build . -t builder
           docker run --rm -v ${PWD}:/project builder make -j$(nproc)
-      - uses: actions/upload-artifact@master
-        with:
-          name: binary
-          path: "*.rpx"
-  deploy-binary:
-    needs: build-binary
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Get environment variables
-        id: get_repository_name
-        run: |
-          echo REPOSITORY_NAME=$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}' | sed -e "s/:refs//") >> $GITHUB_ENV
-          echo DATETIME=$(echo $(date '+%Y%m%d-%H%M%S')) >> $GITHUB_ENV
-      - uses: actions/download-artifact@master
-        with:
-          name: savemii
-          path: wiiu/apps/SaveMiiModWUTPort
-      - name: zip artifact
-        run: zip -r ${{ env.REPOSITORY_NAME }}_${{ env.DATETIME }}.zip wiiu
       - name: Upload Aroma version
-            uses: actions/upload-artifact@v3
-            with:
-              name: savemii.wuhb
-              path: ./
-              if-no-files-found: warn
+        uses: actions/upload-artifact@v3
+        with:
+          name: savemii.wuhb
+          path: .
+          if-no-files-found: warn
+      - name: Upload HBL version
+        uses: actions/upload-artifact@v3
+        with:
+          name: savemii.rpx
+          path: .
+          if-no-files-found: warn
