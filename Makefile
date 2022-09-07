@@ -152,8 +152,17 @@ $(BUILD):
 #-------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).wuhb $(TARGET).rpx $(TARGET).elf
+	@rm -fr $(BUILD) $(TARGET).wuhb $(TARGET).rpx $(TARGET).elf SaveMiiModWUTPort *.zip
 
+#-------------------------------------------------------------------------------
+release: $(BUILD)
+	@mkdir -p SaveMiiModWUTPort
+	@cp savemii.rpx SaveMiiModWUTPort
+	@cp meta/hbl/icon.png SaveMiiModWUTPort
+	@cp meta/hbl/meta.xml SaveMiiModWUTPort
+	@zip -9 -r SaveMiiModWUTPort-HBL.zip SaveMiiModWUTPort
+	@zip -9 SaveMiiModWUTPort-Aroma.zip savemii.wuhb
+	@rm -rf SaveMiiModWUTPort
 #-------------------------------------------------------------------------------
 else
 .PHONY:	all
