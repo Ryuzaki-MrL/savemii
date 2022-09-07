@@ -6,6 +6,7 @@
 #include "savemng.h"
 #include "state.h"
 #include "string.hpp"
+#include <sndcore2/core.h>
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 4
@@ -410,6 +411,8 @@ static void unloadTitles(Title *titles, int count) {
 }
 
 int main() {
+    AXInit();
+    AXQuit();
     WHBProcInit();
     WHBLogFreetypeInit();
     WPADInit();
