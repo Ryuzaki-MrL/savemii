@@ -4,6 +4,7 @@
 #include "language.h"
 #include "log_freetype.h"
 #include "savemng.h"
+#include "state.h"
 #include "string.hpp"
 
 #define VERSION_MAJOR 1
@@ -415,6 +416,7 @@ int main() {
     KPADInit();
     WPADEnableURCC(1);
     loadWiiUTitles(0);
+    initState();
 
     int res = romfsInit();
     if (res) {
@@ -447,7 +449,7 @@ int main() {
 
     bool redraw = true;
     int entrycount = 0;
-    while (WHBProcIsRunning()) {
+    while (AppRunning()) {
         Title *titles = mode != 0 ? wiititles : wiiutitles;
         int count = mode != 0 ? titlesvwii : titleswiiu;
 
@@ -1051,9 +1053,9 @@ int main() {
     gettextCleanUp();
     romfsExit();
 
-    OSScreenShutdown();
     WHBLogFreetypeFree();
+    shutdownState();
     WHBProcShutdown();
-
+    ProcUIShutdown();
     return 0;
 }
