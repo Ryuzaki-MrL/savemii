@@ -14,7 +14,7 @@ TOPDIR ?= $(CURDIR)
 # APP_AUTHOR sets the author of the application
 #-------------------------------------------------------------------------------
 APP_NAME	    := SaveMii WUT Port
-APP_SHORTNAME	:= SaveMii
+APP_SHORTNAME	    := SaveMii
 APP_AUTHOR	    := DaThinkingChair
 
 include $(DEVKITPRO)/wut/share/wut_rules
@@ -36,9 +36,9 @@ SOURCES		:=	src
 DATA		:=	data
 INCLUDES	:=	include
 CONTENT		:=
-ICON		:=  meta/wuhb/icon.png
-TV_SPLASH	:=
-DRC_SPLASH	:=
+ICON		:=	meta/wuhb/icon.png
+TV_SPLASH	:=	meta/wuhb/tv-splash.png
+DRC_SPLASH	:=	meta/wuhb/drc-splash.png
 ROMFS 		:= 	languages
 
 #-------------------------------------------------------------------------------
