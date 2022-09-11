@@ -1,4 +1,4 @@
-#include "input.h"
+#include <input.h>
 
 VPADStatus vpad_status;
 VPADReadError vpad_error;

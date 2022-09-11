@@ -13,7 +13,7 @@
  *
  */
 
-#include "tga_reader.h"
+#include <tga_reader.h>
 
 static const TGA_ORDER _TGA_READER_ARGB = {16, 8, 0, 24};
 const TGA_ORDER *TGA_READER_ARGB = &_TGA_READER_ARGB;

@@ -1,11 +1,11 @@
-#include "main.h"
-#include "icon.h"
-#include "json.h"
-#include "language.h"
-#include "log_freetype.h"
-#include "savemng.h"
-#include "state.h"
-#include "string.hpp"
+#include <main.h>
+#include <icon.h>
+#include <json.h>
+#include <language.h>
+#include <log_freetype.h>
+#include <savemng.h>
+#include <state.h>
+#include <string.hpp>
 #include <sndcore2/core.h>
 
 #define VERSION_MAJOR 1

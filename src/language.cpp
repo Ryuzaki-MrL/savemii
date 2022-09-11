@@ -1,4 +1,4 @@
-#include "language.h"
+#include <language.h>
 
 Swkbd_LanguageType sysLang;
 

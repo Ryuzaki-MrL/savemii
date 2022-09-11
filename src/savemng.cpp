@@ -1,10 +1,10 @@
-#include "string.hpp"
+#include <string.hpp>
 #include <cstdio>
 #include <nn/act/client_cpp.h>
 
-#include "LockingQueue.h"
-#include "language.h"
-#include "savemng.h"
+#include <LockingQueue.h>
+#include <language.h>
+#include <savemng.h>
 #include <future>
 
 #define IO_MAX_FILE_BUFFER (1024 * 1024) // 1 MB

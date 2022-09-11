@@ -1,5 +1,5 @@
-#include "draw.h"
-#include "log_freetype.h"
+#include <draw.h>
+#include <log_freetype.h>
 
 uint8_t *scrBuffer;
 static size_t tvBufferSize = 0;
