@@ -1,12 +1,12 @@
-#include <main.h>
 #include <icon.h>
 #include <json.h>
 #include <language.h>
 #include <log_freetype.h>
+#include <main.h>
 #include <savemng.h>
+#include <sndcore2/core.h>
 #include <state.h>
 #include <string.hpp>
-#include <sndcore2/core.h>
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 4

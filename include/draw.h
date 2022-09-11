@@ -1,8 +1,8 @@
 #pragma once
 
-#include "tga_reader.h"
 #include <coreinit/screen.h>
 #include <ft2build.h>
+#include <tga_reader.h>
 #include FT_FREETYPE_H
 
 typedef union _RGBAColor {

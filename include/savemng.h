@@ -2,17 +2,17 @@
 
 #define __STDC_WANT_LIB_EXT2__ 1
 
-#include "draw.h"
-#include "input.h"
-#include "json.h"
-#include "log_freetype.h"
 #include <coreinit/filesystem.h>
 #include <coreinit/mcp.h>
 #include <coreinit/memdefaultheap.h>
 #include <coreinit/thread.h>
 #include <cstdio>
 #include <dirent.h>
+#include <draw.h>
 #include <fcntl.h>
+#include <input.h>
+#include <json.h>
+#include <log_freetype.h>
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
