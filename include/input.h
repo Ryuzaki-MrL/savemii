@@ -4,10 +4,6 @@
 #include <padscore/kpad.h>
 #include <vpad/input.h>
 
-extern VPADStatus vpad_status;
-extern VPADReadError vpad_error;
-extern KPADStatus kpad[4], kpad_status;
-
 typedef enum Button {
     PAD_BUTTON_A,
     PAD_BUTTON_B,
@@ -26,5 +22,13 @@ typedef enum ButtonState {
     RELEASE
 } ButtonState;
 
-void readInput() __attribute__((hot));
-bool getInput(ButtonState state, Button button) __attribute__((hot));
+class Input {
+public:
+    void read() __attribute__((hot));
+    bool get(ButtonState state, Button button) __attribute__((hot));
+
+private:
+    VPADStatus vpad_status;
+    VPADReadError vpad_error;
+    KPADStatus kpad[4], kpad_status;
+};

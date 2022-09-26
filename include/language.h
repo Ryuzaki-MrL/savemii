@@ -1,7 +1,7 @@
 #pragma once
 
-#include <wut_types.h>
 #include <romfs-wiiu.h>
+#include <wut_types.h>
 
 #include <coreinit/memdefaultheap.h>
 #include <coreinit/time.h>

@@ -452,6 +452,7 @@ int main() {
 
     bool redraw = true;
     int entrycount = 0;
+    Input input;
     while (AppRunning()) {
         Title *titles = mode != 0 ? wiititles : wiiutitles;
         int count = mode != 0 ? titlesvwii : titleswiiu;
@@ -721,12 +722,12 @@ int main() {
             redraw = false;
         }
 
-        readInput();
+        input.read();
 
-        if (getInput(TRIGGER, PAD_BUTTON_ANY))
+        if (input.get(TRIGGER, PAD_BUTTON_ANY))
             redraw = true;
 
-        if (getInput(TRIGGER, PAD_BUTTON_DOWN)) {
+        if (input.get(TRIGGER, PAD_BUTTON_DOWN)) {
             if (entrycount <= 14)
                 cursor = (cursor + 1) % entrycount;
             else if (cursor < 6)
@@ -735,7 +736,7 @@ int main() {
                 scroll++;
             else
                 cursor = scroll = 0;
-        } else if (getInput(TRIGGER, PAD_BUTTON_UP)) {
+        } else if (input.get(TRIGGER, PAD_BUTTON_UP)) {
             if (scroll > 0)
                 cursor -= (cursor > 6) ? 1 : 0 * (scroll--);
             else if (cursor > 0)
@@ -746,7 +747,7 @@ int main() {
                 cursor = entrycount - 1;
         }
 
-        if (getInput(TRIGGER, PAD_BUTTON_LEFT)) {
+        if (input.get(TRIGGER, PAD_BUTTON_LEFT)) {
             if (menu == 3) {
                 if (task == 5) {
                     switch (cursor) {
@@ -816,7 +817,7 @@ int main() {
                     }
                 }
             }
-        } else if (getInput(TRIGGER, PAD_BUTTON_RIGHT)) {
+        } else if (input.get(TRIGGER, PAD_BUTTON_RIGHT)) {
             if (menu == 3) {
                 if (task == 5) {
                     switch (cursor) {
@@ -888,7 +889,7 @@ int main() {
             }
         }
 
-        if (getInput(TRIGGER, PAD_BUTTON_R)) {
+        if (input.get(TRIGGER, PAD_BUTTON_R)) {
             if (menu == 1) {
                 tsort = (tsort + 1) % 4;
                 sortTitle(titles, titles + count, tsort, sorta);
@@ -896,7 +897,7 @@ int main() {
                 targ = (targ + 1) % count;
         }
 
-        if (getInput(TRIGGER, PAD_BUTTON_L)) {
+        if (input.get(TRIGGER, PAD_BUTTON_L)) {
             if ((menu == 1) && (tsort > 0)) {
                 sorta *= -1;
                 sortTitle(titles, titles + count, tsort, sorta);
@@ -907,7 +908,7 @@ int main() {
             }
         }
 
-        if (getInput(TRIGGER, PAD_BUTTON_A)) {
+        if (input.get(TRIGGER, PAD_BUTTON_A)) {
             clearBuffers();
             WHBLogFreetypeDraw();
             if (menu < 3) {
@@ -1040,7 +1041,7 @@ int main() {
                         break;
                 }
             }
-        } else if (getInput(TRIGGER, PAD_BUTTON_B) && menu > 0) {
+        } else if (input.get(TRIGGER, PAD_BUTTON_B) && menu > 0) {
             clearBuffers();
             WHBLogFreetypeDraw();
             menu--;

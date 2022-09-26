@@ -1,6 +1,6 @@
+#include <json.h>
 #include <nn/act/client_cpp.h>
 #include <string.hpp>
-#include <json.h>
 
 #include <LockingQueue.h>
 #include <future>
@@ -293,13 +293,14 @@ bool promptConfirm(Style st, std::string question) {
     int ret = 0;
     flipBuffers();
     WHBLogFreetypeDraw();
+    Input input;
     while (true) {
-        readInput();
-        if (getInput(TRIGGER, PAD_BUTTON_A)) {
+        input.read();
+        if (input.get(TRIGGER, PAD_BUTTON_A)) {
             ret = 1;
             break;
         }
-        if (getInput(TRIGGER, PAD_BUTTON_B)) {
+        if (input.get(TRIGGER, PAD_BUTTON_B)) {
             ret = 0;
             break;
         }
