@@ -1,6 +1,6 @@
-#include <cstdio>
 #include <nn/act/client_cpp.h>
 #include <string.hpp>
+#include <json.h>
 
 #include <LockingQueue.h>
 #include <future>
@@ -839,7 +839,9 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
     OSCalendarTime now;
     OSTicksToCalendarTime(OSGetTime(), &now);
     std::string date = stringFormat("%02d/%02d/%d %02d:%02d", now.tm_mday, now.tm_mon, now.tm_year, now.tm_hour, now.tm_min);
-    setSlotDate(title->highID, title->lowID, slot, date);
+    Date *dateObj = new Date(title->highID, title->lowID, slot);
+    dateObj->setSlotDate(date);
+    delete dateObj;
 }
 
 void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers, bool common) {

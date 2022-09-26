@@ -1,10 +1,21 @@
 #pragma once
 
-#include <cstdio>
 #include <jansson.h>
-#include <string>
+#include <string.hpp>
 
-#include <savemng.h>
-
-std::string getSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot);
-bool setSlotDate(uint32_t highID, uint32_t lowID, uint8_t slot, std::string date);
+class Date {
+    public:
+        Date(uint32_t high, uint32_t low, uint8_t s) {
+            highID = high;
+            lowID = low;
+            slot = s;
+            path = stringFormat("sd:/wiiu/backups/%08x%08x/%u/savemiiMeta.json", highID, lowID, slot);
+        }
+        std::string getSlotDate();
+        bool setSlotDate(std::string date);
+    private:
+        uint32_t highID;
+        uint32_t lowID;
+        uint8_t slot;
+        std::string path;
+};

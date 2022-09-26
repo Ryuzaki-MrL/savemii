@@ -11,7 +11,6 @@
 #include <draw.h>
 #include <fcntl.h>
 #include <input.h>
-#include <json.h>
 #include <log_freetype.h>
 #include <string>
 #include <sys/stat.h>

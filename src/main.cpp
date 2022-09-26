@@ -624,9 +624,12 @@ int main() {
                             }
                         }
                         if ((task == 0) || (task == 1))
-                            if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
+                            if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
+                                Date *dateObj = new Date(titles[targ].highID, titles[targ].lowID, slot);
                                 consolePrintPos(M_OFF, 15, gettext("Date: %s"),
-                                                getSlotDate(titles[targ].highID, titles[targ].lowID, slot).c_str());
+                                                dateObj->getSlotDate().c_str());
+                                delete dateObj;
+                            }
 
                         if (task == 5) {
                             entrycount++;
@@ -680,9 +683,12 @@ int main() {
                         entrycount = 1;
                         if (titles[targ].iconBuf != nullptr)
                             drawRGB5A3(650, 100, 1, titles[targ].iconBuf);
-                        if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
+                        if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
+                            Date *dateObj = new Date(titles[targ].highID, titles[targ].lowID, slot);
                             consolePrintPos(M_OFF, 15, gettext("Date: %s"),
-                                            getSlotDate(titles[targ].highID, titles[targ].lowID, slot).c_str());
+                                            dateObj->getSlotDate().c_str());
+                            delete dateObj;
+                        }
                     }
 
                     switch (task) {
