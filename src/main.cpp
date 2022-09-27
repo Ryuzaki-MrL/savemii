@@ -628,7 +628,7 @@ int main() {
                             if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
                                 Date *dateObj = new Date(titles[targ].highID, titles[targ].lowID, slot);
                                 consolePrintPos(M_OFF, 15, gettext("Date: %s"),
-                                                dateObj->getSlotDate().c_str());
+                                                dateObj->get().c_str());
                                 delete dateObj;
                             }
 
@@ -687,7 +687,7 @@ int main() {
                         if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
                             Date *dateObj = new Date(titles[targ].highID, titles[targ].lowID, slot);
                             consolePrintPos(M_OFF, 15, gettext("Date: %s"),
-                                            dateObj->getSlotDate().c_str());
+                                            dateObj->get().c_str());
                             delete dateObj;
                         }
                     }

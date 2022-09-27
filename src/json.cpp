@@ -2,7 +2,7 @@
 
 #define FS_ALIGN(x) ((x + 0x3F) & ~(0x3F))
 
-std::string Date::getSlotDate() {
+std::string Date::get() {
     if (checkEntry(path.c_str()) != 0) {
         FILE *f = nullptr;
         long len = 0;
@@ -40,7 +40,7 @@ std::string Date::getSlotDate() {
     return "";
 }
 
-bool Date::setSlotDate(std::string date) {
+bool Date::set(std::string date) {
     json_t *config = json_object();
     if (config == nullptr)
         return false;
