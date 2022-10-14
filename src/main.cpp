@@ -16,14 +16,18 @@
 static uint8_t slot = 0;
 static int8_t allusers = -1, allusers_d = -1, sdusers = -1;
 static bool common = true;
-static int menu = 0, mode = 0, task = 0, targ = 0, tsort = 1, sorta = 1;
+static Menu menu = mainMenu;
+static Mode mode;
+static Task task;
+static bool sortAscending = true;
+static int targ = 0, tsort = 1;
 static int cursor = 0, scroll = 0;
 static int cursorb = 0, cursort = 0, scrollb = 0;
-static int titleswiiu = 0, titlesvwii = 0;
+static int wiiuTitlesCount = 0, vWiiTitlesCount = 0;
 static std::array<const char *, 4> sortn;
 
 template<class It>
-static void sortTitle(It titles, It last, int tsort = 1, int sorta = 1) {
+static void sortTitle(It titles, It last, int tsort = 1, bool sortAscending = true) {
     switch (tsort) {
         case 0:
             std::ranges::sort(titles, last, std::ranges::less{}, &Title::listID);
@@ -32,7 +36,7 @@ static void sortTitle(It titles, It last, int tsort = 1, int sorta = 1) {
             const auto proj = [](const Title &title) {
                 return std::string_view(title.shortName);
             };
-            if (sorta == 1) {
+            if (sortAscending == true) {
                 std::ranges::sort(titles, last, std::ranges::less{}, proj);
             } else {
                 std::ranges::sort(titles, last, std::ranges::greater{}, proj);
@@ -40,7 +44,7 @@ static void sortTitle(It titles, It last, int tsort = 1, int sorta = 1) {
             break;
         }
         case 2:
-            if (sorta == 1) {
+            if (sortAscending == true) {
                 std::ranges::sort(titles, last, std::ranges::less{}, &Title::isTitleOnUSB);
             } else {
                 std::ranges::sort(titles, last, std::ranges::greater{}, &Title::isTitleOnUSB);
@@ -51,7 +55,7 @@ static void sortTitle(It titles, It last, int tsort = 1, int sorta = 1) {
                 return std::make_tuple(title.isTitleOnUSB,
                                        std::string_view(title.shortName));
             };
-            if (sorta == 1) {
+            if (sortAscending == true) {
                 std::ranges::sort(titles, last, std::ranges::less{}, proj);
             } else {
                 std::ranges::sort(titles, last, std::ranges::greater{}, proj);
@@ -70,8 +74,7 @@ static void disclaimer() {
 static Title *loadWiiUTitles(int run) {
     static char *tList;
     static uint32_t receivedCount;
-    const std::array<const char *, 2> highIDs = {"00050000", "00050002"};
-    const std::array<const uint32_t, 2> highIDsNumeric = {0x00050000, 0x00050002};
+    const std::array<const uint32_t, 2> highIDs = {0x00050000, 0x00050002};
     // Source: haxchi installer
     if (run == 0) {
         int mcp_handle = MCP_Open();
@@ -111,7 +114,7 @@ static Title *loadWiiUTitles(int run) {
     int tNoSave = usable;
     for (int i = 0; i <= 1; i++) {
         for (uint8_t a = 0; a < 2; a++) {
-            std::string path = stringFormat("%s/usr/save/%s", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a]);
+            std::string path = stringFormat("%s/usr/save/%08x", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a]);
             DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
                 struct dirent *data;
@@ -119,9 +122,9 @@ static Title *loadWiiUTitles(int run) {
                     if (data->d_name[0] == '.')
                         continue;
 
-                    path = stringFormat("%s/usr/save/%s/%s/user", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a], data->d_name);
+                    path = stringFormat("%s/usr/save/%08x/%s/user", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a], data->d_name);
                     if (checkEntry(path.c_str()) == 2) {
-                        path = stringFormat("%s/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a],
+                        path = stringFormat("%s/usr/save/%08x/%s/meta/meta.xml", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a],
                                             data->d_name);
                         if (checkEntry(path.c_str()) == 1) {
                             for (int i = 0; i < usable; i++) {
@@ -150,7 +153,7 @@ static Title *loadWiiUTitles(int run) {
 
     for (uint8_t a = 0; a < 2; a++) {
         for (int i = 0; i <= 1; i++) {
-            std::string path = stringFormat("%s/usr/save/%s", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a]);
+            std::string path = stringFormat("%s/usr/save/%08x", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a]);
             DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
                 struct dirent *data;
@@ -158,10 +161,10 @@ static Title *loadWiiUTitles(int run) {
                     if (data->d_name[0] == '.')
                         continue;
 
-                    path = stringFormat("%s/usr/save/%s/%s/meta/meta.xml", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a],
+                    path = stringFormat("%s/usr/save/%08x/%s/meta/meta.xml", (i == 0) ? "/vol/storage_usb01" : "/vol/storage_mlc01", highIDs[a],
                                         data->d_name);
                     if (checkEntry(path.c_str()) == 1) {
-                        saves[pos].highID = highIDsNumeric[a];
+                        saves[pos].highID = highIDs[a];
                         saves[pos].lowID = strtoul(data->d_name, nullptr, 16);
                         saves[pos].dev = i;
                         saves[pos].found = false;
@@ -196,55 +199,55 @@ static Title *loadWiiUTitles(int run) {
 
         const std::string path = stringFormat("%s/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? "/vol/storage_usb01" : "/vol/storage_mlc01",
                                               saves[i].found ? "title" : "save", highID, lowID);
-        titles[titleswiiu].saveInit = !saves[i].found;
+        titles[wiiuTitlesCount].saveInit = !saves[i].found;
 
         char *xmlBuf = nullptr;
         if (loadFile(path.c_str(), (uint8_t **) &xmlBuf) > 0) {
             char *cptr = strchr(strstr(xmlBuf, "product_code"), '>') + 7;
-            memset(titles[titleswiiu].productCode, 0, sizeof(titles[titleswiiu].productCode));
-            strlcpy(titles[titleswiiu].productCode, cptr, strcspn(cptr, "<") + 1);
+            memset(titles[wiiuTitlesCount].productCode, 0, sizeof(titles[wiiuTitlesCount].productCode));
+            strlcpy(titles[wiiuTitlesCount].productCode, cptr, strcspn(cptr, "<") + 1);
 
             cptr = strchr(strstr(xmlBuf, "shortname_en"), '>') + 1;
-            memset(titles[titleswiiu].shortName, 0, sizeof(titles[titleswiiu].shortName));
+            memset(titles[wiiuTitlesCount].shortName, 0, sizeof(titles[wiiuTitlesCount].shortName));
             if (strcspn(cptr, "<") == 0)
                 cptr = strchr(strstr(xmlBuf, "shortname_ja"), '>') + 1;
 
             decodeXMLEscapeLine(std::string(cptr));
-            strlcpy(titles[titleswiiu].shortName, decodeXMLEscapeLine(std::string(cptr)).c_str(), strcspn(decodeXMLEscapeLine(std::string(cptr)).c_str(), "<") + 1);
+            strlcpy(titles[wiiuTitlesCount].shortName, decodeXMLEscapeLine(std::string(cptr)).c_str(), strcspn(decodeXMLEscapeLine(std::string(cptr)).c_str(), "<") + 1);
 
             cptr = strchr(strstr(xmlBuf, "longname_en"), '>') + 1;
             memset(titles[i].longName, 0, sizeof(titles[i].longName));
             if (strcspn(cptr, "<") == 0)
                 cptr = strchr(strstr(xmlBuf, "longname_ja"), '>') + 1;
 
-            strlcpy(titles[titleswiiu].longName, decodeXMLEscapeLine(std::string(cptr)).c_str(), strcspn(decodeXMLEscapeLine(std::string(cptr)).c_str(), "<") + 1);
+            strlcpy(titles[wiiuTitlesCount].longName, decodeXMLEscapeLine(std::string(cptr)).c_str(), strcspn(decodeXMLEscapeLine(std::string(cptr)).c_str(), "<") + 1);
 
             free(xmlBuf);
         }
 
-        titles[titleswiiu].isTitleDupe = false;
-        for (int i = 0; i < titleswiiu; i++) {
+        titles[wiiuTitlesCount].isTitleDupe = false;
+        for (int i = 0; i < wiiuTitlesCount; i++) {
             if ((titles[i].highID == highID) && (titles[i].lowID == lowID)) {
-                titles[titleswiiu].isTitleDupe = true;
-                titles[titleswiiu].dupeID = i;
+                titles[wiiuTitlesCount].isTitleDupe = true;
+                titles[wiiuTitlesCount].dupeID = i;
                 titles[i].isTitleDupe = true;
-                titles[i].dupeID = titleswiiu;
+                titles[i].dupeID = wiiuTitlesCount;
             }
         }
 
-        titles[titleswiiu].highID = highID;
-        titles[titleswiiu].lowID = lowID;
-        titles[titleswiiu].isTitleOnUSB = isTitleOnUSB;
-        titles[titleswiiu].listID = titleswiiu;
-        if (loadTitleIcon(&titles[titleswiiu]) < 0)
-            titles[titleswiiu].iconBuf = nullptr;
+        titles[wiiuTitlesCount].highID = highID;
+        titles[wiiuTitlesCount].lowID = lowID;
+        titles[wiiuTitlesCount].isTitleOnUSB = isTitleOnUSB;
+        titles[wiiuTitlesCount].listID = wiiuTitlesCount;
+        if (loadTitleIcon(&titles[wiiuTitlesCount]) < 0)
+            titles[wiiuTitlesCount].iconBuf = nullptr;
 
-        titleswiiu++;
+        wiiuTitlesCount++;
 
         clearBuffersEx();
         disclaimer();
         drawTGA(298, 144, 1, icon_tga);
-        consolePrintPosAligned(10, 0, 1, gettext("Loaded %i Wii U titles."), titleswiiu);
+        consolePrintPosAligned(10, 0, 1, gettext("Loaded %i Wii U titles."), wiiuTitlesCount);
         flipBuffers();
         WHBLogFreetypeDraw();
     }
@@ -286,15 +289,15 @@ static Title *loadWiiTitles() {
                     continue;
                 }
 
-                titlesvwii++;
+                vWiiTitlesCount++;
             }
             closedir(dir);
         }
     }
-    if (titlesvwii == 0)
+    if (vWiiTitlesCount == 0)
         return nullptr;
 
-    auto *titles = (Title *) malloc(titlesvwii * sizeof(Title));
+    auto *titles = (Title *) malloc(vWiiTitlesCount * sizeof(Title));
     if (titles == nullptr) {
         promptError(gettext("Out of memory."));
         return nullptr;
@@ -390,7 +393,7 @@ static Title *loadWiiTitles() {
                 clearBuffersEx();
                 disclaimer();
                 drawTGA(298, 144, 1, icon_tga);
-                consolePrintPosAligned(10, 0, 1, gettext("Loaded %i Wii U titles."), titleswiiu);
+                consolePrintPosAligned(10, 0, 1, gettext("Loaded %i Wii U titles."), wiiuTitlesCount);
                 consolePrintPosAligned(11, 0, 1, gettext("Loaded %i Wii titles."), i);
                 flipBuffers();
                 WHBLogFreetypeDraw();
@@ -447,15 +450,15 @@ int main() {
     int *versionList = (int *) malloc(0x100 * sizeof(int));
     getAccountsWiiU();
 
-    sortTitle(wiiutitles, wiiutitles + titleswiiu, tsort, sorta);
-    sortTitle(wiititles, wiititles + titlesvwii, tsort, sorta);
+    sortTitle(wiiutitles, wiiutitles + wiiuTitlesCount, tsort, sortAscending);
+    sortTitle(wiititles, wiititles + vWiiTitlesCount, tsort, sortAscending);
 
     bool redraw = true;
     int entrycount = 0;
     Input input;
     while (AppRunning()) {
-        Title *titles = mode != 0 ? wiititles : wiiutitles;
-        int count = mode != 0 ? titlesvwii : titleswiiu;
+        Title *titles = mode != WiiU ? wiititles : wiiutitles;
+        int count = mode != WiiU ? vWiiTitlesCount : wiiuTitlesCount;
 
         if (redraw) {
             OSScreenClearBufferEx(SCREEN_DRC, 0x00006F00);
@@ -465,30 +468,30 @@ int main() {
             consolePrintPos(0, 1, "----------------------------------------------------------------------------");
 
             switch (menu) {
-                case 0: { // Main Menu
+                case mainMenu: {
                     entrycount = 3;
-                    consolePrintPos(M_OFF, 2, gettext("   Wii U Save Management (%u Title%s)"), titleswiiu,
-                                    (titleswiiu > 1) ? "s" : "");
-                    consolePrintPos(M_OFF, 3, gettext("   vWii Save Management (%u Title%s)"), titlesvwii,
-                                    (titlesvwii > 1) ? "s" : "");
+                    consolePrintPos(M_OFF, 2, gettext("   Wii U Save Management (%u Title%s)"), wiiuTitlesCount,
+                                    (wiiuTitlesCount > 1) ? "s" : "");
+                    consolePrintPos(M_OFF, 3, gettext("   vWii Save Management (%u Title%s)"), vWiiTitlesCount,
+                                    (vWiiTitlesCount > 1) ? "s" : "");
                     consolePrintPos(M_OFF, 4, gettext("   Batch Backup"));
                     consolePrintPos(M_OFF, 2 + cursor, "\u2192");
                     consolePrintPosAligned(17, 4, 2, gettext("\ue000: Select Mode"));
                 } break;
-                case 1: { // Select Title
-                    if (mode == 2) {
+                case selectTitle: {
+                    if (mode == batchBackup) {
                         entrycount = 3;
-                        consolePrintPos(M_OFF, 2, gettext("   Backup All (%u Title%s)"), titleswiiu + titlesvwii,
-                                        ((titleswiiu + titlesvwii) > 1) ? "s" : "");
-                        consolePrintPos(M_OFF, 3, gettext("   Backup Wii U (%u Title%s)"), titleswiiu,
-                                        (titleswiiu > 1) ? "s" : "");
-                        consolePrintPos(M_OFF, 4, gettext("   Backup vWii (%u Title%s)"), titlesvwii,
-                                        (titlesvwii > 1) ? "s" : "");
+                        consolePrintPos(M_OFF, 2, gettext("   Backup All (%u Title%s)"), wiiuTitlesCount + vWiiTitlesCount,
+                                        ((wiiuTitlesCount + vWiiTitlesCount) > 1) ? "s" : "");
+                        consolePrintPos(M_OFF, 3, gettext("   Backup Wii U (%u Title%s)"), wiiuTitlesCount,
+                                        (wiiuTitlesCount > 1) ? "s" : "");
+                        consolePrintPos(M_OFF, 4, gettext("   Backup vWii (%u Title%s)"), vWiiTitlesCount,
+                                        (vWiiTitlesCount > 1) ? "s" : "");
                         consolePrintPos(M_OFF, 2 + cursor, "\u2192");
                         consolePrintPosAligned(17, 4, 2, gettext("\ue000: Backup  \ue001: Back"));
                     } else {
                         consolePrintPos(39, 0, gettext("%s Sort: %s \ue084"),
-                                        (tsort > 0) ? ((sorta == 1) ? "\ue083 \u2193" : "\ue083 \u2191") : "", sortn[tsort]);
+                                        (tsort > 0) ? ((sortAscending == true) ? "\ue083 \u2193" : "\ue083 \u2191") : "", sortn[tsort]);
                         entrycount = count;
                         for (int i = 0; i < 14; i++) {
                             if (i + scroll < 0 || i + scroll >= count)
@@ -500,40 +503,40 @@ int main() {
                                 ttfFontColor32(0xFF0000FF);
                             if (strlen(titles[i + scroll].shortName) != 0u)
                                 consolePrintPos(M_OFF, i + 2, "   %s %s%s%s", titles[i + scroll].shortName,
-                                                titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == 0) ? "(NAND)" : ""),
+                                                titles[i + scroll].isTitleOnUSB ? "(USB)" : ((mode == WiiU) ? "(NAND)" : ""),
                                                 titles[i + scroll].isTitleDupe ? " [D]" : "",
                                                 titles[i + scroll].saveInit ? "" : gettext(" [Not Init]"));
                             else
                                 consolePrintPos(M_OFF, i + 2, "   %08lx%08lx", titles[i + scroll].highID,
                                                 titles[i + scroll].lowID);
                             ttfFontColor32(0xFFFFFFFF);
-                            if (mode == 0) {
+                            if (mode == WiiU) {
                                 if (titles[i + scroll].iconBuf != nullptr) {
                                     drawTGA((M_OFF + 4) * 12 - 2, (i + 3) * 24, 0.18, titles[i + scroll].iconBuf);
                                 }
-                            } else if (mode == 1) {
+                            } else if (mode == vWii) {
                                 if (titles[i + scroll].iconBuf != nullptr) {
                                     drawRGB5A3((M_OFF + 2) * 12 - 2, (i + 3) * 24 + 3, 0.25,
                                                titles[i + scroll].iconBuf);
                                 }
                             }
                         }
-                        if (mode == 0)
+                        if (mode == WiiU)
                             consolePrintPos(-1, 2 + cursor, "\u2192");
-                        else if (mode == 1)
+                        else if (mode == vWii)
                             consolePrintPos(-3, 2 + cursor, "\u2192");
                         consolePrintPosAligned(17, 4, 2, gettext("\ue000: Select Game  \ue001: Back"));
                     }
                 } break;
-                case 2: { // Select Task
-                    entrycount = 3 + 2 * static_cast<int>(mode == 0) + 1 * static_cast<int>((mode == 0) && (titles[targ].isTitleDupe));
+                case selectTask: {
+                    entrycount = 3 + 2 * static_cast<int>(mode == WiiU) + 1 * static_cast<int>((mode == WiiU) && (titles[targ].isTitleDupe));
                     consolePrintPos(M_OFF, 2, "   [%08X-%08X] [%s]", titles[targ].highID, titles[targ].lowID,
                                     titles[targ].productCode);
                     consolePrintPos(M_OFF, 3, "   %s", titles[targ].shortName);
                     consolePrintPos(M_OFF, 5, gettext("   Backup savedata"));
                     consolePrintPos(M_OFF, 6, gettext("   Restore savedata"));
                     consolePrintPos(M_OFF, 7, gettext("   Wipe savedata"));
-                    if (mode == 0) {
+                    if (mode == WiiU) {
                         consolePrintPos(M_OFF, 8, gettext("   Import from loadiine"));
                         consolePrintPos(M_OFF, 9, gettext("   Export to loadiine"));
                         if (titles[targ].isTitleDupe)
@@ -541,25 +544,25 @@ int main() {
                                             titles[targ].isTitleOnUSB ? "NAND" : "USB");
                         if (titles[targ].iconBuf != nullptr)
                             drawTGA(660, 80, 1, titles[targ].iconBuf);
-                    } else if (mode == 1)
+                    } else if (mode == vWii)
                         if (titles[targ].iconBuf != nullptr)
                             drawRGB5A3(645, 80, 1, titles[targ].iconBuf);
                     consolePrintPos(M_OFF, 2 + 3 + cursor, "\u2192");
                     consolePrintPosAligned(17, 4, 2, gettext("\ue000: Select Task  \ue001: Back"));
                 } break;
-                case 3: { // Select Options
+                case selectOptions: {
                     entrycount = 3;
                     consolePrintPos(M_OFF, 2, "[%08X-%08X] %s", titles[targ].highID, titles[targ].lowID,
                                     titles[targ].shortName);
 
-                    if (task == 5) {
+                    if (task == copytoOtherDevice) {
                         consolePrintPos(M_OFF, 4, gettext("Destination:"));
                         consolePrintPos(M_OFF, 5, "    (%s)", titles[targ].isTitleOnUSB ? "NAND" : "USB");
                     } else if (task > 2) {
                         entrycount = 2;
                         consolePrintPos(M_OFF, 4, gettext("Select %s:"), gettext("version"));
                         consolePrintPos(M_OFF, 5, "   < v%u >", versionList != nullptr ? versionList[slot] : 0);
-                    } else if (task == 2) {
+                    } else if (task == wipe) {
                         consolePrintPos(M_OFF, 4, gettext("Delete from:"));
                         consolePrintPos(M_OFF, 5, "    (%s)", titles[targ].isTitleOnUSB ? "USB" : "NAND");
                     } else {
@@ -575,8 +578,8 @@ int main() {
                                                                                                        : gettext("Used"));
                     }
 
-                    if (mode == 0) {
-                        if (task == 1) {
+                    if (mode == WiiU) {
+                        if (task == restore) {
                             if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
                                 entrycount++;
                                 consolePrintPos(M_OFF, 7, gettext("Select SD user to copy from:"));
@@ -591,7 +594,7 @@ int main() {
                             }
                         }
 
-                        if (task == 2) {
+                        if (task == wipe) {
                             consolePrintPos(M_OFF, 7, gettext("Select Wii U user to delete from:"));
                             if (allusers == -1)
                                 consolePrintPos(M_OFF, 8, "   < %s >", gettext("all users"));
@@ -604,27 +607,27 @@ int main() {
                                                         : gettext("Empty"));
                         }
 
-                        if ((task == 0) || (task == 1) || (task == 5)) {
-                            if ((task == 1) && isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
+                        if ((task == backup) || (task == restore) || (task == copytoOtherDevice)) {
+                            if ((task == restore) && isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot))
                                 entrycount--;
                             else {
-                                consolePrintPos(M_OFF, (task == 1) ? 10 : 7, gettext("Select Wii U user%s:"),
-                                                (task == 5) ? gettext(" to copy from") : ((task == 1) ? gettext(" to copy to") : ""));
+                                consolePrintPos(M_OFF, (task == restore) ? 10 : 7, gettext("Select Wii U user%s:"),
+                                                (task == copytoOtherDevice) ? gettext(" to copy from") : ((task == restore) ? gettext(" to copy to") : ""));
                                 if (allusers == -1)
-                                    consolePrintPos(M_OFF, (task == 1) ? 11 : 8, "   < %s >", gettext("all users"));
+                                    consolePrintPos(M_OFF, (task == restore) ? 11 : 8, "   < %s >", gettext("all users"));
                                 else
-                                    consolePrintPos(M_OFF, (task == 1) ? 11 : 8, "   < %s (%s) > (%s)",
+                                    consolePrintPos(M_OFF, (task == restore) ? 11 : 8, "   < %s (%s) > (%s)",
                                                     wiiuacc[allusers].miiName, wiiuacc[allusers].persistentID,
                                                     hasAccountSave(&titles[targ],
-                                                                   (!((task == 0) || (task == 1) || (task == 5))),
-                                                                   (!((task < 3) || (task == 5))),
+                                                                   (!((task == backup) || (task == restore) || (task == copytoOtherDevice))),
+                                                                   (!((task < 3) || (task == copytoOtherDevice))),
                                                                    wiiuacc[allusers].pID, slot,
                                                                    versionList != nullptr ? versionList[slot] : 0)
                                                             ? gettext("Has Save")
                                                             : gettext("Empty"));
                             }
                         }
-                        if ((task == 0) || (task == 1))
+                        if ((task == backup) || (task == restore))
                             if (!isSlotEmpty(titles[targ].highID, titles[targ].lowID, slot)) {
                                 Date *dateObj = new Date(titles[targ].highID, titles[targ].lowID, slot);
                                 consolePrintPos(M_OFF, 15, gettext("Date: %s"),
@@ -632,9 +635,9 @@ int main() {
                                 delete dateObj;
                             }
 
-                        if (task == 5) {
+                        if (task == copytoOtherDevice) {
                             entrycount++;
-                            consolePrintPos(M_OFF, 10, gettext("Select Wii U user%s:"), (task == 5) ? gettext(" to copy to") : "");
+                            consolePrintPos(M_OFF, 10, gettext("Select Wii U user%s:"), (task == copytoOtherDevice) ? gettext(" to copy to") : "");
                             if (allusers_d == -1)
                                 consolePrintPos(M_OFF, 11, "   < %s >", gettext("all users"));
                             else
@@ -646,19 +649,19 @@ int main() {
                                                         : gettext("Empty"));
                         }
 
-                        if ((task != 3) && (task != 4)) {
+                        if ((task != importLoadiine) && (task != exportLoadiine)) {
                             if (allusers > -1) {
                                 if (hasCommonSave(&titles[targ],
-                                                  (!((task == 0) || (task == 2) || (task == 5))),
-                                                  (!((task < 3) || (task == 5))), slot,
+                                                  (!((task == backup) || (task == wipe) || (task == copytoOtherDevice))),
+                                                  (!((task < 3) || (task == copytoOtherDevice))), slot,
                                                   versionList != nullptr ? versionList[slot] : 0)) {
-                                    consolePrintPos(M_OFF, (task == 1) || (task == 5) ? 13 : 10,
+                                    consolePrintPos(M_OFF, (task == restore) || (task == copytoOtherDevice) ? 13 : 10,
                                                     gettext("Include 'common' save?"));
-                                    consolePrintPos(M_OFF, (task == 1) || (task == 5) ? 14 : 11, "   < %s >",
+                                    consolePrintPos(M_OFF, (task == restore) || (task == copytoOtherDevice) ? 14 : 11, "   < %s >",
                                                     common ? gettext("yes") : gettext("no "));
                                 } else {
                                     common = false;
-                                    consolePrintPos(M_OFF, (task == 1) || (task == 5) ? 13 : 10,
+                                    consolePrintPos(M_OFF, (task == restore) || (task == copytoOtherDevice) ? 13 : 10,
                                                     gettext("No 'common' save found."));
                                     entrycount--;
                                 }
@@ -680,7 +683,7 @@ int main() {
                         consolePrintPos(M_OFF, 5 + cursor * 3, "\u2192");
                         if (titles[targ].iconBuf != nullptr)
                             drawTGA(660, 100, 1, titles[targ].iconBuf);
-                    } else if (mode == 1) {
+                    } else if (mode == vWii) {
                         entrycount = 1;
                         if (titles[targ].iconBuf != nullptr)
                             drawRGB5A3(650, 100, 1, titles[targ].iconBuf);
@@ -693,22 +696,22 @@ int main() {
                     }
 
                     switch (task) {
-                        case 0:
+                        case backup:
                             consolePrintPosAligned(17, 4, 2, gettext("\ue000: Backup  \ue001: Back"));
                             break;
-                        case 1:
+                        case restore:
                             consolePrintPosAligned(17, 4, 2, gettext("\ue000: Restore  \ue001: Back"));
                             break;
-                        case 2:
+                        case wipe:
                             consolePrintPosAligned(17, 4, 2, gettext("\ue000: Wipe  \ue001: Back"));
                             break;
-                        case 3:
+                        case importLoadiine:
                             consolePrintPosAligned(17, 4, 2, gettext("\ue000: Import  \ue001: Back"));
                             break;
-                        case 4:
+                        case exportLoadiine:
                             consolePrintPosAligned(17, 4, 2, gettext("\ue000: Export  \ue001: Back"));
                             break;
-                        case 5:
+                        case copytoOtherDevice:
                             consolePrintPosAligned(17, 4, 2, gettext("\ue000: Copy  \ue001: Back"));
                             break;
                     }
@@ -748,8 +751,8 @@ int main() {
         }
 
         if (input.get(TRIGGER, PAD_BUTTON_LEFT)) {
-            if (menu == 3) {
-                if (task == 5) {
+            if (menu == selectOptions) {
+                if (task == copytoOtherDevice) {
                     switch (cursor) {
                         case 0:
                             break;
@@ -765,7 +768,7 @@ int main() {
                             common ^= 1;
                             break;
                     }
-                } else if (task == 1) {
+                } else if (task == restore) {
                     switch (cursor) {
                         case 0:
                             slot--;
@@ -783,7 +786,7 @@ int main() {
                             common ^= 1;
                             break;
                     }
-                } else if (task == 2) {
+                } else if (task == wipe) {
                     switch (cursor) {
                         case 0:
                             break;
@@ -794,7 +797,7 @@ int main() {
                             common ^= 1;
                             break;
                     }
-                } else if ((task == 3) || (task == 4)) {
+                } else if ((task == importLoadiine) || (task == exportLoadiine)) {
                     switch (cursor) {
                         case 0:
                             slot--;
@@ -818,8 +821,8 @@ int main() {
                 }
             }
         } else if (input.get(TRIGGER, PAD_BUTTON_RIGHT)) {
-            if (menu == 3) {
-                if (task == 5) {
+            if (menu == selectOptions) {
+                if (task == copytoOtherDevice) {
                     switch (cursor) {
                         case 0:
                             break;
@@ -835,7 +838,7 @@ int main() {
                             common ^= 1;
                             break;
                     }
-                } else if (task == 1) {
+                } else if (task == restore) {
                     switch (cursor) {
                         case 0:
                             slot++;
@@ -853,7 +856,7 @@ int main() {
                             common ^= 1;
                             break;
                     }
-                } else if (task == 2) {
+                } else if (task == wipe) {
                     switch (cursor) {
                         case 0:
                             break;
@@ -864,7 +867,7 @@ int main() {
                             common ^= 1;
                             break;
                     }
-                } else if ((task == 3) || (task == 4)) {
+                } else if ((task == importLoadiine) || (task == exportLoadiine)) {
                     switch (cursor) {
                         case 0:
                             slot++;
@@ -890,18 +893,18 @@ int main() {
         }
 
         if (input.get(TRIGGER, PAD_BUTTON_R)) {
-            if (menu == 1) {
+            if (menu == selectTitle) {
                 tsort = (tsort + 1) % 4;
-                sortTitle(titles, titles + count, tsort, sorta);
-            } else if (menu == 2)
+                sortTitle(titles, titles + count, tsort, sortAscending);
+            } else if (menu == selectTask)
                 targ = (targ + 1) % count;
         }
 
         if (input.get(TRIGGER, PAD_BUTTON_L)) {
-            if ((menu == 1) && (tsort > 0)) {
-                sorta *= -1;
-                sortTitle(titles, titles + count, tsort, sorta);
-            } else if (menu == 2) {
+            if ((menu == selectTitle) && (tsort > 0)) {
+                sortAscending = !sortAscending;
+                sortTitle(titles, titles + count, tsort, sortAscending);
+            } else if (menu == selectTask) {
                 targ--;
                 if (targ < 0)
                     targ = count - 1;
@@ -912,42 +915,42 @@ int main() {
             clearBuffers();
             WHBLogFreetypeDraw();
             if (menu < 3) {
-                if (menu == 0) {
-                    mode = cursor;
-                    if (mode == 0 && ((wiiutitles == nullptr) || (titleswiiu == 0))) {
+                if (menu == mainMenu) {
+                    mode = (Mode) cursor;
+                    if (mode == WiiU && ((wiiutitles == nullptr) || (wiiuTitlesCount == 0))) {
                         promptError(gettext("No Wii U titles found."));
                         continue;
                     }
-                    if (mode == 1 && ((wiititles == nullptr) || (titlesvwii == 0))) {
+                    if (mode == vWii && ((wiititles == nullptr) || (vWiiTitlesCount == 0))) {
                         promptError(gettext("No vWii saves found."));
                         continue;
                     }
                 }
 
-                if (menu == 1) {
+                if (menu == selectTitle) {
                     targ = cursor + scroll;
                     cursorb = cursor;
                     scrollb = scroll;
-                    if (mode == 2) {
+                    if (mode == batchBackup) {
                         OSCalendarTime dateTime;
                         switch (cursor) {
                             case 0:
                                 dateTime.tm_year = 0;
-                                backupAllSave(wiiutitles, titleswiiu, &dateTime);
-                                backupAllSave(wiititles, titlesvwii, &dateTime);
+                                backupAllSave(wiiutitles, wiiuTitlesCount, &dateTime);
+                                backupAllSave(wiititles, vWiiTitlesCount, &dateTime);
                                 break;
                             case 1:
-                                backupAllSave(wiiutitles, titleswiiu, nullptr);
+                                backupAllSave(wiiutitles, wiiuTitlesCount, nullptr);
                                 break;
                             case 2:
-                                backupAllSave(wiititles, titlesvwii, nullptr);
+                                backupAllSave(wiititles, vWiiTitlesCount, nullptr);
                                 break;
                         }
                         continue;
                     }
                     if (titles[targ].highID == 0 || titles[targ].lowID == 0)
                         continue;
-                    if ((mode == 0) && (strcmp(titles[targ].shortName, "DONT TOUCH ME") == 0)) {
+                    if ((mode == WiiU) && (strcmp(titles[targ].shortName, "DONT TOUCH ME") == 0)) {
                         if (!promptConfirm(ST_ERROR, gettext("CBHC save. Could be dangerous to modify. Continue?")) ||
                             !promptConfirm(ST_WARNING, gettext("Are you REALLY sure?"))) {
                             continue;
@@ -956,10 +959,10 @@ int main() {
                     std::string path = stringFormat("%s/usr/title/000%x/%x/code/fw.img",
                                                     (titles[targ].isTitleOnUSB) ? "/vol/storage_usb01" : "/vol/storage_mlc01", titles[targ].highID,
                                                     titles[targ].lowID);
-                    if ((mode == 0) && (checkEntry(path.c_str()) != 0))
+                    if ((mode == WiiU) && (checkEntry(path.c_str()) != 0))
                         if (!promptConfirm(ST_ERROR, gettext("vWii saves are in the vWii section. Continue?")))
                             continue;
-                    if ((mode == 0) && (!titles[targ].saveInit)) {
+                    if ((mode == WiiU) && (!titles[targ].saveInit)) {
                         if (!promptConfirm(ST_WARNING, gettext("Recommended to run Game at least one time. Continue?")) ||
                             !promptConfirm(ST_WARNING, gettext("Are you REALLY sure?"))) {
                             continue;
@@ -967,41 +970,41 @@ int main() {
                     }
                 }
 
-                if (menu == 2) {
-                    task = cursor;
+                if (menu == selectTask) {
+                    task = (Task) cursor;
                     cursort = cursor;
 
-                    if (task == 0) {
+                    if (task == backup) {
                         if (!titles[targ].saveInit) {
                             promptError(gettext("No save to Backup."));
                             continue;
                         }
                     }
 
-                    if (task == 1) {
+                    if (task == restore) {
                         getAccountsSD(&titles[targ], slot);
                         allusers = ((sdusers == -1) ? -1 : allusers);
                         sdusers = ((allusers == -1) ? -1 : sdusers);
                     }
 
-                    if (task == 2) {
+                    if (task == wipe) {
                         if (!titles[targ].saveInit) {
                             promptError(gettext("No save to Wipe."));
                             continue;
                         }
                     }
 
-                    if ((task == 3) || (task == 4)) {
+                    if ((task == importLoadiine) || (task == exportLoadiine)) {
                         char gamePath[PATH_SIZE];
                         memset(versionList, 0, 0x100 * sizeof(int));
                         if (getLoadiineGameSaveDir(gamePath, titles[targ].productCode, titles[targ].longName, titles[targ].highID, titles[targ].lowID) != 0)
                             continue;
                         getLoadiineSaveVersionList(versionList, gamePath);
-                        if (task == 3) {
+                        if (task == importLoadiine) {
                             importFromLoadiine(&titles[targ], common, versionList != nullptr ? versionList[slot] : 0);
                             continue;
                         }
-                        if (task == 4) {
+                        if (task == exportLoadiine) {
                             if (!titles[targ].saveInit) {
                                 promptError(gettext("No save to Export."));
                                 continue;
@@ -1011,7 +1014,7 @@ int main() {
                         }
                     }
 
-                    if (task == 5) {
+                    if (task == copytoOtherDevice) {
                         if (!titles[targ].saveInit) {
                             promptError(gettext("No save to Copy."));
                             continue;
@@ -1022,16 +1025,16 @@ int main() {
                 cursor = scroll = 0;
             } else {
                 switch (task) {
-                    case 0:
+                    case backup:
                         backupSavedata(&titles[targ], slot, allusers, common);
                         break;
-                    case 1:
+                    case restore:
                         restoreSavedata(&titles[targ], slot, sdusers, allusers, common);
                         break;
-                    case 2:
+                    case wipe:
                         wipeSavedata(&titles[targ], allusers, common);
                         break;
-                    case 5:
+                    case copytoOtherDevice:
                         for (int i = 0; i < count; i++) {
                             if (titles[i].listID == titles[targ].dupeID) {
                                 copySavedata(&titles[targ], &titles[i], allusers, allusers_d, common);
@@ -1046,17 +1049,17 @@ int main() {
             WHBLogFreetypeDraw();
             menu--;
             cursor = scroll = 0;
-            if (menu == 1) {
+            if (menu == selectTitle) {
                 cursor = cursorb;
                 scroll = scrollb;
             }
-            if (menu == 2)
+            if (menu == selectTask)
                 cursor = cursort;
         }
     }
 
-    unloadTitles(wiiutitles, titleswiiu);
-    unloadTitles(wiititles, titlesvwii);
+    unloadTitles(wiiutitles, wiiuTitlesCount);
+    unloadTitles(wiititles, vWiiTitlesCount);
     free(versionList);
 
     deinitFS();
