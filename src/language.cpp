@@ -40,10 +40,9 @@ void loadLanguage(Swkbd_LanguageType language) {
         case Swkbd_LanguageType__Spanish:
             gettextLoadLanguage("romfs:/spanish.json");
             break;
-        /*case Swkbd_LanguageType__Chinese1:
-			gettextLoadLanguage("romfs:/chinese1.json");
+        case Swkbd_LanguageType__Chinese1:
+			gettextLoadLanguage("romfs:/SChinese.json");
             break;
-        */
         case Swkbd_LanguageType__Korean:
             gettextLoadLanguage("romfs:/korean.json");
             break;
@@ -56,10 +55,10 @@ void loadLanguage(Swkbd_LanguageType language) {
             break;*/
         case Swkbd_LanguageType__Russian:
             gettextLoadLanguage("romfs:/russian.json");
-            break; /*
+            break;
 		case Swkbd_LanguageType__Chinese2:
-			gettextLoadLanguage("romfs:/chinese2.json");
-            break;*/
+			gettextLoadLanguage("romfs:/SChinese.json");
+            break;
         default:
             //gettextLoadLanguage("romfs:/english.json");
             break;
