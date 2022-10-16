@@ -44,9 +44,9 @@ bool initFS() {
     FSInit();
     FSInitCmdBlock(&cmdBlk);
     FSSetCmdPriority(&cmdBlk, 0);
-    if(checkEntry("/vol/storage_usb01") == 2)
+    if(checkEntry("/vol/storage_usb01/usr") == 2)
         usb = "/vol/storage_usb01";
-    else if(checkEntry("/vol/storage_usb02") == 2)
+    else if(checkEntry("/vol/storage_usb02/usr") == 2)
         usb = "/vol/storage_usb02";
     bool ret = Mocha_InitLibrary() == MOCHA_RESULT_SUCCESS;
     if (ret)
