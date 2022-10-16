@@ -22,10 +22,10 @@ Swkbd_LanguageType sysLang;
 
 void loadLanguage(Swkbd_LanguageType language) {
     switch (language) {
-        /*case Swkbd_LanguageType__Japanese:
+        case Swkbd_LanguageType__Japanese:
 			gettextLoadLanguage("romfs:/japanese.json");
             break;
-		case Swkbd_LanguageType__English:
+		/*case Swkbd_LanguageType__English:
 			gettextLoadLanguage("romfs:/english.json");
             break;*/
         /*case Swkbd_LanguageType__French:
@@ -41,7 +41,7 @@ void loadLanguage(Swkbd_LanguageType language) {
             gettextLoadLanguage("romfs:/spanish.json");
             break;
         case Swkbd_LanguageType__Chinese1:
-			gettextLoadLanguage("romfs:/SChinese.json");
+			gettextLoadLanguage("romfs:/Traditional Chinese.json");
             break;
         case Swkbd_LanguageType__Korean:
             gettextLoadLanguage("romfs:/korean.json");
