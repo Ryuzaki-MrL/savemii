@@ -44,14 +44,14 @@ bool initFS() {
     FSInit();
     FSInitCmdBlock(&cmdBlk);
     FSSetCmdPriority(&cmdBlk, 0);
-    if(checkEntry("/vol/storage_usb01/usr") == 2)
-        usb = "/vol/storage_usb01";
-    else if(checkEntry("/vol/storage_usb02/usr") == 2)
-        usb = "/vol/storage_usb02";
     bool ret = Mocha_InitLibrary() == MOCHA_RESULT_SUCCESS;
     if (ret)
         ret = Mocha_UnlockFSClient(__wut_devoptab_fs_client) == MOCHA_RESULT_SUCCESS;
     if (ret) {
+        if(checkEntry("/vol/storage_usb01/usr") == 2)
+            usb = "/vol/storage_usb01";
+        else if(checkEntry("/vol/storage_usb02/usr") == 2)
+            usb = "/vol/storage_usb02";
         Mocha_MountFS("slc", "/dev/slccmpt01", "/vol/storage_slccmpt01");
         fatMountSimple("sd", &Mocha_sdio_disc_interface);
         return true;
