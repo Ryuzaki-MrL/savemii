@@ -95,4 +95,4 @@
     "Failed to delete user folder.\n%s": "ユーザー フォルダの削除に失敗しました。\n%s",
     "Failed to import savedata from loadiine.": "loadiine からセーブデータをインポートできませんでした。",
     "Failed to export savedata to loadiine.": "セーブデータを loadiine にエクスポートできませんでした。"
-
+}
