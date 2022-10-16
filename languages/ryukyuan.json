@@ -95,4 +95,4 @@
     "Failed to delete user folder.\n%s": "ユーザーフォルダぬ削除んかいしーやんじゃびたん。\n%s",
     "Failed to import savedata from loadiine.": "loadiine からセーブデータインポートなやびらんたん。",
     "Failed to export savedata to loadiine.": "セーブデータloadiine んかいエクスポートなやびらんたん。"
-
+}
