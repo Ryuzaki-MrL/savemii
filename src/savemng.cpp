@@ -17,6 +17,8 @@ uint8_t wiiuaccn = 0, sdaccn = 5;
 extern FSClient *__wut_devoptab_fs_client;
 static FSCmdBlock cmdBlk;
 
+std::string usb;
+
 typedef struct {
     void *buf;
     size_t len;
@@ -27,10 +29,25 @@ static file_buffer buffers[16];
 static char *fileBuf[2];
 static bool buffersInitialized = false;
 
+int checkEntry(const char *fPath) {
+    struct stat st;
+    if (stat(fPath, &st) == -1)
+        return 0;
+
+    if (S_ISDIR(st.st_mode))
+        return 2;
+
+    return 1;
+}
+
 bool initFS() {
     FSInit();
     FSInitCmdBlock(&cmdBlk);
     FSSetCmdPriority(&cmdBlk, 0);
+    if(checkEntry("/vol/storage_usb01") == 2)
+        usb = "/vol/storage_usb01";
+    else if(checkEntry("/vol/storage_usb02") == 2)
+        usb = "/vol/storage_usb02";
     bool ret = Mocha_InitLibrary() == MOCHA_RESULT_SUCCESS;
     if (ret)
         ret = Mocha_UnlockFSClient(__wut_devoptab_fs_client) == MOCHA_RESULT_SUCCESS;
@@ -47,6 +64,10 @@ void deinitFS() {
     Mocha_UnmountFS("slc");
     Mocha_DeInitLibrary();
     FSShutdown();
+}
+
+std::string getUSB() {
+    return usb;
 }
 
 static void showFileOperation(std::string file_name, std::string file_src, std::string file_dest) {
@@ -116,24 +137,13 @@ int32_t loadTitleIcon(Title *title) {
         }
     } else {
         if (title->saveInit)
-            path = stringFormat("%s/usr/save/%08x/%08x/meta/iconTex.tga", isUSB ? "/vol/storage_usb01" : "/vol/storage_mlc01", highID, lowID);
+            path = stringFormat("%s/usr/save/%08x/%08x/meta/iconTex.tga", isUSB ? getUSB().c_str() : "/vol/storage_mlc01", highID, lowID);
         else
-            path = stringFormat("%s/usr/title/%08x/%08x/meta/iconTex.tga", isUSB ? "/vol/storage_usb01" : "/vol/storage_mlc01", highID, lowID);
+            path = stringFormat("%s/usr/title/%08x/%08x/meta/iconTex.tga", isUSB ? getUSB().c_str() : "/vol/storage_mlc01", highID, lowID);
 
         return loadFile(path.c_str(), &title->iconBuf);
     }
     return -23;
-}
-
-int checkEntry(const char *fPath) {
-    struct stat st;
-    if (stat(fPath, &st) == -1)
-        return 0;
-
-    if (S_ISDIR(st.st_mode))
-        return 2;
-
-    return 1;
 }
 
 static bool folderEmpty(const char *fPath) {
@@ -937,7 +947,7 @@ void importFromLoadiine(Title *title, bool common, int version) {
     const char *usrPath = {getUserID().c_str()};
     uint32_t srcOffset = strlen(srcPath);
     getLoadiineUserDir(srcPath, srcPath, usrPath);
-    sprintf(dstPath, "%s/usr/save/%08x/%08x/user", isUSB ? "/vol/storage_usb01" : "/vol/storage_mlc01", highID, lowID);
+    sprintf(dstPath, "%s/usr/save/%08x/%08x/user", isUSB ? getUSB().c_str() : "/vol/storage_mlc01", highID, lowID);
     createFolder(dstPath);
     uint32_t dstOffset = strlen(dstPath);
     sprintf(dstPath + dstOffset, "/%s", usrPath);
@@ -966,7 +976,7 @@ void exportToLoadiine(Title *title, bool common, int version) {
     const char *usrPath = {getUserID().c_str()};
     uint32_t dstOffset = strlen(dstPath);
     getLoadiineUserDir(dstPath, dstPath, usrPath);
-    sprintf(srcPath, "%s/usr/save/%08x/%08x/user", isUSB ? "/vol/storage_usb01" : "/vol/storage_mlc01", highID, lowID);
+    sprintf(srcPath, "%s/usr/save/%08x/%08x/user", isUSB ? getUSB().c_str() : "/vol/storage_mlc01", highID, lowID);
     uint32_t srcOffset = strlen(srcPath);
     sprintf(srcPath + srcOffset, "/%s", usrPath);
     createFolder(dstPath);

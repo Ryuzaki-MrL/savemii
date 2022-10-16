@@ -64,6 +64,7 @@ extern uint8_t wiiuaccn, sdaccn;
 
 bool initFS() __attribute__((__cold__));
 void deinitFS() __attribute__((__cold__));
+std::string getUSB();
 void consolePrintPos(int x, int y, const char *format, ...) __attribute__((hot));
 bool promptConfirm(Style st, std::string question);
 void promptError(const char *message, ...);
