@@ -1,3 +1,4 @@
+#include <cstring>
 #include <json.h>
 #include <nn/act/client_cpp.h>
 #include <string.hpp>
@@ -676,7 +677,8 @@ bool hasAccountSave(Title *title, bool inSD, bool iine, uint32_t user, uint8_t s
     char srcPath[PATH_SIZE];
     if (!isWii) {
         if (!inSD) {
-            const char *path = (isUSB ? (getUSB() + "/usr/save").c_str() : "/vol/storage_mlc01/usr/save");
+            char path[PATH_SIZE];
+            strcpy(path, (isUSB ? (getUSB() + "/usr/save").c_str() : "/vol/storage_mlc01/usr/save"));
             if (user == 0) {
                 sprintf(srcPath, "%s/%08x/%08x/%s/common", path, highID, lowID, "user");
             } else if (user == 0xFFFFFFFF) {
@@ -729,7 +731,8 @@ bool hasCommonSave(Title *title, bool inSD, bool iine, uint8_t slot, int version
 
     std::string srcPath;
     if (!inSD) {
-        const char *path = (isUSB ? (getUSB() + "/usr/save").c_str() : "/vol/storage_mlc01/usr/save");
+        char path[PATH_SIZE];
+        strcpy(path, (isUSB ? (getUSB() + "/usr/save").c_str() : "/vol/storage_mlc01/usr/save"));
         srcPath = stringFormat("%s/%08x/%08x/%s/common", path, highID, lowID, "user");
     } else {
         if (!iine) {
@@ -905,7 +908,8 @@ void wipeSavedata(Title *title, int8_t allusers, bool common) {
     bool isWii = ((highID & 0xFFFFFFF0) == 0x00010000);
     char srcPath[PATH_SIZE];
     char origPath[PATH_SIZE];
-    const char *path = (isWii ? "/vol/storage_slccmpt01/title" : (isUSB ? (getUSB() + "/usr/save").c_str() : "/vol/storage_mlc01/usr/save"));
+    char path[PATH_SIZE];
+    strcpy(path, (isWii ? "/vol/storage_slccmpt01/title" : (isUSB ? (getUSB() + "/usr/save").c_str() : "/vol/storage_mlc01/usr/save")));
     sprintf(srcPath, "%s/%08x/%08x/%s", path, highID, lowID, isWii ? "data" : "user");
     if ((allusers > -1) && !isWii) {
         uint32_t offset = strlen(srcPath);
