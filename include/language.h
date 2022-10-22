@@ -1,6 +1,7 @@
 #pragma once
 
 #include <romfs-wiiu.h>
+#include <string>
 #include <wut_types.h>
 
 #include <coreinit/memdefaultheap.h>
@@ -26,6 +27,7 @@ typedef enum {
 } Swkbd_LanguageType;
 
 void loadLanguage(Swkbd_LanguageType language) __attribute__((cold));
+void getLoadedLanguage(char *out);
 Swkbd_LanguageType getSystemLanguage() __attribute__((cold));
 bool gettextLoadLanguage(const char *langFile);
 void gettextCleanUp() __attribute__((__cold__));

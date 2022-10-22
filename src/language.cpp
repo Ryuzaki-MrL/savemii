@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <language.h>
 #include <savemng.h>
 
@@ -20,7 +21,10 @@ static MSG *baseMSG = NULL;
 
 Swkbd_LanguageType sysLang;
 
+Swkbd_LanguageType loadedLang;
+
 void loadLanguage(Swkbd_LanguageType language) {
+    loadedLang = language;
     switch (language) {
         case Swkbd_LanguageType__Japanese:
             gettextLoadLanguage("romfs:/japanese.json");
@@ -61,6 +65,51 @@ void loadLanguage(Swkbd_LanguageType language) {
             break;
         default:
             //gettextLoadLanguage("romfs:/english.json");
+            break;
+    }
+}
+
+void getLoadedLanguage(char *out) {
+    switch (loadedLang) {
+        case Swkbd_LanguageType__Japanese:
+            sprintf(out, "%s", gettext("Japanese"));
+            break;
+        /*case Swkbd_LanguageType__English:
+			gettextLoadLanguage("romfs:/english.json");
+            break;*/
+        /*case Swkbd_LanguageType__French:
+			gettextLoadLanguage("romfs:/french.json");
+            break;
+		case Swkbd_LanguageType__German:
+			gettextLoadLanguage("romfs:/german.json");
+            break;*/
+        case Swkbd_LanguageType__Italian:
+            sprintf(out, "%s", gettext("Italian"));
+            break;
+        case Swkbd_LanguageType__Spanish:
+            sprintf(out, "%s", gettext("Spanish"));
+            break;
+        case Swkbd_LanguageType__Chinese1:
+            sprintf(out, "%s", gettext("Traditional Chinese"));
+            break;
+        case Swkbd_LanguageType__Korean:
+            sprintf(out, "%s", gettext("Korean"));
+            break;
+        /*
+		case Swkbd_LanguageType__Dutch:
+			gettextLoadLanguage("romfs:/dutch.json");
+            break;
+		case Swkbd_LanguageType__Potuguese:
+			gettextLoadLanguage("romfs:/portuguese.json");
+            break;*/
+        case Swkbd_LanguageType__Russian:
+            sprintf(out, "%s", gettext("Russian"));
+            break;
+        case Swkbd_LanguageType__Chinese2:
+            sprintf(out, "%s", gettext("Simplified Chinese"));
+            break;
+        default:
+            sprintf(out, "%s", gettext("English"));
             break;
     }
 }
