@@ -36,21 +36,39 @@ void configMenu() {
         if (input.get(TRIGGER, PAD_BUTTON_B))
             break;
         if (input.get(TRIGGER, PAD_BUTTON_RIGHT)) {
-            if (language == "Japanese")
+            if (language == gettext("Japanese"))
                 loadLanguage(Swkbd_LanguageType__Italian);
-            else if (language == "Italian")
+            else if (language == gettext("Italian"))
                 loadLanguage(Swkbd_LanguageType__Spanish);
-            else if (language == "Spanish")
+            else if (language == gettext("Spanish"))
                 loadLanguage(Swkbd_LanguageType__Chinese1);
-            else if (language == "Traditional Chinese")
+            else if (language == gettext("Traditional Chinese"))
                 loadLanguage(Swkbd_LanguageType__Korean);
-            else if (language == "Korean")
+            else if (language == gettext("Korean"))
                 loadLanguage(Swkbd_LanguageType__Russian);
-            else if (language == "Russian")
+            else if (language == gettext("Russian"))
                 loadLanguage(Swkbd_LanguageType__Chinese2);
-            else if (language == "Simplified Chinese")
+            else if (language == gettext("Simplified Chinese"))
                 loadLanguage(Swkbd_LanguageType__English);
-            else if (language == "English")
+            else if (language == gettext("English"))
+                loadLanguage(Swkbd_LanguageType__Japanese);
+        }
+        if (input.get(TRIGGER, PAD_BUTTON_LEFT)) {
+            if (language == gettext("Japanese"))
+                loadLanguage(Swkbd_LanguageType__English);
+            else if(language == gettext("English"))
+                loadLanguage(Swkbd_LanguageType__Chinese2);
+            else if(language == gettext("Simplified Chinese"))
+                loadLanguage(Swkbd_LanguageType__Russian);
+            else if(language == gettext("Russian"))
+               loadLanguage(Swkbd_LanguageType__Korean);
+            else if(language == gettext("Korean"))
+                loadLanguage(Swkbd_LanguageType__Chinese1);
+            else if(language == gettext("Traditional Chinese"))
+                loadLanguage(Swkbd_LanguageType__Spanish);
+            else if(language == gettext("Spanish"))
+                loadLanguage(Swkbd_LanguageType__Italian);
+            else if(language == gettext("Italian"))
                 loadLanguage(Swkbd_LanguageType__Japanese);
         }
         if (redraw) {
