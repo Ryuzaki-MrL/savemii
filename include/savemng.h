@@ -24,7 +24,7 @@
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 4
-#define VERSION_MICRO 8
+#define VERSION_MICRO 9
 #define M_OFF         1
 
 typedef struct {
