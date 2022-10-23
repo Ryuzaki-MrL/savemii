@@ -69,10 +69,12 @@ void loadLanguage(Swkbd_LanguageType language) {
     }
 }
 
-void getLoadedLanguage(char *out) {
+std::string getLoadedLanguage() {
+    char out[255];
     switch (loadedLang) {
         case Swkbd_LanguageType__Japanese:
             sprintf(out, "%s", gettext("Japanese"));
+            return std::string(out);
             break;
         /*case Swkbd_LanguageType__English:
 			gettextLoadLanguage("romfs:/english.json");
@@ -85,15 +87,19 @@ void getLoadedLanguage(char *out) {
             break;*/
         case Swkbd_LanguageType__Italian:
             sprintf(out, "%s", gettext("Italian"));
+            return std::string(out);
             break;
         case Swkbd_LanguageType__Spanish:
             sprintf(out, "%s", gettext("Spanish"));
+            return std::string(out);
             break;
         case Swkbd_LanguageType__Chinese1:
             sprintf(out, "%s", gettext("Traditional Chinese"));
+            return std::string(out);
             break;
         case Swkbd_LanguageType__Korean:
             sprintf(out, "%s", gettext("Korean"));
+            return std::string(out);
             break;
         /*
 		case Swkbd_LanguageType__Dutch:
@@ -104,12 +110,15 @@ void getLoadedLanguage(char *out) {
             break;*/
         case Swkbd_LanguageType__Russian:
             sprintf(out, "%s", gettext("Russian"));
+            return std::string(out);
             break;
         case Swkbd_LanguageType__Chinese2:
             sprintf(out, "%s", gettext("Simplified Chinese"));
+            return std::string(out);
             break;
         default:
             sprintf(out, "%s", gettext("English"));
+            return std::string(out);
             break;
     }
 }

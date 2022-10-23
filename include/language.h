@@ -27,7 +27,7 @@ typedef enum {
 } Swkbd_LanguageType;
 
 void loadLanguage(Swkbd_LanguageType language) __attribute__((cold));
-void getLoadedLanguage(char *out);
+std::string getLoadedLanguage();
 Swkbd_LanguageType getSystemLanguage() __attribute__((cold));
 bool gettextLoadLanguage(const char *langFile);
 void gettextCleanUp() __attribute__((__cold__));
