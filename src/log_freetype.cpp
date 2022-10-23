@@ -143,6 +143,23 @@ bool WHBLogFreetypeInit() {
     return false;
 }
 
+bool setFont(OSSharedDataType font) {
+    FT_Error result;
+    if ((result = FT_Init_FreeType(&fontLibrary)) != 0)
+        return true;
+
+    uint32_t fontSize;
+    OSGetSharedData(font, 0, (void **) &fontBuffer, &fontSize);
+
+    if ((result = FT_New_Memory_Face(fontLibrary, fontBuffer, fontSize, 0, &fontFace)) != 0)
+        return true;
+    if ((result = FT_Select_Charmap(fontFace, FT_ENCODING_UNICODE)) != 0)
+        return true;
+    if ((result = FT_Set_Pixel_Sizes(fontFace, 0, 22)))
+        return true;
+    return false;
+}
+
 void WHBLogFreetypeFree() {
     FT_Done_Face(fontFace);
     FT_Done_FreeType(fontLibrary);

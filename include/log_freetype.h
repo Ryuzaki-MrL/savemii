@@ -18,6 +18,7 @@
 #endif
 
 bool WHBLogFreetypeInit() __attribute__((cold));
+bool setFont(OSSharedDataType font);
 void WHBLogFreetypeFree() __attribute__((cold));
 void drawPixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 void ttfFontColor32(uint32_t color);
