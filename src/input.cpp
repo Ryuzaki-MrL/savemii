@@ -55,6 +55,12 @@ bool Input::get(ButtonState state, Button button) {
                 if (kpadClassicState & WPAD_CLASSIC_BUTTON_B) return true;
                 if (kpadProState & WPAD_PRO_BUTTON_B) return true;
                 break;
+            case PAD_BUTTON_X:
+                if (vpadState & VPAD_BUTTON_X) return true;
+                if (kpadState & WPAD_BUTTON_1) return true;
+                if (kpadClassicState & WPAD_CLASSIC_BUTTON_X) return true;
+                if (kpadProState & WPAD_PRO_BUTTON_X) return true;
+                break;
             case PAD_BUTTON_UP:
                 if (vpadState & VPAD_BUTTON_UP) return true;
                 if (vpadState & VPAD_STICK_L_EMULATION_UP) return true;

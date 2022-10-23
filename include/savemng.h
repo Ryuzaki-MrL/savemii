@@ -20,7 +20,12 @@
 #include <mocha/disc_interface.h>
 #include <mocha/mocha.h>
 
-#define PATH_SIZE 0x400
+#define PATH_SIZE     0x400
+
+#define VERSION_MAJOR 1
+#define VERSION_MINOR 4
+#define VERSION_MICRO 9
+#define M_OFF         1
 
 typedef struct {
     uint32_t highID;

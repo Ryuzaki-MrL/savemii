@@ -1,3 +1,5 @@
+#include "log_freetype.h"
+#include <cstdio>
 #include <language.h>
 #include <savemng.h>
 
@@ -20,14 +22,19 @@ static MSG *baseMSG = NULL;
 
 Swkbd_LanguageType sysLang;
 
+Swkbd_LanguageType loadedLang;
+
 void loadLanguage(Swkbd_LanguageType language) {
+    loadedLang = language;
     switch (language) {
         case Swkbd_LanguageType__Japanese:
+            setFont(OS_SHAREDDATATYPE_FONT_STANDARD);
             gettextLoadLanguage("romfs:/japanese.json");
             break;
-        /*case Swkbd_LanguageType__English:
-			gettextLoadLanguage("romfs:/english.json");
-            break;*/
+        case Swkbd_LanguageType__English:
+            setFont(OS_SHAREDDATATYPE_FONT_STANDARD);
+            gettextLoadLanguage("romfs:/english.json");
+            break;
         /*case Swkbd_LanguageType__French:
 			gettextLoadLanguage("romfs:/french.json");
             break;
@@ -35,15 +42,19 @@ void loadLanguage(Swkbd_LanguageType language) {
 			gettextLoadLanguage("romfs:/german.json");
             break;*/
         case Swkbd_LanguageType__Italian:
+            setFont(OS_SHAREDDATATYPE_FONT_STANDARD);
             gettextLoadLanguage("romfs:/italian.json");
             break;
         case Swkbd_LanguageType__Spanish:
+            setFont(OS_SHAREDDATATYPE_FONT_STANDARD);
             gettextLoadLanguage("romfs:/spanish.json");
             break;
         case Swkbd_LanguageType__Chinese1:
+            setFont(OS_SHAREDDATATYPE_FONT_CHINESE);
             gettextLoadLanguage("romfs:/TChinese.json");
             break;
         case Swkbd_LanguageType__Korean:
+            setFont(OS_SHAREDDATATYPE_FONT_KOREAN);
             gettextLoadLanguage("romfs:/korean.json");
             break;
         /*
@@ -54,13 +65,61 @@ void loadLanguage(Swkbd_LanguageType language) {
 			gettextLoadLanguage("romfs:/portuguese.json");
             break;*/
         case Swkbd_LanguageType__Russian:
+            setFont(OS_SHAREDDATATYPE_FONT_STANDARD);
             gettextLoadLanguage("romfs:/russian.json");
             break;
         case Swkbd_LanguageType__Chinese2:
+            setFont(OS_SHAREDDATATYPE_FONT_CHINESE);
             gettextLoadLanguage("romfs:/SChinese.json");
             break;
         default:
-            //gettextLoadLanguage("romfs:/english.json");
+            setFont(OS_SHAREDDATATYPE_FONT_STANDARD);
+            gettextLoadLanguage("romfs:/english.json");
+            break;
+    }
+}
+
+std::string getLoadedLanguage() {
+    switch (loadedLang) {
+        case Swkbd_LanguageType__Japanese:
+            return gettext("Japanese");
+            break;
+        case Swkbd_LanguageType__English:
+            return gettext("English");
+            break;
+        /*case Swkbd_LanguageType__French:
+			gettextLoadLanguage("romfs:/french.json");
+            break;
+		case Swkbd_LanguageType__German:
+			gettextLoadLanguage("romfs:/german.json");
+            break;*/
+        case Swkbd_LanguageType__Italian:
+            return gettext("Italian");
+            break;
+        case Swkbd_LanguageType__Spanish:
+            return gettext("Spanish");
+            break;
+        case Swkbd_LanguageType__Chinese1:
+            return gettext("Traditional Chinese");
+            break;
+        case Swkbd_LanguageType__Korean:
+            return gettext("Korean");
+            break;
+        /*
+		case Swkbd_LanguageType__Dutch:
+			gettextLoadLanguage("romfs:/dutch.json");
+            break;
+		case Swkbd_LanguageType__Potuguese:
+			gettextLoadLanguage("romfs:/portuguese.json");
+            break;*/
+        case Swkbd_LanguageType__Russian:
+            return gettext("Russian");
+            break;
+        case Swkbd_LanguageType__Chinese2:
+            return gettext("Simplified Chinese");
+            break;
+        default:
+            return gettext("English");
             break;
     }
 }

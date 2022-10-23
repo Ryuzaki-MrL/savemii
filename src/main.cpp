@@ -1,4 +1,6 @@
+#include <configMenu.h>
 #include <icon.h>
+#include <input.h>
 #include <json.h>
 #include <language.h>
 #include <log_freetype.h>
@@ -7,11 +9,6 @@
 #include <sndcore2/core.h>
 #include <state.h>
 #include <string.hpp>
-
-#define VERSION_MAJOR 1
-#define VERSION_MINOR 4
-#define VERSION_MICRO 8
-#define M_OFF         1
 
 static uint8_t slot = 0;
 static int8_t allusers = -1, allusers_d = -1, sdusers = -1;
@@ -476,7 +473,7 @@ int main() {
                                     (vWiiTitlesCount > 1) ? "s" : "");
                     consolePrintPos(M_OFF, 4, gettext("   Batch Backup"));
                     consolePrintPos(M_OFF, 2 + cursor, "\u2192");
-                    consolePrintPosAligned(17, 4, 2, gettext("\ue000: Select Mode"));
+                    consolePrintPosAligned(17, 4, 2, gettext("\uE002: Options \ue000: Select Mode"));
                 } break;
                 case selectTitle: {
                     if (mode == batchBackup) {
@@ -1055,6 +1052,8 @@ int main() {
             }
             if (menu == selectTask)
                 cursor = cursort;
+        } else if (input.get(TRIGGER, PAD_BUTTON_X) && menu == mainMenu) {
+            configMenu();
         }
     }
 
