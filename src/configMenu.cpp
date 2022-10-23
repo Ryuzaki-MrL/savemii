@@ -6,8 +6,6 @@
 #include <savemng.h>
 #include <state.h>
 
-#define M_OFF 1
-
 static int cursorPos = 0;
 static bool redraw = true;
 
