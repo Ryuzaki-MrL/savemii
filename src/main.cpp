@@ -473,7 +473,7 @@ int main() {
                                     (vWiiTitlesCount > 1) ? "s" : "");
                     consolePrintPos(M_OFF, 4, gettext("   Batch Backup"));
                     consolePrintPos(M_OFF, 2 + cursor, "\u2192");
-                    consolePrintPosAligned(17, 4, 2, gettext("\ue000: Select Mode"));
+                    consolePrintPosAligned(17, 4, 2, gettext("\uE002: Options \ue000: Select Mode"));
                 } break;
                 case selectTitle: {
                     if (mode == batchBackup) {
