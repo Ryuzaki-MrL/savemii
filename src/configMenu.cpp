@@ -9,7 +9,7 @@
 #define M_OFF 1
 
 static int cursorPos = 0;
-bool redraw = true;
+static bool redraw = true;
 
 static std::string language = "";
 
