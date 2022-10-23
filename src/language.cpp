@@ -30,7 +30,7 @@ void loadLanguage(Swkbd_LanguageType language) {
             gettextLoadLanguage("romfs:/japanese.json");
             break;
         case Swkbd_LanguageType__English:
-			gettextLoadLanguage("romfs:/english.json");
+            gettextLoadLanguage("romfs:/english.json");
             break;
         /*case Swkbd_LanguageType__French:
 			gettextLoadLanguage("romfs:/french.json");
@@ -75,7 +75,7 @@ std::string getLoadedLanguage() {
             return gettext("Japanese");
             break;
         case Swkbd_LanguageType__English:
-			return gettext("English");
+            return gettext("English");
             break;
         /*case Swkbd_LanguageType__French:
 			gettextLoadLanguage("romfs:/french.json");

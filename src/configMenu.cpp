@@ -1,6 +1,6 @@
-#include <draw.h>
 #include <configMenu.h>
 #include <cstring>
+#include <draw.h>
 #include <input.h>
 #include <language.h>
 #include <savemng.h>
@@ -54,19 +54,19 @@ void configMenu() {
         if (input.get(TRIGGER, PAD_BUTTON_LEFT)) {
             if (language == gettext("Japanese"))
                 loadLanguage(Swkbd_LanguageType__English);
-            else if(language == gettext("English"))
+            else if (language == gettext("English"))
                 loadLanguage(Swkbd_LanguageType__Chinese2);
-            else if(language == gettext("Simplified Chinese"))
+            else if (language == gettext("Simplified Chinese"))
                 loadLanguage(Swkbd_LanguageType__Russian);
-            else if(language == gettext("Russian"))
-               loadLanguage(Swkbd_LanguageType__Korean);
-            else if(language == gettext("Korean"))
+            else if (language == gettext("Russian"))
+                loadLanguage(Swkbd_LanguageType__Korean);
+            else if (language == gettext("Korean"))
                 loadLanguage(Swkbd_LanguageType__Chinese1);
-            else if(language == gettext("Traditional Chinese"))
+            else if (language == gettext("Traditional Chinese"))
                 loadLanguage(Swkbd_LanguageType__Spanish);
-            else if(language == gettext("Spanish"))
+            else if (language == gettext("Spanish"))
                 loadLanguage(Swkbd_LanguageType__Italian);
-            else if(language == gettext("Italian"))
+            else if (language == gettext("Italian"))
                 loadLanguage(Swkbd_LanguageType__Japanese);
         }
         if (redraw) {
