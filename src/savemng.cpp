@@ -8,6 +8,8 @@
 #include <language.h>
 #include <savemng.h>
 
+#include "fatfs/extusb_devoptab/extusb_devoptab.h"
+
 #define IO_MAX_FILE_BUFFER (1024 * 1024) // 1 MB
 
 static char *p1;
@@ -54,14 +56,14 @@ bool initFS() {
         else if (checkEntry("/vol/storage_usb02/usr") == 2)
             usb = "/vol/storage_usb02";
         Mocha_MountFS("slc", "/dev/slccmpt01", "/vol/storage_slccmpt01");
-        fatMountSimple("sd", &Mocha_sdio_disc_interface);
+        init_extusb_devoptab();
         return true;
     }
     return false;
 }
 
 void deinitFS() {
-    fatUnmount("sd");
+    fini_extusb_devoptab();
     Mocha_UnmountFS("slc");
     Mocha_DeInitLibrary();
     FSShutdown();
