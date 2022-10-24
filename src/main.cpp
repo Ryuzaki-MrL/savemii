@@ -1054,6 +1054,7 @@ int main() {
                 cursor = cursort;
         } else if (input.get(TRIGGER, PAD_BUTTON_X) && menu == mainMenu) {
             configMenu();
+            sortn = {gettext("None"), gettext("Name"), gettext("Storage"), gettext("Storage+Name")};
         }
     }
 
