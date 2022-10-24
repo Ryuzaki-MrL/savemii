@@ -49,8 +49,6 @@ int init_extusb_devoptab() {
         return 0;
     }
 
-    WHBLogPrintf("Allocating devoptab");
-    WHBLogConsoleDraw();
     extusb_fs_devoptab.deviceData = memalign(0x40, sizeof(FATFS));
     if (extusb_fs_devoptab.deviceData == NULL) {
         return -1;
@@ -59,28 +57,18 @@ int init_extusb_devoptab() {
     char mountPath[0x80];
     sprintf(mountPath, "%d:", DEV_SD);
 
-    WHBLogPrintf("Adding device");
-    WHBLogConsoleDraw();
     int dev = AddDevice(&extusb_fs_devoptab);
     if (dev != -1) {
-        WHBLogPrintf("Setting default device");
-        WHBLogConsoleDraw();
         setDefaultDevice(dev);
 
-        WHBLogPrintf("Mounting USB drive");
-        WHBLogConsoleDraw();
         // Mount the external USB drive
         FRESULT fr = f_mount(extusb_fs_devoptab.deviceData, mountPath, 1);
 
         if (fr != FR_OK) {
-            WHBLogPrintf("Mounting external drive failed: %s", translate_fatfs_error(fr));
-            WHBLogConsoleDraw();
             free(extusb_fs_devoptab.deviceData);
             extusb_fs_devoptab.deviceData = NULL;
             return fr;
         }
-        WHBLogPrintf("Changing directory");
-        WHBLogConsoleDraw();
         // chdir to external USB root for general use
         chdir("sd:/");
         extusb_fs_initialised = true;
