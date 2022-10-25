@@ -54,7 +54,7 @@ int init_extusb_devoptab() {
         return -1;
     }
 
-    char mountPath[0x80];
+    char *mountPath = memalign(0x40, 256);
     sprintf(mountPath, "%s:", DEV_SD_NAME);
 
     int dev = AddDevice(&extusb_fs_devoptab);
@@ -92,7 +92,7 @@ int fini_extusb_devoptab() {
         return rc;
     }
 
-    char mountPath[0x80];
+    char *mountPath = memalign(0x40, 256);
     sprintf(mountPath, "%s:", DEV_SD_NAME);
     rc = f_unmount(mountPath);
     if (rc != FR_OK) {
