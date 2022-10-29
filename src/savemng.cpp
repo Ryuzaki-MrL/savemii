@@ -7,6 +7,7 @@
 #include <future>
 #include <language.h>
 #include <savemng.h>
+#include <sys/stat.h>
 
 #include "fatfs/extusb_devoptab/extusb_devoptab.h"
 
@@ -18,7 +19,6 @@ Account *sdacc;
 uint8_t wiiuaccn = 0, sdaccn = 5;
 
 extern "C" FSClient *__wut_devoptab_fs_client;
-static FSCmdBlock cmdBlk;
 
 std::string usb;
 
@@ -45,8 +45,6 @@ int checkEntry(const char *fPath) {
 
 bool initFS() {
     FSInit();
-    FSInitCmdBlock(&cmdBlk);
-    FSSetCmdPriority(&cmdBlk, 0);
     bool ret = Mocha_InitLibrary() == MOCHA_RESULT_SUCCESS;
     if (ret)
         ret = Mocha_UnlockFSClient(__wut_devoptab_fs_client) == MOCHA_RESULT_SUCCESS;
@@ -497,7 +495,7 @@ static bool copyFile(std::string pPath, std::string oPath) {
 
     copyFileThreaded(source, dest, sizef);
 
-    FSChangeMode(__wut_devoptab_fs_client, &cmdBlk, (char *) oPath.c_str(), (FSMode) 0x666, (FSMode) 0x777, FS_ERROR_FLAG_ALL);
+    chmod(oPath.c_str(), 0x666);
 
     fclose(source);
     fclose(dest);
