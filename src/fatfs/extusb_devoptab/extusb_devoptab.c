@@ -14,7 +14,7 @@ extern "C" {
 static devoptab_t
         extusb_fs_devoptab =
         {
-                .name         = "fat",
+                .name         = "sd",
                 .structSize   = sizeof(__extusb_fs_file_t),
                 .open_r       = __extusb_fs_open,
                 .close_r      = __extusb_fs_close,
