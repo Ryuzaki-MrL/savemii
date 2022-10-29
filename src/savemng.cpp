@@ -19,6 +19,7 @@ Account *sdacc;
 uint8_t wiiuaccn = 0, sdaccn = 5;
 
 extern "C" FSClient *__wut_devoptab_fs_client;
+static FSCmdBlock cmdBlk;
 
 std::string usb;
 
@@ -31,6 +32,19 @@ typedef struct {
 static file_buffer buffers[16];
 static char *fileBuf[2];
 static bool buffersInitialized = false;
+
+std::string newlibtoFSA(std::string path) {
+    if (path.rfind("storage_slccmpt01:", 0) == 0) {
+        replace(path, "storage_slccmpt01:", "/vol/storage_slccmpt01");
+    } else if(path.rfind("storage_mlc01:", 0) == 0) {
+        replace(path, "storage_mlc01:", "/vol/storage_mlc01");
+    } else if(path.rfind("storage_usb01:", 0) == 0) {
+        replace(path, "storage_usb01:", "/vol/storage_usb01");
+    } else if(path.rfind("storage_usb02:", 0) == 0) {
+        replace(path, "storage_usb02:", "/vol/storage_usb02");
+    }
+    return path;
+}
 
 int checkEntry(const char *fPath) {
     struct stat st;
@@ -45,6 +59,8 @@ int checkEntry(const char *fPath) {
 
 bool initFS() {
     FSInit();
+    FSInitCmdBlock(&cmdBlk);
+    FSSetCmdPriority(&cmdBlk, 0);
     bool ret = Mocha_InitLibrary() == MOCHA_RESULT_SUCCESS;
     if (ret)
         ret = Mocha_UnlockFSClient(__wut_devoptab_fs_client) == MOCHA_RESULT_SUCCESS;
@@ -495,7 +511,7 @@ static bool copyFile(std::string pPath, std::string oPath) {
 
     copyFileThreaded(source, dest, sizef);
 
-    chmod(oPath.c_str(), 0x666);
+    FSChangeMode(__wut_devoptab_fs_client, &cmdBlk, (char *) newlibtoFSA(oPath).c_str(), (FSMode) 0x666, (FSMode) 0x777, FS_ERROR_FLAG_ALL);
 
     fclose(source);
     fclose(dest);
