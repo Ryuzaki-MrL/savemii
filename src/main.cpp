@@ -268,7 +268,7 @@ static Title *loadWiiTitles() {
 
     std::string pathW;
     for (int k = 0; k < 3; k++) {
-        pathW = stringFormat("slccmpt01:/title/%s", highIDs[k]);
+        pathW = stringFormat("storage_slccmpt01:/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW.c_str());
         if (dir != nullptr) {
             struct dirent *data;
@@ -302,7 +302,7 @@ static Title *loadWiiTitles() {
 
     int i = 0;
     for (int k = 0; k < 3; k++) {
-        pathW = stringFormat("slccmpt01:/title/%s", highIDs[k]);
+        pathW = stringFormat("storage_slccmpt01:/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW.c_str());
         if (dir != nullptr) {
             struct dirent *data;
@@ -320,7 +320,7 @@ static Title *loadWiiTitles() {
                     continue;
                 }
 
-                const std::string path = stringFormat("slccmpt01:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
+                const std::string path = stringFormat("storage_slccmpt01:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
                 FILE *file = fopen(path.c_str(), "rb");
                 if (file != nullptr) {
                     fseek(file, 0x20, SEEK_SET);
