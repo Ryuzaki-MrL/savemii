@@ -196,7 +196,7 @@ static bool createFolder(const char *fPath) { //Adapted from mkdir_p made by Jon
             if (found > 2) {
                 *p = '\0';
                 if (checkEntry(_path.c_str()) == 0)
-                    if (mkdir(_path.c_str(), DEFFILEMODE) == -1)
+                    if (mkdir(_path.c_str(), 0x660) == -1)
                         return false;
                 *p = '/';
             }
@@ -204,7 +204,7 @@ static bool createFolder(const char *fPath) { //Adapted from mkdir_p made by Jon
     }
 
     if (checkEntry(_path.c_str()) == 0)
-        if (mkdir(_path.c_str(), DEFFILEMODE) == -1)
+        if (mkdir(_path.c_str(), 0x660) == -1)
             return false;
 
     return true;
@@ -511,7 +511,7 @@ static bool copyFile(std::string pPath, std::string oPath) {
 
     copyFileThreaded(source, dest, sizef);
 
-    FSChangeMode(__wut_devoptab_fs_client, &cmdBlk, (char *) newlibtoFSA(oPath).c_str(), (FSMode) 0x666, (FSMode) 0x777, FS_ERROR_FLAG_ALL);
+    FSChangeMode(__wut_devoptab_fs_client, &cmdBlk, (char *) newlibtoFSA(oPath).c_str(), (FSMode) 0x660, (FSMode) 0x777, FS_ERROR_FLAG_ALL);
 
     fclose(source);
     fclose(dest);
@@ -524,7 +524,7 @@ static int copyDir(std::string pPath, std::string tPath) { // Source: ft2sd
     if (dir == nullptr)
         return -1;
 
-    mkdir(tPath.c_str(), DEFFILEMODE);
+    mkdir(tPath.c_str(), 0x660);
     auto *data = (dirent *) malloc(sizeof(dirent));
 
     while ((data = readdir(dir)) != nullptr) {
@@ -536,7 +536,7 @@ static int copyDir(std::string pPath, std::string tPath) { // Source: ft2sd
         std::string targetPath = stringFormat("%s/%s", tPath.c_str(), data->d_name);
 
         if ((data->d_type & DT_DIR) != 0) {
-            mkdir(targetPath.c_str(), DEFFILEMODE);
+            mkdir(targetPath.c_str(), 0x660);
             if (copyDir(pPath + stringFormat("/%s", data->d_name), targetPath) != 0) {
                 closedir(dir);
                 return -2;
