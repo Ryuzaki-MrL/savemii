@@ -32,7 +32,7 @@ include $(DEVKITPRO)/wut/share/wut_rules
 #-------------------------------------------------------------------------------
 TARGET		:=	savemii
 BUILD		:=	build
-SOURCES		:=	src
+SOURCES		:=	src src/fatfs src/fatfs/extusb_devoptab
 DATA		:=	data
 INCLUDES	:=	include
 CONTENT		:=
@@ -53,7 +53,7 @@ CXXFLAGS	:= -std=gnu++20 -g -Wall -Wno-switch -Wno-format-overflow -Ofast -fperm
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lfat -lwut -lmocha -ljansson `freetype-config --libs`
+LIBS	:= -lwut -lmocha -ljansson `freetype-config --libs`
 
 include $(PORTLIBS_PATH)/wiiu/share/romfs-wiiu.mk
 CFLAGS		+=	$(ROMFS_CFLAGS)
