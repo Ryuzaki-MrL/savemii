@@ -111,7 +111,7 @@ static Title *loadWiiUTitles(int run) {
     int tNoSave = usable;
     for (int i = 0; i <= 1; i++) {
         for (uint8_t a = 0; a < 2; a++) {
-            std::string path = stringFormat("%s/usr/save/%08x", (i == 0) ? getUSB().c_str() : "/vol/storage_mlc01", highIDs[a]);
+            std::string path = stringFormat("%s/usr/save/%08x", (i == 0) ? getUSB().c_str() : "storage_mlc01:", highIDs[a]);
             DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
                 struct dirent *data;
@@ -119,9 +119,9 @@ static Title *loadWiiUTitles(int run) {
                     if (data->d_name[0] == '.')
                         continue;
 
-                    path = stringFormat("%s/usr/save/%08x/%s/user", (i == 0) ? getUSB().c_str() : "/vol/storage_mlc01", highIDs[a], data->d_name);
+                    path = stringFormat("%s/usr/save/%08x/%s/user", (i == 0) ? getUSB().c_str() : "storage_mlc01:", highIDs[a], data->d_name);
                     if (checkEntry(path.c_str()) == 2) {
-                        path = stringFormat("%s/usr/save/%08x/%s/meta/meta.xml", (i == 0) ? getUSB().c_str() : "/vol/storage_mlc01", highIDs[a],
+                        path = stringFormat("%s/usr/save/%08x/%s/meta/meta.xml", (i == 0) ? getUSB().c_str() : "storage_mlc01:", highIDs[a],
                                             data->d_name);
                         if (checkEntry(path.c_str()) == 1) {
                             for (int i = 0; i < usable; i++) {
@@ -150,7 +150,7 @@ static Title *loadWiiUTitles(int run) {
 
     for (uint8_t a = 0; a < 2; a++) {
         for (int i = 0; i <= 1; i++) {
-            std::string path = stringFormat("%s/usr/save/%08x", (i == 0) ? getUSB().c_str() : "/vol/storage_mlc01", highIDs[a]);
+            std::string path = stringFormat("%s/usr/save/%08x", (i == 0) ? getUSB().c_str() : "storage_mlc01:", highIDs[a]);
             DIR *dir = opendir(path.c_str());
             if (dir != nullptr) {
                 struct dirent *data;
@@ -158,7 +158,7 @@ static Title *loadWiiUTitles(int run) {
                     if (data->d_name[0] == '.')
                         continue;
 
-                    path = stringFormat("%s/usr/save/%08x/%s/meta/meta.xml", (i == 0) ? getUSB().c_str() : "/vol/storage_mlc01", highIDs[a],
+                    path = stringFormat("%s/usr/save/%08x/%s/meta/meta.xml", (i == 0) ? getUSB().c_str() : "storage_mlc01:", highIDs[a],
                                         data->d_name);
                     if (checkEntry(path.c_str()) == 1) {
                         saves[pos].highID = highIDs[a];
@@ -194,7 +194,7 @@ static Title *loadWiiUTitles(int run) {
         uint32_t lowID = saves[i].lowID;
         bool isTitleOnUSB = saves[i].dev == 0u;
 
-        const std::string path = stringFormat("%s/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? getUSB().c_str() : "/vol/storage_mlc01",
+        const std::string path = stringFormat("%s/usr/%s/%08x/%08x/meta/meta.xml", isTitleOnUSB ? getUSB().c_str() : "storage_mlc01:",
                                               saves[i].found ? "title" : "save", highID, lowID);
         titles[wiiuTitlesCount].saveInit = !saves[i].found;
 
@@ -268,7 +268,7 @@ static Title *loadWiiTitles() {
 
     std::string pathW;
     for (int k = 0; k < 3; k++) {
-        pathW = stringFormat("/vol/storage_slccmpt01/title/%s", highIDs[k]);
+        pathW = stringFormat("storage_slccmpt01:/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW.c_str());
         if (dir != nullptr) {
             struct dirent *data;
@@ -302,7 +302,7 @@ static Title *loadWiiTitles() {
 
     int i = 0;
     for (int k = 0; k < 3; k++) {
-        pathW = stringFormat("/vol/storage_slccmpt01/title/%s", highIDs[k]);
+        pathW = stringFormat("storage_slccmpt01:/title/%s", highIDs[k]);
         DIR *dir = opendir(pathW.c_str());
         if (dir != nullptr) {
             struct dirent *data;
@@ -320,7 +320,7 @@ static Title *loadWiiTitles() {
                     continue;
                 }
 
-                const std::string path = stringFormat("/vol/storage_slccmpt01/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
+                const std::string path = stringFormat("storage_slccmpt01:/title/%s/%s/data/banner.bin", highIDs[k], data->d_name);
                 FILE *file = fopen(path.c_str(), "rb");
                 if (file != nullptr) {
                     fseek(file, 0x20, SEEK_SET);
@@ -954,7 +954,7 @@ int main() {
                         }
                     }
                     std::string path = stringFormat("%s/usr/title/000%x/%x/code/fw.img",
-                                                    (titles[targ].isTitleOnUSB) ? getUSB().c_str() : "/vol/storage_mlc01", titles[targ].highID,
+                                                    (titles[targ].isTitleOnUSB) ? getUSB().c_str() : "storage_mlc01:", titles[targ].highID,
                                                     titles[targ].lowID);
                     if ((mode == WiiU) && (checkEntry(path.c_str()) != 0))
                         if (!promptConfirm(ST_ERROR, gettext("vWii saves are in the vWii section. Continue?")))
@@ -1054,6 +1054,7 @@ int main() {
                 cursor = cursort;
         } else if (input.get(TRIGGER, PAD_BUTTON_X) && menu == mainMenu) {
             configMenu();
+            sortn = {gettext("None"), gettext("Name"), gettext("Storage"), gettext("Storage+Name")};
         }
     }
 
