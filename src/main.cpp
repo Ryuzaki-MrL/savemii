@@ -1055,6 +1055,10 @@ int main() {
         } else if (input.get(TRIGGER, PAD_BUTTON_X) && menu == mainMenu) {
             configMenu();
             sortn = {gettext("None"), gettext("Name"), gettext("Storage"), gettext("Storage+Name")};
+            wiiutitles = loadWiiUTitles(1);
+            wiititles = loadWiiTitles();
+            sortTitle(wiiutitles, wiiutitles + wiiuTitlesCount, tsort, sortAscending);
+            sortTitle(wiititles, wiititles + vWiiTitlesCount, tsort, sortAscending);
         }
     }
 
