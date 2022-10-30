@@ -21,8 +21,8 @@
 #define PATH_SIZE     0x400
 
 #define VERSION_MAJOR 1
-#define VERSION_MINOR 4
-#define VERSION_MICRO 9
+#define VERSION_MINOR 5
+#define VERSION_MICRO 0
 #define M_OFF         1
 
 typedef struct {
