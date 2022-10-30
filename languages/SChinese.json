@@ -64,7 +64,7 @@
     "No save to Wipe.": "没有可删除的保存数据",
     "No save to Export.": "没有可导出的保存数据",
     "No save to Copy.": "没有可以复制的保存数据",
-    "Copying file: %s": "正在复制文件： %s",
+    "Copying file: %s": "正在复制文件 %s",
     "From: %s": "从 %s",
     "To: %s": "到 %s",
     "\ue000 Yes - \ue001 No": "\ue000 是 - \ue001 否",
