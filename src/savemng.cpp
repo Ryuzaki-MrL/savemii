@@ -84,6 +84,7 @@ void deinitFS() {
     Mocha_UnmountFS("storage_slccmpt01");
     Mocha_UnmountFS("storage_mlc01");
     Mocha_UnmountFS("storage_usb01");
+    Mocha_UnmountFS("storage_usb02");
     Mocha_DeInitLibrary();
     FSShutdown();
 }
