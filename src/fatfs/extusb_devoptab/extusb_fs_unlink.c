@@ -4,9 +4,8 @@
 extern "C" {
 #endif
 
-int
-__extusb_fs_unlink(struct _reent *r,
-                   const char *name) {
+int __extusb_fs_unlink(struct _reent *r,
+                       const char *name) {
     char *fixedPath;
 
     if (!name) {

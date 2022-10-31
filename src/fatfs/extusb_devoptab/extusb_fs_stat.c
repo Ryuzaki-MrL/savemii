@@ -4,10 +4,9 @@
 extern "C" {
 #endif
 
-int
-__extusb_fs_stat(struct _reent *r,
-                 const char *path,
-                 struct stat *st) {
+int __extusb_fs_stat(struct _reent *r,
+                     const char *path,
+                     struct stat *st) {
     if (!path || !st) {
         r->_errno = EINVAL;
         return -1;

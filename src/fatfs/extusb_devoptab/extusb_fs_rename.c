@@ -4,10 +4,9 @@
 extern "C" {
 #endif
 
-int
-__extusb_fs_rename(struct _reent *r,
-                   const char *oldName,
-                   const char *newName) {
+int __extusb_fs_rename(struct _reent *r,
+                       const char *oldName,
+                       const char *newName) {
     char *fixedOldPath, *fixedNewPath;
 
     if (!oldName || !newName) {

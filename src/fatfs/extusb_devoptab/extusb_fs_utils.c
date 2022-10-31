@@ -1,5 +1,5 @@
-#include "extusb_devoptab.h"
 #include "../devices.h"
+#include "extusb_devoptab.h"
 #include "stdio.h"
 
 #ifdef __cplusplus

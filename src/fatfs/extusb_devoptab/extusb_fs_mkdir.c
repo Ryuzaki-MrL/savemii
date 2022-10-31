@@ -4,10 +4,9 @@
 extern "C" {
 #endif
 
-int
-__extusb_fs_mkdir(struct _reent *r,
-                  const char *path,
-                  int mode) {
+int __extusb_fs_mkdir(struct _reent *r,
+                      const char *path,
+                      int mode) {
     char *fixedPath;
 
     if (!path) {

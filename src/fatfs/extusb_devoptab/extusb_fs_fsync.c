@@ -4,9 +4,8 @@
 extern "C" {
 #endif
 
-int
-__extusb_fs_fsync(struct _reent *r,
-                  void *fd) {
+int __extusb_fs_fsync(struct _reent *r,
+                      void *fd) {
     if (!fd) {
         r->_errno = EINVAL;
         return -1;

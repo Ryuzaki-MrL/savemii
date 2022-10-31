@@ -4,9 +4,8 @@
 extern "C" {
 #endif
 
-int
-__extusb_fs_dirreset(struct _reent *r,
-                     DIR_ITER *dirState) {
+int __extusb_fs_dirreset(struct _reent *r,
+                         DIR_ITER *dirState) {
     if (!dirState) {
         r->_errno = EINVAL;
         return -1;

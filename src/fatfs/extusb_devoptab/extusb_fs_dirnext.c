@@ -4,11 +4,10 @@
 extern "C" {
 #endif
 
-int
-__extusb_fs_dirnext(struct _reent *r,
-                    DIR_ITER *dirState,
-                    char *filename,
-                    struct stat *filestat) {
+int __extusb_fs_dirnext(struct _reent *r,
+                        DIR_ITER *dirState,
+                        char *filename,
+                        struct stat *filestat) {
     if (!dirState || !filename || !filestat) {
         r->_errno = EINVAL;
         return -1;
