@@ -18,8 +18,7 @@ Account *wiiuacc;
 Account *sdacc;
 uint8_t wiiuaccn = 0, sdaccn = 5;
 
-extern "C" FSClient *__wut_devoptab_fs_client;
-static FSCmdBlock cmdBlk;
+static FSAClientHandle handle;
 
 std::string usb;
 
@@ -58,12 +57,11 @@ int checkEntry(const char *fPath) {
 }
 
 bool initFS() {
-    FSInit();
-    FSInitCmdBlock(&cmdBlk);
-    FSSetCmdPriority(&cmdBlk, 0);
+    FSAInit();
+    handle = FSAAddClient(nullptr);
     bool ret = Mocha_InitLibrary() == MOCHA_RESULT_SUCCESS;
     if (ret)
-        ret = Mocha_UnlockFSClient(__wut_devoptab_fs_client) == MOCHA_RESULT_SUCCESS;
+        ret = Mocha_UnlockFSClientEx(handle) == MOCHA_RESULT_SUCCESS;
     if (ret) {
         Mocha_MountFS("storage_slccmpt01", nullptr, "/vol/storage_slccmpt01");
         Mocha_MountFS("storage_mlc01", nullptr, "/vol/storage_mlc01");
@@ -86,7 +84,8 @@ void deinitFS() {
     Mocha_UnmountFS("storage_usb01");
     Mocha_UnmountFS("storage_usb02");
     Mocha_DeInitLibrary();
-    FSShutdown();
+    FSADelClient(handle);
+    FSAShutdown();
 }
 
 std::string getUSB() {
@@ -512,7 +511,7 @@ static bool copyFile(std::string pPath, std::string oPath) {
 
     copyFileThreaded(source, dest, sizef);
 
-    FSChangeMode(__wut_devoptab_fs_client, &cmdBlk, (char *) newlibtoFSA(oPath).c_str(), (FSMode) 0x660, (FSMode) 0x777, FS_ERROR_FLAG_ALL);
+    FSAChangeMode(handle, newlibtoFSA(oPath).c_str(), (FSMode) 0x660);
 
     fclose(source);
     fclose(dest);

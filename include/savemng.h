@@ -2,7 +2,7 @@
 
 #define __STDC_WANT_LIB_EXT2__ 1
 
-#include <coreinit/filesystem.h>
+#include <coreinit/filesystem_fsa.h>
 #include <coreinit/mcp.h>
 #include <coreinit/memdefaultheap.h>
 #include <coreinit/thread.h>
