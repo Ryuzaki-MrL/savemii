@@ -1,11 +1,11 @@
-#include "extusb_devoptab.h"
-#include "../devices.h"
-#include <stdio.h>
+#include <sys/iosupport.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/iosupport.h>
+#include <stdio.h>
 #include <whb/log.h>
 #include <whb/log_console.h>
+#include "../devices.h"
+#include "extusb_devoptab.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,34 +13,34 @@ extern "C" {
 
 static devoptab_t
         extusb_fs_devoptab =
-                {
-                        .name = "sd",
-                        .structSize = sizeof(__extusb_fs_file_t),
-                        .open_r = __extusb_fs_open,
-                        .close_r = __extusb_fs_close,
-                        .write_r = __extusb_fs_write,
-                        .read_r = __extusb_fs_read,
-                        .seek_r = __extusb_fs_seek,
-                        .fstat_r = __extusb_fs_fstat,
-                        .stat_r = __extusb_fs_stat,
-                        .link_r = __extusb_fs_link,
-                        .unlink_r = __extusb_fs_unlink,
-                        .chdir_r = __extusb_fs_chdir,
-                        .rename_r = __extusb_fs_rename,
-                        .mkdir_r = __extusb_fs_mkdir,
-                        .dirStateSize = sizeof(__extusb_fs_dir_t),
-                        .diropen_r = __extusb_fs_diropen,
-                        .dirreset_r = __extusb_fs_dirreset,
-                        .dirnext_r = __extusb_fs_dirnext,
-                        .dirclose_r = __extusb_fs_dirclose,
-                        .statvfs_r = __extusb_fs_statvfs,
-                        .ftruncate_r = __extusb_fs_ftruncate,
-                        .fsync_r = __extusb_fs_fsync,
-                        .deviceData = NULL,
-                        .chmod_r = __extusb_fs_chmod,
-                        .fchmod_r = __extusb_fs_fchmod,
-                        .rmdir_r = __extusb_fs_rmdir,
-};
+        {
+                .name         = "sd",
+                .structSize   = sizeof(__extusb_fs_file_t),
+                .open_r       = __extusb_fs_open,
+                .close_r      = __extusb_fs_close,
+                .write_r      = __extusb_fs_write,
+                .read_r       = __extusb_fs_read,
+                .seek_r       = __extusb_fs_seek,
+                .fstat_r      = __extusb_fs_fstat,
+                .stat_r       = __extusb_fs_stat,
+                .link_r       = __extusb_fs_link,
+                .unlink_r     = __extusb_fs_unlink,
+                .chdir_r      = __extusb_fs_chdir,
+                .rename_r     = __extusb_fs_rename,
+                .mkdir_r      = __extusb_fs_mkdir,
+                .dirStateSize = sizeof(__extusb_fs_dir_t),
+                .diropen_r    = __extusb_fs_diropen,
+                .dirreset_r   = __extusb_fs_dirreset,
+                .dirnext_r    = __extusb_fs_dirnext,
+                .dirclose_r   = __extusb_fs_dirclose,
+                .statvfs_r    = __extusb_fs_statvfs,
+                .ftruncate_r  = __extusb_fs_ftruncate,
+                .fsync_r      = __extusb_fs_fsync,
+                .deviceData   = NULL,
+                .chmod_r      = __extusb_fs_chmod,
+                .fchmod_r     = __extusb_fs_fchmod,
+                .rmdir_r      = __extusb_fs_rmdir,
+        };
 
 static BOOL extusb_fs_initialised = false;
 

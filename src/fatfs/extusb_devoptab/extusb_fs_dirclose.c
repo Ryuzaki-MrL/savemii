@@ -4,8 +4,9 @@
 extern "C" {
 #endif
 
-int __extusb_fs_dirclose(struct _reent *r,
-                         DIR_ITER *dirState) {
+int
+__extusb_fs_dirclose(struct _reent *r,
+                     DIR_ITER *dirState) {
 
     if (!dirState) {
         r->_errno = EINVAL;

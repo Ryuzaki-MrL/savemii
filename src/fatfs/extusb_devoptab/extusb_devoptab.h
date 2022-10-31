@@ -2,16 +2,16 @@
 
 #include <coreinit/filesystem.h>
 
-#include "../ff.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
-#include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
+#include <malloc.h>
 #include <sys/iosupport.h>
 #include <sys/param.h>
 #include <unistd.h>
+#include "../ff.h"
 
 #ifdef __cplusplus
 extern "C" {

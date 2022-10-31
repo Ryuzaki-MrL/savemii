@@ -1,13 +1,14 @@
-#include "extusb_devoptab.h"
 #include <time.h>
+#include "extusb_devoptab.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int __extusb_fs_utimes(struct _reent *r,
-                       const char *filename,
-                       const struct timeval times[2]) {
+int
+__extusb_fs_utimes(struct _reent *r,
+                   const char *filename,
+                   const struct timeval times[2]) {
     if (!filename) {
         r->_errno = EINVAL;
         return -1;

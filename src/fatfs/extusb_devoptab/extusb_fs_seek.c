@@ -4,12 +4,12 @@
 extern "C" {
 #endif
 
-off_t __extusb_fs_seek(struct _reent *r,
-                       void *fd,
-                       off_t pos,
-                       int whence) {
-    uint64_t offset;
-    ;
+off_t
+__extusb_fs_seek(struct _reent *r,
+                 void *fd,
+                 off_t pos,
+                 int whence) {
+    uint64_t offset;;
 
     if (!fd) {
         r->_errno = EINVAL;

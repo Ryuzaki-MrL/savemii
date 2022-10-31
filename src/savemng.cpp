@@ -35,11 +35,11 @@ static bool buffersInitialized = false;
 std::string newlibtoFSA(std::string path) {
     if (path.rfind("storage_slccmpt01:", 0) == 0) {
         replace(path, "storage_slccmpt01:", "/vol/storage_slccmpt01");
-    } else if (path.rfind("storage_mlc01:", 0) == 0) {
+    } else if(path.rfind("storage_mlc01:", 0) == 0) {
         replace(path, "storage_mlc01:", "/vol/storage_mlc01");
-    } else if (path.rfind("storage_usb01:", 0) == 0) {
+    } else if(path.rfind("storage_usb01:", 0) == 0) {
         replace(path, "storage_usb01:", "/vol/storage_usb01");
-    } else if (path.rfind("storage_usb02:", 0) == 0) {
+    } else if(path.rfind("storage_usb02:", 0) == 0) {
         replace(path, "storage_usb02:", "/vol/storage_usb02");
     }
     return path;

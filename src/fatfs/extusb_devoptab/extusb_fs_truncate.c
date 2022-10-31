@@ -4,9 +4,10 @@
 extern "C" {
 #endif
 
-int __extusb_fs_ftruncate(struct _reent *r,
-                          void *fd,
-                          off_t len) {
+int
+__extusb_fs_ftruncate(struct _reent *r,
+                      void *fd,
+                      off_t len) {
     // Make sure length is non-negative
     if (!fd || len < 0) {
         r->_errno = EINVAL;

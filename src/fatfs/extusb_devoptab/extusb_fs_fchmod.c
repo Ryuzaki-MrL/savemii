@@ -4,9 +4,10 @@
 extern "C" {
 #endif
 
-int __extusb_fs_fchmod(struct _reent *r,
-                       void *fd,
-                       mode_t mode) {
+int
+__extusb_fs_fchmod(struct _reent *r,
+                   void *fd,
+                   mode_t mode) {
     if (!fd) {
         r->_errno = EINVAL;
         return -1;

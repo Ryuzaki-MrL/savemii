@@ -4,8 +4,9 @@
 extern "C" {
 #endif
 
-int __extusb_fs_chdir(struct _reent *r,
-                      const char *path) {
+int
+__extusb_fs_chdir(struct _reent *r,
+                  const char *path) {
     if (!path) {
         r->_errno = EINVAL;
         return -1;
