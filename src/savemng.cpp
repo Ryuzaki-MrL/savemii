@@ -802,6 +802,16 @@ void copySavedata(Title *title, Title *titleb, int8_t allusers, int8_t allusers_
     if (copyDir(srcPath + stringFormat("/%s", wiiuacc[allusers].persistentID),
                 dstPath + stringFormat("/%s", wiiuacc[allusers_d].persistentID)) != 0)
         promptError(gettext("Copy failed."));
+    
+    if (dstPath.rfind("storage_slccmpt01:", 0) == 0) {
+        FSAFlushVolume(handle, "/vol/storage_slccmpt01");
+    } else if(dstPath.rfind("storage_mlc01:", 0) == 0) {
+        FSAFlushVolume(handle, "/vol/storage_mlc01");
+    } else if(dstPath.rfind("storage_usb01:", 0) == 0) {
+        FSAFlushVolume(handle, "/vol/storage_usb01");
+    } else if(dstPath.rfind("storage_usb02:", 0) == 0) {
+        FSAFlushVolume(handle, "/vol/storage_usb02");
+    }
 }
 
 void backupAllSave(Title *titles, int count, OSCalendarTime *date) {
@@ -877,6 +887,15 @@ void backupSavedata(Title *title, uint8_t slot, int8_t allusers, bool common) {
     Date *dateObj = new Date(title->highID, title->lowID, slot);
     dateObj->set(date);
     delete dateObj;
+    if (dstPath.rfind("storage_slccmpt01:", 0) == 0) {
+        FSAFlushVolume(handle, "/vol/storage_slccmpt01");
+    } else if(dstPath.rfind("storage_mlc01:", 0) == 0) {
+        FSAFlushVolume(handle, "/vol/storage_mlc01");
+    } else if(dstPath.rfind("storage_usb01:", 0) == 0) {
+        FSAFlushVolume(handle, "/vol/storage_usb01");
+    } else if(dstPath.rfind("storage_usb02:", 0) == 0) {
+        FSAFlushVolume(handle, "/vol/storage_usb02");
+    }
 }
 
 void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers, bool common) {
@@ -915,6 +934,16 @@ void restoreSavedata(Title *title, uint8_t slot, int8_t sdusers, int8_t allusers
 
     if (copyDir(srcPath, dstPath) != 0)
         promptError(gettext("Restore failed."));
+    
+    if (dstPath.rfind("storage_slccmpt01:", 0) == 0) {
+        FSAFlushVolume(handle, "/vol/storage_slccmpt01");
+    } else if(dstPath.rfind("storage_mlc01:", 0) == 0) {
+        FSAFlushVolume(handle, "/vol/storage_mlc01");
+    } else if(dstPath.rfind("storage_usb01:", 0) == 0) {
+        FSAFlushVolume(handle, "/vol/storage_usb01");
+    } else if(dstPath.rfind("storage_usb02:", 0) == 0) {
+        FSAFlushVolume(handle, "/vol/storage_usb02");
+    }
 }
 
 void wipeSavedata(Title *title, int8_t allusers, bool common) {
@@ -952,6 +981,15 @@ void wipeSavedata(Title *title, int8_t allusers, bool common) {
         if (unlink(origPath) == -1)
             promptError(gettext("Failed to delete user folder.\n%s"), strerror(errno));
     }
+    if (strncmp(strchr(srcPath, '_'), "_usb01", 6) == 0) {
+		FSAFlushVolume(handle, "/vol/storage_usb01");
+    } else if (strncmp(strchr(srcPath, '_'), "_usb02", 6) == 0) {
+		FSAFlushVolume(handle, "/vol/storage_usb02");
+	} else if (strncmp(strchr(srcPath, '_'), "_mlc", 4) == 0) {
+		FSAFlushVolume(handle, "/vol/storage_mlc01");
+	} else if (strncmp(strchr(srcPath, '_'), "_slccmpt", 8) == 0) {
+		FSAFlushVolume(handle, "/vol/storage_slccmpt01");
+	}
 }
 
 void importFromLoadiine(Title *title, bool common, int version) {
