@@ -63,7 +63,8 @@ bool initFS() {
     if (ret)
         ret = Mocha_UnlockFSClientEx(handle) == MOCHA_RESULT_SUCCESS;
     if (ret) {
-        Mocha_MountFS("storage_slccmpt01", nullptr, "/vol/storage_slccmpt01");
+        if(Mocha_MountFS("storage_slccmpt01", nullptr, "/vol/storage_slccmpt01") != MOCHA_RESULT_SUCCESS)
+            Mocha_MountFS("storage_slccmpt01", "/dev/slccmpt01", "/vol/storage_slccmpt01");
         Mocha_MountFS("storage_mlc01", nullptr, "/vol/storage_mlc01");
         Mocha_MountFS("storage_usb01", nullptr, "/vol/storage_usb01");
         Mocha_MountFS("storage_usb02", nullptr, "/vol/storage_usb02");
