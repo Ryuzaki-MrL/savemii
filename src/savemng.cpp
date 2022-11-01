@@ -516,10 +516,10 @@ static bool copyFile(std::string pPath, std::string oPath) {
 
     copyFileThreaded(source, dest, sizef);
 
-    FSAChangeMode(handle, newlibtoFSA(oPath).c_str(), (FSMode) 0x660);
-
     fclose(source);
     fclose(dest);
+
+    FSAChangeMode(handle, newlibtoFSA(oPath).c_str(), (FSMode) 0x660);
 
     return true;
 }
