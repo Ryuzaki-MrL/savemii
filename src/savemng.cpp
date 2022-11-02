@@ -179,9 +179,9 @@ static bool createFolder(const char *fPath) { //Adapted from mkdir_p made by Jon
             if (found > 2) {
                 *p = '\0';
                 if (checkEntry(_path.c_str()) == 0) {
-                    if (mkdir(_path.c_str(), 0x660) == -1)
+                    if (mkdir(_path.c_str(), 0x666) == -1)
                         return false;
-                    FSAChangeMode(handle, _path.c_str(), (FSMode) 0x660);
+                    FSAChangeMode(handle, _path.c_str(), (FSMode) 0x666);
                 }
                     
                 *p = '/';
@@ -190,9 +190,9 @@ static bool createFolder(const char *fPath) { //Adapted from mkdir_p made by Jon
     }
 
     if (checkEntry(_path.c_str()) == 0)
-        if (mkdir(_path.c_str(), 0x660) == -1)
+        if (mkdir(_path.c_str(), 0x666) == -1)
             return false;
-    FSAChangeMode(handle, _path.c_str(), (FSMode) 0x660);
+    FSAChangeMode(handle, _path.c_str(), (FSMode) 0x666);
 
     return true;
 }
@@ -505,7 +505,7 @@ static bool copyFile(std::string pPath, std::string oPath) {
     fclose(source);
     fclose(dest);
 
-    FSAChangeMode(handle, oPath.c_str(), (FSMode) 0x660);
+    FSAChangeMode(handle, oPath.c_str(), (FSMode) 0x666);
 
     return true;
 }
@@ -515,8 +515,8 @@ static int copyDir(std::string pPath, std::string tPath) { // Source: ft2sd
     if (dir == nullptr)
         return -1;
 
-    mkdir(tPath.c_str(), 0x660);
-    FSAChangeMode(handle, tPath.c_str(), (FSMode) 0x660);
+    mkdir(tPath.c_str(), 0x666);
+    FSAChangeMode(handle, tPath.c_str(), (FSMode) 0x666);
     auto *data = (dirent *) malloc(sizeof(dirent));
 
     while ((data = readdir(dir)) != nullptr) {
@@ -528,8 +528,8 @@ static int copyDir(std::string pPath, std::string tPath) { // Source: ft2sd
         std::string targetPath = stringFormat("%s/%s", tPath.c_str(), data->d_name);
 
         if ((data->d_type & DT_DIR) != 0) {
-            mkdir(targetPath.c_str(), 0x660);
-            FSAChangeMode(handle, targetPath.c_str(), (FSMode) 0x660);
+            mkdir(targetPath.c_str(), 0x666);
+            FSAChangeMode(handle, targetPath.c_str(), (FSMode) 0x666);
             if (copyDir(pPath + stringFormat("/%s", data->d_name), targetPath) != 0) {
                 closedir(dir);
                 return -2;
