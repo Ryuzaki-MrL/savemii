@@ -510,7 +510,7 @@ static bool copyFile(std::string pPath, std::string oPath) {
         return false;
     }
 
-    int sizef = getFilesize(source);
+    size_t sizef = getFilesize(source);
 
     clearBuffersEx();
     showFileOperation(basename(pPath.c_str()), pPath, oPath);
