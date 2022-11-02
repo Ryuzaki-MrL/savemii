@@ -22,7 +22,7 @@
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 5
-#define VERSION_MICRO 1
+#define VERSION_MICRO 2
 #define M_OFF         1
 
 typedef struct {
