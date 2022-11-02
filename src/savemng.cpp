@@ -490,6 +490,13 @@ static bool copyFileThreaded(FILE *srcFile, FILE *dstFile, size_t totalSize) {
     return success;
 }
 
+static size_t getFilesize(FILE *fp) {
+    fseek(fp, 0L, SEEK_END);
+    size_t fsize = ftell(fp);
+    fseek(fp, 0L, SEEK_SET);
+    return fsize;
+}
+
 static bool copyFile(std::string pPath, std::string oPath) {
     if (pPath.find("savemiiMeta.json") != std::string::npos)
         return true;
@@ -503,10 +510,7 @@ static bool copyFile(std::string pPath, std::string oPath) {
         return false;
     }
 
-    struct stat st;
-    if (stat(pPath.c_str(), &st) < 0)
-        return false;
-    int sizef = st.st_size;
+    int sizef = getFilesize(source);
 
     clearBuffersEx();
     showFileOperation(basename(pPath.c_str()), pPath, oPath);
