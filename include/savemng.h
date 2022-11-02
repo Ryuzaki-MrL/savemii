@@ -16,6 +16,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <fat.h>
+#include <mocha/disc_interface.h>
 #include <mocha/mocha.h>
 
 #define PATH_SIZE     0x400
