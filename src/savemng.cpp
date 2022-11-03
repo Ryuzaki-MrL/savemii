@@ -4,6 +4,7 @@
 #include <string.hpp>
 
 #include <LockingQueue.h>
+#include <chrono>
 #include <future>
 #include <language.h>
 #include <savemng.h>
@@ -15,6 +16,9 @@ static char *p1;
 Account *wiiuacc;
 Account *sdacc;
 uint8_t wiiuaccn = 0, sdaccn = 5;
+
+std::chrono::system_clock::time_point oneSecond = std::chrono::system_clock::now() + std::chrono::seconds(1);
+static size_t written = 0;
 
 static FSAClientHandle handle;
 
@@ -435,19 +439,19 @@ static bool readThread(FILE *srcFile, LockingQueue<file_buffer> *ready, LockingQ
 
 static bool writeThread(FILE *dstFile, LockingQueue<file_buffer> *ready, LockingQueue<file_buffer> *done, size_t totalSize) {
     uint bytes_written;
-    size_t total_bytes_written = 0;
     file_buffer currentBuffer;
     ready->waitAndPop(currentBuffer);
+    written = 0;
     while (currentBuffer.len > 0 && (bytes_written = fwrite(currentBuffer.buf, 1, currentBuffer.len, dstFile)) == currentBuffer.len) {
         done->push(currentBuffer);
         ready->waitAndPop(currentBuffer);
-        total_bytes_written += bytes_written;
+        written += bytes_written;
     }
     done->push(currentBuffer);
     return ferror(dstFile) == 0;
 }
 
-static bool copyFileThreaded(FILE *srcFile, FILE *dstFile, size_t totalSize) {
+static bool copyFileThreaded(FILE *srcFile, FILE *dstFile, size_t totalSize, std::string pPath, std::string oPath) {
     LockingQueue<file_buffer> read;
     LockingQueue<file_buffer> write;
     for (auto &buffer : buffers) {
@@ -468,11 +472,23 @@ static bool copyFileThreaded(FILE *srcFile, FILE *dstFile, size_t totalSize) {
 
     std::future<bool> readFut = std::async(std::launch::async, readThread, srcFile, &read, &write);
     std::future<bool> writeFut = std::async(std::launch::async, writeThread, dstFile, &write, &read, totalSize);
+    uint32_t passedMs = 1;
+	uint64_t startTime = OSGetTime();
+    do {
+        passedMs = (uint32_t)OSTicksToMilliseconds(OSGetTime() - startTime);
+        if(passedMs == 0)
+            passedMs = 1; // avoid 0 div
+        clearBuffersEx();
+        showFileOperation(basename(pPath.c_str()), pPath, oPath);
+        consolePrintPos(-2, 15, "Bytes Copied: %d of %d (%i kB/s)", written, totalSize,  (uint32_t)(((uint64_t)written * 1000) / ((uint64_t)1024 * passedMs)));
+        flipBuffers();
+        WHBLogFreetypeDraw();
+    } while (std::future_status::ready != writeFut.wait_until(oneSecond));
     bool success = readFut.get() && writeFut.get();
     return success;
 }
 
-static size_t getFilesize(FILE *fp) {
+static inline size_t getFilesize(FILE *fp) {
     fseek(fp, 0L, SEEK_END);
     size_t fsize = ftell(fp);
     fseek(fp, 0L, SEEK_SET);
@@ -494,13 +510,7 @@ static bool copyFile(std::string pPath, std::string oPath) {
 
     size_t sizef = getFilesize(source);
 
-    clearBuffersEx();
-    showFileOperation(basename(pPath.c_str()), pPath, oPath);
-    consolePrintPos(-2, 15, gettext("Filesize: %d bytes"), sizef);
-    flipBuffers();
-    WHBLogFreetypeDraw();
-
-    copyFileThreaded(source, dest, sizef);
+    copyFileThreaded(source, dest, sizef, pPath, oPath);
 
     fclose(source);
     fclose(dest);
