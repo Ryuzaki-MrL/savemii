@@ -18,7 +18,7 @@ Account *sdacc;
 uint8_t wiiuaccn = 0, sdaccn = 5;
 
 std::chrono::system_clock::time_point oneSecond = std::chrono::system_clock::now() + std::chrono::seconds(1);
-static volatile size_t written = 0;
+static size_t written = 0;
 
 static FSAClientHandle handle;
 
@@ -441,6 +441,7 @@ static bool writeThread(FILE *dstFile, LockingQueue<file_buffer> *ready, Locking
     uint bytes_written;
     file_buffer currentBuffer;
     ready->waitAndPop(currentBuffer);
+    written = 0;
     while (currentBuffer.len > 0 && (bytes_written = fwrite(currentBuffer.buf, 1, currentBuffer.len, dstFile)) == currentBuffer.len) {
         done->push(currentBuffer);
         ready->waitAndPop(currentBuffer);
